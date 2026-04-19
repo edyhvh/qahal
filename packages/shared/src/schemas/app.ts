@@ -4,7 +4,8 @@ export const onboardingSubmitSchema = z.object({
   telegramId: z.number().int().positive(),
   firstName: z.string().min(1).max(80),
   city: z.string().min(1).max(120),
-  languageCode: z.enum(["en", "es", "he"]).default("en")
+  languageCode: z.enum(["en", "es", "he"]).default("en"),
+  answers: z.record(z.string().min(1), z.string().min(1).max(16)).optional()
 });
 
 export const locationUpsertSchema = z.object({
@@ -53,7 +54,8 @@ export const locationSaveSchema = z.object({
 
 export const nearbyQuerySchema = z.object({
   latitude: z.coerce.number().min(-90).max(90),
-  longitude: z.coerce.number().min(-180).max(180)
+  longitude: z.coerce.number().min(-180).max(180),
+  telegramId: z.coerce.number().int().positive().optional()
 });
 
 export const communityCardSchema = z.object({

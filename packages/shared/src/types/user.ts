@@ -7,4 +7,9 @@ export interface UserDto {
   languageCode?: string;
   city?: string;
   onboardingCompleted?: boolean;
+  birthDate?: string;
+  badges?: string[];
+  qahalName?: string;
+  latestLatitude?: number;
+  latestLongitude?: number;
 }

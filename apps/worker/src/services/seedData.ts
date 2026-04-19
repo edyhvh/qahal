@@ -73,6 +73,26 @@ export const seedLocations: SeedLocation[] = [
           { kind: "kehilah", label: "Kehilah" },
           { kind: "messenger", label: "Messenger" }
         ]
+      },
+      {
+        id: 103,
+        name: "Hannah bat Eli",
+        city: "Buenos Aires",
+        locationKey: "buenos-aires",
+        badges: [
+          { kind: "emunah", label: "Emunah" },
+          { kind: "hebrew-teacher", label: "Hebrew Teacher" }
+        ]
+      },
+      {
+        id: 104,
+        name: "Elijah ben Tishbi",
+        city: "Buenos Aires",
+        locationKey: "buenos-aires",
+        badges: [
+          { kind: "kehilah", label: "Kehilah" },
+          { kind: "years", label: "Years in Emunah", years: 3 }
+        ]
       }
     ]
   },
@@ -116,6 +136,16 @@ export const seedLocations: SeedLocation[] = [
         badges: [
           { kind: "emunah", label: "Emunah" },
           { kind: "hebrew-student", label: "Hebrew Student" }
+        ]
+      },
+      {
+        id: 204,
+        name: "Leah bat Laban",
+        city: "Mar de Ajo",
+        locationKey: "mar-de-ajo",
+        badges: [
+          { kind: "kehilah", label: "Kehilah" },
+          { kind: "messenger", label: "Messenger" }
         ]
       }
     ]
