@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CommunityCard } from "@qahal/shared";
+import { getLocalProfileRoleOption } from "../../app/types";
 import type { HomeVariant, LocalProfileRole } from "../../app/types";
 import { HomePopups } from "./components/HomePopups";
 import { JoinRequestToast } from "./components/JoinRequestToast";
@@ -17,23 +18,52 @@ interface HomeScreenProps {
 /* ── SVG icons extracted from Paper (4V3-0) ── */
 const HomeIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <path d="M3 12L5 10M5 10L12 3L19 10M5 10V20C5 20.552 5.448 21 6 21H9M19 10L21 12M19 10V20C19 20.552 18.552 21 18 21H15M9 21C9.552 21 10 20.552 10 20V16C10 15.448 10.448 15 11 15H13C13.552 15 14 15.448 14 16V20C14 20.552 14.448 21 15 21M9 21H15" stroke="#F5F0E8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M3 12L5 10M5 10L12 3L19 10M5 10V20C5 20.552 5.448 21 6 21H9M19 10L21 12M19 10V20C19 20.552 18.552 21 18 21H15M9 21C9.552 21 10 20.552 10 20V16C10 15.448 10.448 15 11 15H13C13.552 15 14 15.448 14 16V20C14 20.552 14.448 21 15 21M9 21H15"
+      stroke="#F5F0E8"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 const MapIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M9 20L3 17V4L9 7M9 20L15 17M9 20V7M15 17L21 20V7L15 4M15 17V4M9 7L15 4" stroke="#1E5C5A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M9 20L3 17V4L9 7M9 20L15 17M9 20V7M15 17L21 20V7L15 4M15 17V4M9 7L15 4"
+      stroke="#1E5C5A"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 const ProfileIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M16 7C16 9.209 14.209 11 12 11C9.791 11 8 9.209 8 7C8 4.791 9.791 3 12 3C14.209 3 16 4.791 16 7Z" stroke="#1E5C5A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M12 14C8.134 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="#1E5C5A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M16 7C16 9.209 14.209 11 12 11C9.791 11 8 9.209 8 7C8 4.791 9.791 3 12 3C14.209 3 16 4.791 16 7Z"
+      stroke="#1E5C5A"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 14C8.134 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z"
+      stroke="#1E5C5A"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 const PlusIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <path d="M12 5V19M5 12H19" stroke="#F5F0E8" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="M12 5V19M5 12H19"
+      stroke="#F5F0E8"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
   </svg>
 );
 export const HomeScreen = ({
@@ -43,13 +73,18 @@ export const HomeScreen = ({
   onGoMap,
   onGoProfile,
   profileTestingEnabled,
-  localProfileRole
+  localProfileRole,
 }: HomeScreenProps) => {
-  const showAlreadyRequestedPopup = variant === "already-requested";
-  const showAlreadyMemberPopup = variant === "already-member";
-  const [requestedCommunityIds, setRequestedCommunityIds] = useState<Set<number>>(new Set());
-  const [memberCommunityIds, setMemberCommunityIds] = useState<Set<number>>(new Set());
+  const [requestedCommunityIds, setRequestedCommunityIds] = useState<
+    Set<number>
+  >(new Set());
+  const [memberCommunityIds, setMemberCommunityIds] = useState<Set<number>>(
+    new Set(),
+  );
   const [showToast, setShowToast] = useState(false);
+  const selectedRole = getLocalProfileRoleOption(localProfileRole);
+  const roleForcesMemberView =
+    profileTestingEnabled && localProfileRole !== "none";
 
   useEffect(() => {
     const initiallyRequested = new Set<number>();
@@ -89,10 +124,17 @@ export const HomeScreen = ({
 
   const displayedCommunities = useMemo(() => {
     return communities.map((community) => {
+      if (roleForcesMemberView) {
+        return {
+          ...community,
+          memberState: "member" as const,
+        };
+      }
+
       if (memberCommunityIds.has(community.id)) {
         return {
           ...community,
-          memberState: "member" as const
+          memberState: "member" as const,
         };
       }
 
@@ -103,10 +145,15 @@ export const HomeScreen = ({
 
       return {
         ...community,
-        memberState: "requested" as const
+        memberState: "requested" as const,
       };
     });
-  }, [communities, requestedCommunityIds, memberCommunityIds]);
+  }, [
+    communities,
+    requestedCommunityIds,
+    memberCommunityIds,
+    roleForcesMemberView,
+  ]);
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
@@ -114,7 +161,8 @@ export const HomeScreen = ({
       <div
         className="absolute inset-0"
         style={{
-          background: "linear-gradient(165deg, #f3efe8 0%, #ece5d8 35%, #e8e0d2 60%, #ede7db 100%)",
+          background:
+            "linear-gradient(165deg, #f3efe8 0%, #ece5d8 35%, #e8e0d2 60%, #ede7db 100%)",
         }}
       />
       {/* Paper 4RS-0: warm radial overlays */}
@@ -129,13 +177,32 @@ export const HomeScreen = ({
       {/* Scrollable content */}
       <div className="relative z-10 flex flex-1 flex-col overflow-y-auto pb-[120px]">
         {/* Header — Paper 4S7-0 */}
-        <header className="flex items-center justify-between" style={{ padding: "8px 24px 16px 24px" }}>
+        <header
+          className="flex items-center justify-between"
+          style={{ padding: "8px 24px 16px 24px" }}
+        >
           {/* Paper 4S8-0 */}
-          <h1 className="qahal-display" style={{ fontSize: 32, lineHeight: "38px", fontWeight: 700, color: "#1C2526" }}>
+          <h1
+            className="qahal-display"
+            style={{
+              fontSize: 32,
+              lineHeight: "38px",
+              fontWeight: 700,
+              color: "#1C2526",
+            }}
+          >
             Home
           </h1>
           {/* Paper 4S9-0 */}
-          <span className="qahal-display" style={{ fontSize: 14, letterSpacing: "0.15em", color: "#C9A46F", fontWeight: 600 }}>
+          <span
+            className="qahal-display"
+            style={{
+              fontSize: 14,
+              letterSpacing: "0.15em",
+              color: "#C9A46F",
+              fontWeight: 600,
+            }}
+          >
             QAHAL
           </span>
         </header>
@@ -148,18 +215,27 @@ export const HomeScreen = ({
             style={{
               borderRadius: 20,
               padding: 24,
-              backgroundImage: "linear-gradient(135deg, #7a7a82 0%, #9a9aa0 40%, #b4b4b8 100%)",
+              backgroundImage:
+                "linear-gradient(135deg, #7a7a82 0%, #9a9aa0 40%, #b4b4b8 100%)",
               boxShadow: "#78788240 0px 4px 16px, #78788226 0px 1px 4px",
             }}
           >
             {/* Plus icon circle */}
-            <div className="flex h-[44px] w-[44px] items-center justify-center rounded-full" style={{ background: "#FFFFFF26" }}>
+            <div
+              className="flex h-[44px] w-[44px] items-center justify-center rounded-full"
+              style={{ background: "#FFFFFF26" }}
+            >
               <PlusIcon />
             </div>
-            <h2 className="qahal-display" style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}>
+            <h2
+              className="qahal-display"
+              style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+            >
               Create a Qahal
             </h2>
-            <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>Start a new congregation in your area</p>
+            <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
+              Start a new congregation in your area
+            </p>
             <button
               type="button"
               onClick={() => onVariantChange("qahal-exists")}
@@ -184,16 +260,22 @@ export const HomeScreen = ({
             style={{
               borderRadius: 20,
               padding: 24,
-              backgroundImage: "linear-gradient(135deg, #8a5a30 0%, #a06a3a 50%, #b87a44 100%)",
+              backgroundImage:
+                "linear-gradient(135deg, #8a5a30 0%, #a06a3a 50%, #b87a44 100%)",
               boxShadow: "#A0622D40 0px 4px 16px, #A0622D26 0px 1px 4px",
             }}
           >
-            <h2 className="qahal-display" style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}>
+            <h2
+              className="qahal-display"
+              style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+            >
               Near You
             </h2>
             <div className="flex flex-col gap-[8px]">
               {displayedCommunities.length === 0 ? (
-                <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>No congregations found nearby yet.</p>
+                <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
+                  No congregations found nearby yet.
+                </p>
               ) : (
                 displayedCommunities.map((c) => (
                   <div
@@ -210,110 +292,166 @@ export const HomeScreen = ({
                       {/* Avatar */}
                       <div
                         className="flex shrink-0 items-center justify-center rounded-[10px]"
-                        style={{ width: 36, height: 36, background: "#F5F0E833", fontSize: 16, color: "#F5F0E8" }}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          background: "#F5F0E833",
+                          fontSize: 16,
+                          color: "#F5F0E8",
+                        }}
                       >
                         {c.name.charAt(0)}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div
                           className="qahal-display overflow-hidden text-ellipsis whitespace-nowrap"
-                          style={{ fontSize: 17, fontWeight: 600, color: "#F5F0E8" }}
+                          style={{
+                            fontSize: 17,
+                            fontWeight: 600,
+                            color: "#F5F0E8",
+                          }}
                         >
                           {c.name}
                         </div>
-                        <div style={{ fontSize: 12, color: "#F5F0E8A6" }}>
-                          {c.city} · {c.distanceKm.toFixed(1)} km
-                        </div>
+                        {roleForcesMemberView ? (
+                          <div style={{ fontSize: 12, color: "#F5F0E8A6" }}>
+                            Qahal: {selectedRole.qahalName}
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: 12, color: "#F5F0E8A6" }}>
+                            {c.city} · {c.distanceKm.toFixed(1)} km
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    <div className="flex gap-[6px]">
+                    {roleForcesMemberView ? (
                       <button
                         type="button"
                         className="flex items-center justify-center"
                         style={{
                           height: 38,
-                          flex: 1,
+                          width: "100%",
                           borderRadius: 10,
                           padding: "0 12px",
-                          background: "#F5F0E826",
-                          border: "1px solid #F5F0E840",
+                          background: "#F5F0E866",
                           fontSize: 12,
-                          fontWeight: 600,
+                          fontWeight: 700,
                           color: "#F5F0E8",
+                          letterSpacing: "0.04em",
                         }}
                       >
-                        Contact
+                        MEMBER
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (profileTestingEnabled && c.memberState === "requested") {
+                    ) : (
+                      <div className="flex gap-[6px]">
+                        <button
+                          type="button"
+                          className="flex items-center justify-center"
+                          style={{
+                            height: 38,
+                            flex: 1,
+                            borderRadius: 10,
+                            padding: "0 12px",
+                            background: "#F5F0E826",
+                            border: "1px solid #F5F0E840",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: "#F5F0E8",
+                          }}
+                        >
+                          Contact
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (
+                              profileTestingEnabled &&
+                              c.memberState === "requested"
+                            ) {
+                              setRequestedCommunityIds((prev) => {
+                                const next = new Set(prev);
+                                next.delete(c.id);
+                                return next;
+                              });
+                              onVariantChange("default");
+                              return;
+                            }
+
+                            if (c.memberState !== "not_member") {
+                              onVariantChange(
+                                c.memberState === "member"
+                                  ? "already-member"
+                                  : "already-requested",
+                              );
+                              return;
+                            }
+
+                            const hasActiveMembership =
+                              displayedCommunities.some(
+                                (community) =>
+                                  community.memberState === "member",
+                              );
+                            if (
+                              hasActiveMembership ||
+                              (profileTestingEnabled &&
+                                (localProfileRole === "member" ||
+                                  localProfileRole === "leader"))
+                            ) {
+                              onVariantChange("already-member");
+                              return;
+                            }
+
+                            const hasPendingRequest = displayedCommunities.some(
+                              (community) =>
+                                community.memberState === "requested",
+                            );
+                            if (hasPendingRequest) {
+                              onVariantChange("already-requested");
+                              return;
+                            }
+
                             setRequestedCommunityIds((prev) => {
                               const next = new Set(prev);
-                              next.delete(c.id);
+                              next.add(c.id);
                               return next;
                             });
-                            onVariantChange("default");
-                            return;
-                          }
-
-                          if (c.memberState !== "not_member") {
-                            onVariantChange(c.memberState === "member" ? "already-member" : "already-requested");
-                            return;
-                          }
-
-                          const hasActiveMembership = displayedCommunities.some((community) => community.memberState === "member");
-                          if (
-                            hasActiveMembership ||
-                            (profileTestingEnabled && (localProfileRole === "member" || localProfileRole === "leader"))
-                          ) {
-                            onVariantChange("already-member");
-                            return;
-                          }
-
-                          const hasPendingRequest = displayedCommunities.some((community) => community.memberState === "requested");
-                          if (hasPendingRequest) {
-                            onVariantChange("already-requested");
-                            return;
-                          }
-
-                          setRequestedCommunityIds((prev) => {
-                            const next = new Set(prev);
-                            next.add(c.id);
-                            return next;
-                          });
-                          setShowToast(true);
-                          onVariantChange("join-requested");
-                        }}
-                        disabled={c.memberState === "member"}
-                        className="flex items-center justify-center"
-                        style={{
-                          height: 38,
-                          flex: 1,
-                          borderRadius: 10,
-                          padding: "0 12px",
-                          background:
-                            c.memberState === "not_member" || (profileTestingEnabled && c.memberState === "requested")
-                              ? "#F5F0E8"
-                              : "#F5F0E866",
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color:
-                            c.memberState === "not_member" || (profileTestingEnabled && c.memberState === "requested")
-                              ? "#A0622D"
-                              : "#6B7280",
-                        }}
-                      >
-                        {c.memberState === "member"
-                          ? "Member"
-                          : c.memberState === "requested"
-                            ? profileTestingEnabled
-                              ? "Undo Request"
-                              : "Requested"
-                            : "Join"}
-                      </button>
-                    </div>
+                            setShowToast(true);
+                            onVariantChange("join-requested");
+                          }}
+                          disabled={c.memberState === "member"}
+                          className="flex items-center justify-center"
+                          style={{
+                            height: 38,
+                            flex: 1,
+                            borderRadius: 10,
+                            padding: "0 12px",
+                            background:
+                              c.memberState === "not_member" ||
+                              (profileTestingEnabled &&
+                                c.memberState === "requested")
+                                ? "#F5F0E8"
+                                : "#F5F0E866",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color:
+                              c.memberState === "not_member" ||
+                              (profileTestingEnabled &&
+                                c.memberState === "requested")
+                                ? "#A0622D"
+                                : "#6B7280",
+                          }}
+                        >
+                          {c.memberState === "member"
+                            ? "Member"
+                            : c.memberState === "requested"
+                              ? profileTestingEnabled
+                                ? "Undo Request"
+                                : "Requested"
+                              : "Join"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -326,17 +464,27 @@ export const HomeScreen = ({
             style={{
               borderRadius: 20,
               padding: 24,
-              backgroundImage: "linear-gradient(135deg, #1e4a48 0%, #266058 40%, #2e7a6e 100%)",
+              backgroundImage:
+                "linear-gradient(135deg, #1e4a48 0%, #266058 40%, #2e7a6e 100%)",
               boxShadow: "#1E5C5A40 0px 4px 16px, #1E5C5A26 0px 1px 4px",
             }}
           >
-            <h2 className="qahal-display" style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}>
+            <h2
+              className="qahal-display"
+              style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+            >
               Badges
             </h2>
             {[
-              { name: "Torah Student", desc: "Committed to learning and keeping Torah" },
+              {
+                name: "Torah Student",
+                desc: "Committed to learning and keeping Torah",
+              },
               { name: "Community Leader", desc: "Leading a local Qahal" },
-              { name: "Shabbat Host", desc: "Opens home for Shabbat fellowship" },
+              {
+                name: "Shabbat Host",
+                desc: "Opens home for Shabbat fellowship",
+              },
             ].map((badge) => (
               <div
                 key={badge.name}
@@ -355,8 +503,14 @@ export const HomeScreen = ({
                   <span style={{ fontSize: 16 }}>✦</span>
                 </div>
                 <div className="flex-1">
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#F5F0E8" }}>{badge.name}</div>
-                  <div style={{ fontSize: 12, color: "#F5F0E899" }}>{badge.desc}</div>
+                  <div
+                    style={{ fontSize: 14, fontWeight: 600, color: "#F5F0E8" }}
+                  >
+                    {badge.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#F5F0E899" }}>
+                    {badge.desc}
+                  </div>
                 </div>
               </div>
             ))}
@@ -376,16 +530,29 @@ export const HomeScreen = ({
       >
         <div className="flex w-[327px] items-center justify-around py-[12px]">
           {/* Home — active */}
-          <button type="button" className="flex flex-col items-center gap-[4px]" onClick={() => onVariantChange("default")}>
+          <button
+            type="button"
+            className="flex flex-col items-center gap-[4px]"
+            onClick={() => onVariantChange("default")}
+          >
             <div
               className="flex items-center justify-center rounded-full"
-              style={{ width: 48, height: 48, background: "#1E5C5A", boxShadow: "#1E5C5A4D 0px 4px 12px" }}
+              style={{
+                width: 48,
+                height: 48,
+                background: "#1E5C5A",
+                boxShadow: "#1E5C5A4D 0px 4px 12px",
+              }}
             >
               <HomeIcon />
             </div>
           </button>
           {/* Map */}
-          <button type="button" className="flex flex-col items-center gap-[4px]" onClick={onGoMap}>
+          <button
+            type="button"
+            className="flex flex-col items-center gap-[4px]"
+            onClick={onGoMap}
+          >
             <MapIcon />
             <span style={{ fontSize: 11, color: "#1E5C5A" }}>Map</span>
           </button>
@@ -400,10 +567,21 @@ export const HomeScreen = ({
           </button>
         </div>
         {/* Home indicator bar */}
-        <div style={{ width: 134, height: 5, borderRadius: 100, background: "#1C2526", opacity: 0.2 }} />
+        <div
+          style={{
+            width: 134,
+            height: 5,
+            borderRadius: 100,
+            background: "#1C2526",
+            opacity: 0.2,
+          }}
+        />
       </div>
 
-      <HomePopups variant={variant} onClose={() => onVariantChange("default")} />
+      <HomePopups
+        variant={variant}
+        onClose={() => onVariantChange("default")}
+      />
 
       <JoinRequestToast visible={showToast} />
     </section>

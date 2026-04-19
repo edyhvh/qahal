@@ -1,6 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CommunityCard, OnboardingSubmit } from "@qahal/shared";
-import type { AppFlowState, HomeVariant, LocalProfileRole, MapVariant } from "./types";
+import { getLocalProfileRoleOption } from "./types";
+import type {
+  AppFlowState,
+  HomeVariant,
+  LocalProfileRole,
+  MapVariant,
+} from "./types";
 import { api } from "../lib/api";
 import { getTelegramWebApp } from "../lib/telegram";
 import { detectRuntimeTarget, getWebGuestId } from "../lib/runtime";
@@ -10,8 +16,12 @@ const TOTAL_QUESTION_STEPS = 9;
 
 const getTelegramId = (): number => {
   const webApp = getTelegramWebApp();
-  const userCandidate = (webApp?.initDataUnsafe as { user?: { id?: number } } | undefined)?.user;
-  return typeof userCandidate?.id === "number" ? userCandidate.id : getWebGuestId();
+  const userCandidate = (
+    webApp?.initDataUnsafe as { user?: { id?: number } } | undefined
+  )?.user;
+  return typeof userCandidate?.id === "number"
+    ? userCandidate.id
+    : getWebGuestId();
 };
 
 export const useAppFlow = () => {
@@ -26,15 +36,36 @@ export const useAppFlow = () => {
       city: "",
       cityLatitude: undefined,
       cityLongitude: undefined,
-      languageCode: "en"
+      languageCode: "en",
     },
     mapVariant: "allowed",
     homeVariant: "default",
-    telegramId: getTelegramId()
+    telegramId: getTelegramId(),
   });
   const [communities, setCommunities] = useState<CommunityCard[]>([]);
   const [busy, setBusy] = useState(false);
-  const [localProfileRole, setLocalProfileRole] = useState<LocalProfileRole>("none");
+  const [localProfileRole, setLocalProfileRole] =
+    useState<LocalProfileRole>("none");
+  const [localProfileName, setLocalProfileName] = useState<string>(
+    getLocalProfileRoleOption("none").defaultDisplayName,
+  );
+  const [confirmedBirthDate, setConfirmedBirthDate] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const roleOption = getLocalProfileRoleOption(localProfileRole);
+    setLocalProfileName((prev) => {
+      const previousDefaults = [
+        getLocalProfileRoleOption("none").defaultDisplayName,
+        getLocalProfileRoleOption("member").defaultDisplayName,
+        getLocalProfileRoleOption("leader").defaultDisplayName,
+      ];
+      return previousDefaults.includes(prev)
+        ? roleOption.defaultDisplayName
+        : prev;
+    });
+  }, [localProfileRole]);
 
   const questionProgress = useMemo(() => {
     return `${state.questionStep + 1}/${TOTAL_QUESTION_STEPS}`;
@@ -51,9 +82,9 @@ export const useAppFlow = () => {
         ...prev.answers,
         values: {
           ...prev.answers.values,
-          [prev.questionStep]: value
-        }
-      }
+          [prev.questionStep]: value,
+        },
+      },
     }));
   };
 
@@ -78,7 +109,7 @@ export const useAppFlow = () => {
   const previousQuestion = () => {
     setState((prev) => ({
       ...prev,
-      questionStep: Math.max(0, prev.questionStep - 1)
+      questionStep: Math.max(0, prev.questionStep - 1),
     }));
   };
 
@@ -86,7 +117,7 @@ export const useAppFlow = () => {
     firstName: string,
     city: string,
     languageCode: "en" | "es" | "he",
-    cityCoordinates?: { latitude: number; longitude: number }
+    cityCoordinates?: { latitude: number; longitude: number },
   ) => {
     setState((prev) => ({
       ...prev,
@@ -96,38 +127,45 @@ export const useAppFlow = () => {
         city,
         cityLatitude: cityCoordinates?.latitude,
         cityLongitude: cityCoordinates?.longitude,
-        languageCode
-      }
+        languageCode,
+      },
     }));
   };
 
-  const finishOnboarding = async (
-    profile?: {
-      firstName: string;
-      city: string;
-      languageCode: "en" | "es" | "he";
-      cityCoordinates?: { latitude: number; longitude: number };
-    }
-  ) => {
+  const finishOnboarding = async (profile?: {
+    firstName: string;
+    city: string;
+    languageCode: "en" | "es" | "he";
+    cityCoordinates?: { latitude: number; longitude: number };
+  }) => {
     const finalFirstName = profile?.firstName ?? state.answers.firstName;
     const finalCity = profile?.city ?? state.answers.city;
-    const finalLanguageCode = profile?.languageCode ?? state.answers.languageCode;
-    const finalCityLatitude = profile?.cityCoordinates?.latitude ?? state.answers.cityLatitude;
-    const finalCityLongitude = profile?.cityCoordinates?.longitude ?? state.answers.cityLongitude;
+    const finalLanguageCode =
+      profile?.languageCode ?? state.answers.languageCode;
+    const finalCityLatitude =
+      profile?.cityCoordinates?.latitude ?? state.answers.cityLatitude;
+    const finalCityLongitude =
+      profile?.cityCoordinates?.longitude ?? state.answers.cityLongitude;
 
     const payload: OnboardingSubmit = {
       telegramId: state.telegramId,
       firstName: finalFirstName,
       city: finalCity,
-      languageCode: finalLanguageCode
+      languageCode: finalLanguageCode,
     };
 
     setBusy(true);
     try {
       try {
         await api.submitOnboarding(payload);
-        if (typeof finalCityLatitude === "number" && typeof finalCityLongitude === "number") {
-          const nearby = await api.getNearby(finalCityLatitude, finalCityLongitude);
+        if (
+          typeof finalCityLatitude === "number" &&
+          typeof finalCityLongitude === "number"
+        ) {
+          const nearby = await api.getNearby(
+            finalCityLatitude,
+            finalCityLongitude,
+          );
           setCommunities(nearby.communities);
         } else {
           setCommunities([]);
@@ -144,10 +182,10 @@ export const useAppFlow = () => {
           city: finalCity,
           cityLatitude: finalCityLatitude,
           cityLongitude: finalCityLongitude,
-          languageCode: finalLanguageCode
+          languageCode: finalLanguageCode,
         },
         screen: "map",
-        mapVariant: "allowed"
+        mapVariant: "allowed",
       }));
     } finally {
       setBusy(false);
@@ -163,7 +201,11 @@ export const useAppFlow = () => {
   };
 
   const goToCarousel = () => {
-    setState((prev) => ({ ...prev, screen: "onboarding-carousel", questionStep: 0 }));
+    setState((prev) => ({
+      ...prev,
+      screen: "onboarding-carousel",
+      questionStep: 0,
+    }));
   };
 
   const goToHome = () => {
@@ -178,15 +220,18 @@ export const useAppFlow = () => {
     setState((prev) => ({ ...prev, screen: "profile" }));
   };
 
-  const setMapCity = (city: string, cityCoordinates: { latitude: number; longitude: number }) => {
+  const setMapCity = (
+    city: string,
+    cityCoordinates: { latitude: number; longitude: number },
+  ) => {
     setState((prev) => ({
       ...prev,
       answers: {
         ...prev.answers,
         city,
         cityLatitude: cityCoordinates.latitude,
-        cityLongitude: cityCoordinates.longitude
-      }
+        cityLongitude: cityCoordinates.longitude,
+      },
     }));
   };
 
@@ -197,6 +242,8 @@ export const useAppFlow = () => {
     busy,
     communities,
     localProfileRole,
+    localProfileName,
+    confirmedBirthDate,
     questionProgress,
     startQuestions,
     answerQuestion,
@@ -211,6 +258,8 @@ export const useAppFlow = () => {
     goToMap,
     goToProfile,
     setLocalProfileRole,
-    setMapCity
+    setLocalProfileName,
+    setConfirmedBirthDate,
+    setMapCity,
   };
 };
