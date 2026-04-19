@@ -50,11 +50,11 @@ const getAgeFromBirthDate = (birthDate: string): number => {
   return Math.max(0, age);
 };
 
-const HomeIcon = () => (
+const HomeIcon = ({ color }: { color: string }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
     <path
       d="M3 12L5 10M5 10L12 3L19 10M5 10V20C5 20.552 5.448 21 6 21H9M19 10L21 12M19 10V20C19 20.552 18.552 21 18 21H15M9 21C9.552 21 10 20.552 10 20V16C10 15.448 10.448 15 11 15H13C13.552 15 14 15.448 14 16V20C14 20.552 14.448 21 15 21M9 21H15"
-      stroke="#1E5C5A"
+      stroke={color}
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -62,11 +62,11 @@ const HomeIcon = () => (
   </svg>
 );
 
-const MapIcon = () => (
+const MapIcon = ({ color }: { color: string }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
     <path
       d="M9 20L3 17V4L9 7M9 20L15 17M9 20V7M15 17L21 20V7L15 4M15 17V4M9 7L15 4"
-      stroke="#1E5C5A"
+      stroke={color}
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -74,18 +74,18 @@ const MapIcon = () => (
   </svg>
 );
 
-const ProfileIconActive = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+const ProfileIcon = ({ color }: { color: string }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
     <path
       d="M16 7C16 9.209 14.209 11 12 11C9.791 11 8 9.209 8 7C8 4.791 9.791 3 12 3C14.209 3 16 4.791 16 7Z"
-      stroke="#F5F0E8"
+      stroke={color}
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M12 14C8.134 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z"
-      stroke="#F5F0E8"
+      stroke={color}
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -442,25 +442,47 @@ export const ProfileScreen = ({
         <div className="flex w-[327px] items-center justify-around py-[12px]">
           <button
             type="button"
-            className="flex flex-col items-center gap-[4px]"
+            className="flex w-[84px] flex-col items-center gap-[4px]"
             onClick={onGoHome}
           >
-            <HomeIcon />
-            <span style={{ fontSize: 11, color: "#1E5C5A" }}>Home</span>
+            <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
+              <HomeIcon color="#1E5C5A" />
+            </div>
+            <span
+              style={{
+                fontSize: 11,
+                color: "#1E5C5A",
+                minHeight: 16,
+                lineHeight: "16px",
+              }}
+            >
+              Home
+            </span>
           </button>
 
           <button
             type="button"
-            className="flex flex-col items-center gap-[4px]"
+            className="flex w-[84px] flex-col items-center gap-[4px]"
             onClick={onGoMap}
           >
-            <MapIcon />
-            <span style={{ fontSize: 11, color: "#1E5C5A" }}>Map</span>
+            <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
+              <MapIcon color="#1E5C5A" />
+            </div>
+            <span
+              style={{
+                fontSize: 11,
+                color: "#1E5C5A",
+                minHeight: 16,
+                lineHeight: "16px",
+              }}
+            >
+              Map
+            </span>
           </button>
 
           <button
             type="button"
-            className="flex flex-col items-center gap-[4px]"
+            className="flex w-[84px] flex-col items-center gap-[4px]"
           >
             <div
               className="flex items-center justify-center rounded-full"
@@ -471,8 +493,19 @@ export const ProfileScreen = ({
                 boxShadow: "#1E5C5A4D 0px 4px 12px",
               }}
             >
-              <ProfileIconActive />
+              <ProfileIcon color="#F5F0E8" />
             </div>
+            <span
+              style={{
+                fontSize: 11,
+                color: "#1E5C5A",
+                minHeight: 16,
+                lineHeight: "16px",
+                visibility: "hidden",
+              }}
+            >
+              Profile
+            </span>
           </button>
         </div>
         <div
