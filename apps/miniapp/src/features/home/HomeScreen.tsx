@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CommunityCard } from "@qahal/shared";
-import { getLocalProfileRoleOption } from "../../app/types";
-import type { HomeVariant, LocalProfileRole } from "../../app/types";
+import { resolveBadgeDefinition } from "../../app/types";
+import type {
+  EffectiveProfileSnapshot,
+  HomeVariant,
+  LocalProfileRole,
+} from "../../app/types";
 import { HomePopups } from "./components/HomePopups";
 import { JoinRequestToast } from "./components/JoinRequestToast";
 
@@ -13,6 +17,7 @@ interface HomeScreenProps {
   onGoProfile: () => void;
   profileTestingEnabled: boolean;
   localProfileRole: LocalProfileRole;
+  effectiveProfile: EffectiveProfileSnapshot;
 }
 
 /* ── SVG icons extracted from Paper (4V3-0) ── */
@@ -66,6 +71,60 @@ const PlusIcon = () => (
     />
   </svg>
 );
+
+const BadgeIcon = ({ kind }: { kind: string }) => {
+  const stroke = "#F5F0E8";
+
+  if (kind === "emunah") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L14.8 8.8L21 9.7L16.5 14L17.6 20.2L12 17.2L6.4 20.2L7.5 14L3 9.7L9.2 8.8L12 3Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "kehilah") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M4 10.5L12 4L20 10.5V20H4V10.5Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9 20V14H15V20" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "years") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="8" stroke={stroke} strokeWidth="1.5" />
+        <path d="M12 8V12L15 14" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "messenger") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M12 4L18 7V12C18 15.8 15.4 19.2 12 20C8.6 19.2 6 15.8 6 12V7L12 4Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.5 12.2L11.2 13.8L14.8 10.2" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "hebrew-teacher" || kind === "hebrew-student") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M4 6H11C12.7 6 14 7.3 14 9V18H7C5.3 18 4 16.7 4 15V6Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 6H13C11.3 6 10 7.3 10 9V18H17C18.7 18 20 16.7 20 15V6Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="7" stroke={stroke} strokeWidth="1.5" />
+    </svg>
+  );
+};
 export const HomeScreen = ({
   variant,
   communities,
@@ -74,6 +133,7 @@ export const HomeScreen = ({
   onGoProfile,
   profileTestingEnabled,
   localProfileRole,
+  effectiveProfile,
 }: HomeScreenProps) => {
   const [requestedCommunityIds, setRequestedCommunityIds] = useState<
     Set<number>
@@ -82,7 +142,6 @@ export const HomeScreen = ({
     new Set(),
   );
   const [showToast, setShowToast] = useState(false);
-  const selectedRole = getLocalProfileRoleOption(localProfileRole);
   const roleForcesMemberView =
     profileTestingEnabled && localProfileRole !== "none";
 
@@ -154,6 +213,25 @@ export const HomeScreen = ({
     memberCommunityIds,
     roleForcesMemberView,
   ]);
+
+  const badgeShowcase = useMemo(() => {
+    return [
+      resolveBadgeDefinition("Emunah"),
+      resolveBadgeDefinition("Kehilah"),
+      resolveBadgeDefinition("Years in Emunah (0)"),
+      resolveBadgeDefinition("Messenger"),
+      resolveBadgeDefinition("Hebrew Teacher"),
+      resolveBadgeDefinition("Hebrew Student"),
+    ];
+  }, []);
+
+  const earnedBadgeKinds = useMemo(() => {
+    const set = new Set<string>();
+    for (const badgeName of effectiveProfile.badges) {
+      set.add(resolveBadgeDefinition(badgeName).kind);
+    }
+    return set;
+  }, [effectiveProfile.badges]);
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
@@ -315,7 +393,7 @@ export const HomeScreen = ({
                         </div>
                         {roleForcesMemberView ? (
                           <div style={{ fontSize: 12, color: "#F5F0E8A6" }}>
-                            Qahal: {selectedRole.qahalName}
+                            Qahal: {effectiveProfile.qahalName}
                           </div>
                         ) : (
                           <div style={{ fontSize: 12, color: "#F5F0E8A6" }}>
@@ -475,17 +553,9 @@ export const HomeScreen = ({
             >
               Badges
             </h2>
-            {[
-              {
-                name: "Torah Student",
-                desc: "Committed to learning and keeping Torah",
-              },
-              { name: "Community Leader", desc: "Leading a local Qahal" },
-              {
-                name: "Shabbat Host",
-                desc: "Opens home for Shabbat fellowship",
-              },
-            ].map((badge) => (
+            {badgeShowcase.map((badge) => {
+              const earned = earnedBadgeKinds.has(badge.kind);
+              return (
               <div
                 key={badge.name}
                 className="flex items-center gap-[12px]"
@@ -500,20 +570,22 @@ export const HomeScreen = ({
                   className="flex shrink-0 items-center justify-center rounded-full"
                   style={{ width: 36, height: 36, background: "#F5F0E833" }}
                 >
-                  <span style={{ fontSize: 16 }}>✦</span>
+                  <BadgeIcon kind={badge.kind} />
                 </div>
                 <div className="flex-1">
                   <div
                     style={{ fontSize: 14, fontWeight: 600, color: "#F5F0E8" }}
                   >
                     {badge.name}
+                    {earned ? " · Earned" : ""}
                   </div>
                   <div style={{ fontSize: 12, color: "#F5F0E899" }}>
                     {badge.desc}
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

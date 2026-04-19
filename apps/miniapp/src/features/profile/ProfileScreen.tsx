@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import {
   LOCAL_PROFILE_ROLE_OPTIONS,
   getLocalProfileRoleOption,
+  resolveBadgeDefinition,
 } from "../../app/types";
 import type { LocalProfileRole } from "../../app/types";
 
@@ -10,44 +11,41 @@ interface ProfileScreenProps {
   localProfileRole: LocalProfileRole;
   onRoleChange: (role: LocalProfileRole) => void;
   profileName: string;
+  profileQahalName: string;
+  profileBadges: string[];
   onProfileNameChange: (name: string) => void;
   confirmedBirthDate: string | null;
   onConfirmBirthDate: (birthDate: string | null) => void;
+  canResetLocalData: boolean;
+  onResetLocalData: () => void;
   onGoHome: () => void;
   onGoMap: () => void;
 }
 
-const formatDateLong = (birthDate: string): string => {
-  const parsed = new Date(`${birthDate}T12:00:00`);
-  if (Number.isNaN(parsed.getTime())) {
-    return birthDate;
+const parseAgeValue = (value: string): number | null => {
+  const numeric = Number(value);
+  if (Number.isInteger(numeric) && numeric >= 0 && numeric <= 120) {
+    return numeric;
   }
 
-  return new Intl.DateTimeFormat("en", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(parsed);
-};
-
-const getAgeFromBirthDate = (birthDate: string): number => {
-  const parsed = new Date(`${birthDate}T12:00:00`);
-  if (Number.isNaN(parsed.getTime())) {
-    return 0;
+  // Backward compatibility for older stored date values.
+  const parsedDate = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
   }
 
   const today = new Date();
-  let age = today.getFullYear() - parsed.getFullYear();
+  let age = today.getFullYear() - parsedDate.getFullYear();
   const hasNotHadBirthdayThisYear =
-    today.getMonth() < parsed.getMonth() ||
-    (today.getMonth() === parsed.getMonth() &&
-      today.getDate() < parsed.getDate());
+    today.getMonth() < parsedDate.getMonth() ||
+    (today.getMonth() === parsedDate.getMonth() &&
+      today.getDate() < parsedDate.getDate());
 
   if (hasNotHadBirthdayThisYear) {
     age -= 1;
   }
 
-  return Math.max(0, age);
+  return Math.max(0, Math.min(120, age));
 };
 
 const HomeIcon = ({ color }: { color: string }) => (
@@ -93,20 +91,77 @@ const ProfileIcon = ({ color }: { color: string }) => (
   </svg>
 );
 
+const BadgeIcon = ({ kind }: { kind: string }) => {
+  const stroke = "#1E5C5A";
+
+  if (kind === "emunah") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L14.8 8.8L21 9.7L16.5 14L17.6 20.2L12 17.2L6.4 20.2L7.5 14L3 9.7L9.2 8.8L12 3Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "kehilah") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M4 10.5L12 4L20 10.5V20H4V10.5Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "years") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="8" stroke={stroke} strokeWidth="1.5" />
+        <path d="M12 8V12L15 14" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "messenger") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M12 4L18 7V12C18 15.8 15.4 19.2 12 20C8.6 19.2 6 15.8 6 12V7L12 4Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (kind === "hebrew-teacher" || kind === "hebrew-student") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M4 6H11C12.7 6 14 7.3 14 9V18H7C5.3 18 4 16.7 4 15V6Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 6H13C11.3 6 10 7.3 10 9V18H17C18.7 18 20 16.7 20 15V6Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="7" stroke={stroke} strokeWidth="1.5" />
+    </svg>
+  );
+};
+
 export const ProfileScreen = ({
   profileTestingEnabled,
   localProfileRole,
   onRoleChange,
   profileName,
+  profileQahalName,
+  profileBadges,
   onProfileNameChange,
   confirmedBirthDate,
   onConfirmBirthDate,
+  canResetLocalData,
+  onResetLocalData,
   onGoHome,
   onGoMap,
 }: ProfileScreenProps) => {
-  const [birthDateDraft, setBirthDateDraft] = useState(
-    confirmedBirthDate ?? "",
-  );
+  const [birthDateDraft, setBirthDateDraft] = useState(() => {
+    const parsed = confirmedBirthDate ? parseAgeValue(confirmedBirthDate) : null;
+    return parsed === null ? "" : String(parsed);
+  });
   const [showAgeConfirmation, setShowAgeConfirmation] = useState(false);
   const birthDateInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -115,8 +170,12 @@ export const ProfileScreen = ({
     [localProfileRole],
   );
   const computedAge = useMemo(
-    () => getAgeFromBirthDate(birthDateDraft),
+    () => parseAgeValue(birthDateDraft) ?? 0,
     [birthDateDraft],
+  );
+  const confirmedAge = useMemo(
+    () => (confirmedBirthDate ? parseAgeValue(confirmedBirthDate) : null),
+    [confirmedBirthDate],
   );
   const canEditAge = confirmedBirthDate === null;
 
@@ -134,7 +193,7 @@ export const ProfileScreen = ({
   };
 
   const triggerBirthDatePicker = () => {
-    birthDateInputRef.current?.showPicker?.();
+    birthDateInputRef.current?.focus();
     birthDateInputRef.current?.click();
   };
 
@@ -230,7 +289,7 @@ export const ProfileScreen = ({
               Qahal
             </span>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#1C2526" }}>
-              {roleOption.qahalName}
+              {profileQahalName}
             </span>
           </div>
 
@@ -247,28 +306,29 @@ export const ProfileScreen = ({
             </span>
             {canEditAge ? (
               <div className="flex items-center gap-[8px]">
-                <input
+                <select
                   ref={birthDateInputRef}
-                  type="date"
                   value={birthDateDraft}
                   onChange={(event) => setBirthDateDraft(event.target.value)}
-                  max={new Date().toISOString().slice(0, 10)}
                   style={{
-                    position: "absolute",
-                    opacity: 0,
-                    width: 1,
-                    height: 1,
-                    pointerEvents: "none",
+                    width: 84,
+                    height: 36,
+                    borderRadius: 10,
+                    border: "1px solid #D5C8B6",
+                    background: "#FFFFFF",
+                    fontSize: 13,
+                    color: "#1C2526",
+                    fontWeight: 700,
+                    padding: "0 8px",
                   }}
-                  aria-hidden
-                />
-                <button
-                  type="button"
-                  onClick={triggerBirthDatePicker}
-                  style={{ fontSize: 13, color: "#1E5C5A", fontWeight: 700 }}
                 >
-                  Select Birth Date
-                </button>
+                  <option value="">Age</option>
+                  {Array.from({ length: 121 }).map((_, age) => (
+                    <option key={age} value={String(age)}>
+                      {age}
+                    </option>
+                  ))}
+                </select>
                 <button
                   type="button"
                   onClick={openAgeConfirmation}
@@ -284,8 +344,7 @@ export const ProfileScreen = ({
               </div>
             ) : (
               <span style={{ fontSize: 16, fontWeight: 700, color: "#1C2526" }}>
-                {getAgeFromBirthDate(confirmedBirthDate)} (
-                {formatDateLong(confirmedBirthDate)})
+                {confirmedAge ?? 0}
               </span>
             )}
           </div>
@@ -303,9 +362,11 @@ export const ProfileScreen = ({
               Badges
             </div>
             <div className="flex flex-wrap gap-[8px]">
-              {roleOption.badges.map((badge) => (
+              {profileBadges.map((badgeName) => {
+                const badge = resolveBadgeDefinition(badgeName);
+                return (
                 <span
-                  key={badge}
+                  key={badge.name}
                   className="inline-flex items-center rounded-full"
                   style={{
                     padding: "6px 12px",
@@ -316,9 +377,13 @@ export const ProfileScreen = ({
                     color: "#1E5C5A",
                   }}
                 >
-                  * {badge}
+                  <span className="mr-[6px] inline-flex">
+                    <BadgeIcon kind={badge.kind} />
+                  </span>
+                  {badge.name}
                 </span>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -362,6 +427,36 @@ export const ProfileScreen = ({
               </p>
             </div>
           ) : null}
+
+          {canResetLocalData ? (
+            <div className="flex flex-col gap-[8px] border-t border-[#C9A46F52] pt-[12px]">
+              <div
+                className="qahal-display"
+                style={{ fontSize: 16, color: "#1C2526", fontWeight: 600 }}
+              >
+                Local Data
+              </div>
+              <p style={{ fontSize: 12, color: "#6B7280" }}>
+                Start over locally with a brand new user profile.
+              </p>
+              <button
+                type="button"
+                onClick={onResetLocalData}
+                className="flex items-center justify-center"
+                style={{
+                  height: 42,
+                  borderRadius: 12,
+                  border: "1px solid #A0622D",
+                  background: "#FFF7ED",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#A0622D",
+                }}
+              >
+                Delete My Local Data
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -383,9 +478,6 @@ export const ProfileScreen = ({
             >
               Confirm Age
             </div>
-            <p style={{ fontSize: 13, color: "#5A5A52" }}>
-              Birth date selected: {formatDateLong(birthDateDraft)}
-            </p>
             <p style={{ fontSize: 15, color: "#1C2526", fontWeight: 700 }}>
               Age to save: {computedAge}
             </p>
