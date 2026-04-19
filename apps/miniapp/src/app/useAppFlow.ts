@@ -1,0 +1,205 @@
+import { useMemo, useState } from "react";
+import type { CommunityCard, OnboardingSubmit } from "@qahal/shared";
+import type { AppFlowState, HomeVariant, MapVariant } from "./types";
+import { api } from "../lib/api";
+import { getTelegramWebApp } from "../lib/telegram";
+import { detectRuntimeTarget, getWebGuestId } from "../lib/runtime";
+
+const TOTAL_QUESTION_STEPS = 9;
+
+const getTelegramId = (): number => {
+  const webApp = getTelegramWebApp();
+  const userCandidate = (webApp?.initDataUnsafe as { user?: { id?: number } } | undefined)?.user;
+  return typeof userCandidate?.id === "number" ? userCandidate.id : getWebGuestId();
+};
+
+export const useAppFlow = () => {
+  const runtimeTarget = detectRuntimeTarget();
+  const [state, setState] = useState<AppFlowState>({
+    screen: "onboarding-carousel",
+    questionStep: 0,
+    answers: {
+      values: {},
+      firstName: "",
+      city: "",
+      cityLatitude: undefined,
+      cityLongitude: undefined,
+      languageCode: "en"
+    },
+    mapVariant: "allowed",
+    homeVariant: "default",
+    telegramId: getTelegramId()
+  });
+  const [communities, setCommunities] = useState<CommunityCard[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  const questionProgress = useMemo(() => {
+    return `${state.questionStep + 1}/${TOTAL_QUESTION_STEPS}`;
+  }, [state.questionStep]);
+
+  const startQuestions = () => {
+    setState((prev) => ({ ...prev, screen: "onboarding-questions" }));
+  };
+
+  const answerQuestion = (value: string) => {
+    setState((prev) => ({
+      ...prev,
+      answers: {
+        ...prev.answers,
+        values: {
+          ...prev.answers.values,
+          [prev.questionStep]: value
+        }
+      }
+    }));
+  };
+
+  const nextQuestion = () => {
+    setState((prev) => {
+      const currentAnswer = prev.answers.values[prev.questionStep];
+
+      // Answered "no" → jump to disagreement screen (last step)
+      if (currentAnswer === "no") {
+        return { ...prev, questionStep: TOTAL_QUESTION_STEPS - 1 };
+      }
+
+      // Last real question answered "yes" → proceed to data screen
+      if (prev.questionStep >= TOTAL_QUESTION_STEPS - 2) {
+        return { ...prev, screen: "onboarding-data" };
+      }
+
+      return { ...prev, questionStep: prev.questionStep + 1 };
+    });
+  };
+
+  const previousQuestion = () => {
+    setState((prev) => ({
+      ...prev,
+      questionStep: Math.max(0, prev.questionStep - 1)
+    }));
+  };
+
+  const updateProfile = (
+    firstName: string,
+    city: string,
+    languageCode: "en" | "es" | "he",
+    cityCoordinates?: { latitude: number; longitude: number }
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      answers: {
+        ...prev.answers,
+        firstName,
+        city,
+        cityLatitude: cityCoordinates?.latitude,
+        cityLongitude: cityCoordinates?.longitude,
+        languageCode
+      }
+    }));
+  };
+
+  const finishOnboarding = async (
+    profile?: {
+      firstName: string;
+      city: string;
+      languageCode: "en" | "es" | "he";
+      cityCoordinates?: { latitude: number; longitude: number };
+    }
+  ) => {
+    const finalFirstName = profile?.firstName ?? state.answers.firstName;
+    const finalCity = profile?.city ?? state.answers.city;
+    const finalLanguageCode = profile?.languageCode ?? state.answers.languageCode;
+    const finalCityLatitude = profile?.cityCoordinates?.latitude ?? state.answers.cityLatitude;
+    const finalCityLongitude = profile?.cityCoordinates?.longitude ?? state.answers.cityLongitude;
+
+    const payload: OnboardingSubmit = {
+      telegramId: state.telegramId,
+      firstName: finalFirstName,
+      city: finalCity,
+      languageCode: finalLanguageCode
+    };
+
+    setBusy(true);
+    try {
+      try {
+        await api.submitOnboarding(payload);
+        if (typeof finalCityLatitude === "number" && typeof finalCityLongitude === "number") {
+          const nearby = await api.getNearby(finalCityLatitude, finalCityLongitude);
+          setCommunities(nearby.communities);
+        } else {
+          setCommunities([]);
+        }
+      } catch {
+        setCommunities([]);
+      }
+
+      setState((prev) => ({
+        ...prev,
+        answers: {
+          ...prev.answers,
+          firstName: finalFirstName,
+          city: finalCity,
+          cityLatitude: finalCityLatitude,
+          cityLongitude: finalCityLongitude,
+          languageCode: finalLanguageCode
+        },
+        screen: "map",
+        mapVariant: "allowed"
+      }));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const setMapVariant = (variant: MapVariant) => {
+    setState((prev) => ({ ...prev, mapVariant: variant }));
+  };
+
+  const setHomeVariant = (variant: HomeVariant) => {
+    setState((prev) => ({ ...prev, homeVariant: variant }));
+  };
+
+  const goToCarousel = () => {
+    setState((prev) => ({ ...prev, screen: "onboarding-carousel", questionStep: 0 }));
+  };
+
+  const goToHome = () => {
+    setState((prev) => ({ ...prev, screen: "home" }));
+  };
+
+  const goToMap = () => {
+    setState((prev) => ({ ...prev, screen: "map" }));
+  };
+
+  const setMapCity = (city: string, cityCoordinates: { latitude: number; longitude: number }) => {
+    setState((prev) => ({
+      ...prev,
+      answers: {
+        ...prev.answers,
+        city,
+        cityLatitude: cityCoordinates.latitude,
+        cityLongitude: cityCoordinates.longitude
+      }
+    }));
+  };
+
+  return {
+    runtimeTarget,
+    state,
+    busy,
+    communities,
+    questionProgress,
+    startQuestions,
+    answerQuestion,
+    nextQuestion,
+    previousQuestion,
+    goToCarousel,
+    updateProfile,
+    finishOnboarding,
+    setMapVariant,
+    setHomeVariant,
+    goToHome,
+    goToMap,
+    setMapCity
+  };
+};

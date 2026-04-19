@@ -1,0 +1,203 @@
+import { useState } from "react";
+import { CitySearch } from "./CitySearch";
+
+interface OnboardingDataScreenProps {
+  telegramId: number;
+  initialFirstName: string;
+  initialCity: string;
+  initialLanguageCode: "en" | "es" | "he";
+  busy: boolean;
+  onSubmit: (
+    firstName: string,
+    city: string,
+    languageCode: "en" | "es" | "he",
+    cityCoordinates?: { latitude: number; longitude: number }
+  ) => Promise<void>;
+}
+
+export const OnboardingDataScreen = ({
+  telegramId,
+  initialFirstName,
+  initialCity,
+  initialLanguageCode,
+  busy,
+  onSubmit,
+}: OnboardingDataScreenProps) => {
+  const [firstName, setFirstName] = useState(initialFirstName);
+  const [city, setCity] = useState(initialCity);
+  const [cityCoordinates, setCityCoordinates] = useState<{ latitude: number; longitude: number } | undefined>(undefined);
+  const [languageCode, setLanguageCode] = useState<"en" | "es" | "he">(initialLanguageCode);
+  const [step, setStep] = useState<"name" | "city">("name");
+
+  const canContinue = step === "name" ? firstName.trim().length > 0 : city.trim().length > 0;
+
+  return (
+    <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
+      {/* Paper: same dark background as questions */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 30% 20%, #2a241e 0%, #1a1612 60%), radial-gradient(circle at 70% 80%, #22201a 0%, #1a1612 50%)",
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 40%, transparent 35%, rgba(10,8,6,0.45) 100%)",
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-1 flex-col justify-between px-[28px] pb-[36px] pt-[56px]">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-[4px] opacity-50">
+          <span />
+          <span
+            style={{
+              color: "#E8DDD0",
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: "0.12em",
+              opacity: 0.35,
+            }}
+          >
+            {step === "name" ? "01" : "02"}
+          </span>
+        </div>
+
+        {/* Center content */}
+        <div className="flex flex-col items-center gap-[32px] px-[8px]">
+          {/* Title — Paper 3RP-0 */}
+          <h2
+            className="qahal-display w-full text-center"
+            style={{
+              fontSize: 34,
+              lineHeight: "120%",
+              fontWeight: 600,
+              color: "#E8DDD0",
+            }}
+          >
+            {step === "name"
+              ? "How will others call you?"
+              : "Select your current city"}
+          </h2>
+
+          {step === "city" && (
+            <p
+              className="text-center"
+              style={{
+                fontSize: 14,
+                lineHeight: "155%",
+                color: "#E8DDD0",
+                opacity: 0.6,
+                marginTop: -16,
+              }}
+            >
+              You can also select a city where you&apos;re traveling or moving to
+            </p>
+          )}
+
+          {/* Input — Paper 3TX-0 */}
+          {step === "name" ? (
+            <input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="Your name"
+              autoFocus
+              style={{
+                width: "100%",
+                height: 52,
+                borderRadius: 14,
+                padding: "0 16px",
+                background: "#E8DDD00F",
+                border: "1.5px solid #C9A46F33",
+                fontSize: 15,
+                color: "#E8DDD0",
+                outline: "none",
+              }}
+            />
+          ) : (
+            <CitySearch
+              telegramId={telegramId}
+              initialValue={city}
+              onCitySelected={(suggestion) => {
+                setCity(suggestion.city);
+                setCityCoordinates({ latitude: suggestion.latitude, longitude: suggestion.longitude });
+              }}
+            />
+          )}
+
+        </div>
+
+        {/* Bottom buttons + dots */}
+        <div className="flex flex-col gap-[16px]">
+          {/* Continue button — Paper 3RH-0 */}
+          <button
+            type="button"
+            disabled={!canContinue || busy}
+            onClick={() => {
+              if (step === "name") {
+                setStep("city");
+              } else {
+                onSubmit(firstName.trim(), city.trim(), languageCode, cityCoordinates);
+              }
+            }}
+            className="flex shrink-0 items-center justify-center disabled:opacity-40"
+            style={{
+              height: 52,
+              borderRadius: 14,
+              background: "#1E5C5A",
+              border: "1.5px solid #C9A46F",
+              boxShadow: "#1E5C5A40 0px 8px 24px",
+              fontSize: 16,
+              fontWeight: 600,
+              letterSpacing: "0.02em",
+              color: "#E8DDD0",
+            }}
+          >
+            {busy ? "Saving..." : "Continue"}
+          </button>
+
+          {step === "city" && (
+            <button
+              type="button"
+              onClick={() => setStep("name")}
+              className="flex shrink-0 items-center justify-center"
+              style={{
+                height: 44,
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#E8DDD0",
+                opacity: 0.5,
+              }}
+            >
+              Back
+            </button>
+          )}
+
+          {/* Progress dots */}
+          <div className="flex items-center justify-center gap-[6px] py-[4px]">
+            <span
+              className="shrink-0 rounded-[99px]"
+              style={{
+                width: step === "name" ? 24 : 12,
+                height: 3,
+                background: step === "name" ? "#C9A46F" : "#E8DDD026",
+              }}
+            />
+            <span
+              className="shrink-0 rounded-[99px]"
+              style={{
+                width: step === "city" ? 24 : 12,
+                height: 3,
+                background: step === "city" ? "#C9A46F" : "#E8DDD026",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};

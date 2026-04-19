@@ -1,39 +1,84 @@
-import { useMemo } from "react";
-import { AppRoot, Cell, List, Placeholder, Section } from "@telegram-apps/telegram-ui";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
-import { getTelegramWebApp } from "./lib/telegram";
-
-const defaultCenter: [number, number] = [31.7683, 35.2137];
+import { OnboardingCarouselScreen } from "./features/onboarding/OnboardingCarouselScreen";
+import { OnboardingQuestionsScreen } from "./features/onboarding/OnboardingQuestionsScreen";
+import { OnboardingDataScreen } from "./features/onboarding/OnboardingDataScreen";
+import { MapScreen } from "./features/map/MapScreen";
+import { HomeScreen } from "./features/home/HomeScreen";
+import { useAppFlow } from "./app/useAppFlow";
+import { resolvePaperScreenKey } from "./app/paperMapping";
 
 export default function App() {
-  const initDataState = useMemo(() => {
-    const webApp = getTelegramWebApp();
-    return webApp?.initData ? "present" : "missing";
-  }, []);
+  const {
+    runtimeTarget,
+    state,
+    busy,
+    communities,
+    questionProgress,
+    startQuestions,
+    answerQuestion,
+    nextQuestion,
+    previousQuestion,
+    goToCarousel,
+    updateProfile,
+    finishOnboarding,
+    setMapVariant,
+    setHomeVariant,
+    goToHome,
+    goToMap,
+    setMapCity
+  } = useAppFlow();
+  const paperScreenKey = resolvePaperScreenKey(state);
 
   return (
-    <AppRoot>
-      <div className="min-h-full bg-[var(--tgui--bg_color)] p-4">
-        <List>
-          <Section header="Qahal" footer="Base shell ready for Paper screen integration.">
-            <Cell subtitle="Telegram initData status">{initDataState}</Cell>
-          </Section>
+    <div className="mx-auto min-h-[100dvh] max-w-[375px]" data-paper-screen={paperScreenKey} data-runtime={runtimeTarget}>
+      {state.screen === "onboarding-carousel" ? <OnboardingCarouselScreen onStart={startQuestions} /> : null}
 
-          <Section header="Map Base" footer="Leaflet baseline for feature integration.">
-            <div className="h-[320px] overflow-hidden rounded-xl">
-              <MapContainer center={defaultCenter} zoom={12} style={{ height: "100%", width: "100%" }}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={defaultCenter} />
-              </MapContainer>
-            </div>
-          </Section>
-
-          <Placeholder
-            header="Paper to Code"
-            description="Map each MCP Paper artboard into a feature screen and reusable components."
+        {state.screen === "onboarding-questions" ? (
+          <OnboardingQuestionsScreen
+            step={state.questionStep}
+            progressLabel={questionProgress}
+            selectedValue={state.answers.values[state.questionStep]}
+            onSelect={answerQuestion}
+            onNext={nextQuestion}
+            onBack={previousQuestion}
+            onExit={goToCarousel}
           />
-        </List>
-      </div>
-    </AppRoot>
+        ) : null}
+
+        {state.screen === "onboarding-data" ? (
+          <OnboardingDataScreen
+            telegramId={state.telegramId}
+            initialFirstName={state.answers.firstName}
+            initialCity={state.answers.city}
+            initialLanguageCode={state.answers.languageCode}
+            busy={busy}
+            onSubmit={async (firstName, city, languageCode, cityCoordinates) => {
+              updateProfile(firstName, city, languageCode, cityCoordinates);
+              await finishOnboarding({ firstName, city, languageCode, cityCoordinates });
+            }}
+          />
+        ) : null}
+
+        {state.screen === "map" ? (
+          <MapScreen
+            variant={state.mapVariant}
+            communities={communities}
+            onVariantChange={setMapVariant}
+            onGoHome={goToHome}
+            cityName={state.answers.city}
+            onCityChange={({ name, latitude, longitude }) => {
+              setMapCity(name, { latitude, longitude });
+            }}
+            initialCenter={
+              typeof state.answers.cityLatitude === "number" && typeof state.answers.cityLongitude === "number"
+                ? [state.answers.cityLatitude, state.answers.cityLongitude]
+                : undefined
+            }
+          />
+        ) : null}
+
+        {state.screen === "home" ? (
+          <HomeScreen variant={state.homeVariant} communities={communities} onVariantChange={setHomeVariant} onGoMap={goToMap} />
+        ) : null}
+    </div>
   );
 }

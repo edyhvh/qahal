@@ -1,5 +1,5 @@
-import "@telegram-apps/telegram-ui/dist/styles.css";
 import "leaflet/dist/leaflet.css";
+import "@telegram-apps/telegram-ui/dist/styles.css";
 import "./styles/index.css";
 
 import { StrictMode, useEffect } from "react";

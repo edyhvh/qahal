@@ -1,0 +1,169 @@
+import { useEffect, useMemo, useState } from "react";
+import { MapView } from "./MapView";
+import type { CommunityCard } from "@qahal/shared";
+import type { MapVariant } from "../../app/types";
+import { api, type CommunityPerson } from "../../lib/api";
+import { MapFloatingControls } from "./components/MapFloatingControls";
+import { MapPeoplePanel } from "./components/MapPeoplePanel";
+import { MapPersonSheet } from "./components/MapPersonSheet";
+import { MapNoPermissionOverlay } from "./components/MapNoPermissionOverlay";
+import { MapBottomNav } from "./components/MapBottomNav";
+import { MapCitySwitcher } from "./components/MapCitySwitcher";
+
+interface MapScreenProps {
+  variant: MapVariant;
+  communities: CommunityCard[];
+  onVariantChange: (variant: MapVariant) => void;
+  onGoHome: () => void;
+  cityName?: string;
+  initialCenter?: [number, number];
+  onCityChange?: (city: { name: string; latitude: number; longitude: number }) => void;
+}
+
+export const MapScreen = ({ variant, onVariantChange, onGoHome, cityName, initialCenter, onCityChange }: MapScreenProps) => {
+  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(initialCenter);
+  const [activeCityName, setActiveCityName] = useState(cityName);
+  const [mapZoom, setMapZoom] = useState(12);
+  const [recenterKey, setRecenterKey] = useState(0);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [people, setPeople] = useState<CommunityPerson[]>([]);
+  const [peopleOpen, setPeopleOpen] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState<CommunityPerson | null>(null);
+
+  useEffect(() => {
+    setMapCenter(initialCenter);
+    if (initialCenter) {
+      setMapZoom(12);
+    }
+  }, [initialCenter]);
+
+  useEffect(() => {
+    setActiveCityName(cityName);
+  }, [cityName]);
+
+  useEffect(() => {
+    const hasCoords = typeof mapCenter?.[0] === "number" && typeof mapCenter?.[1] === "number";
+    if (!activeCityName && !hasCoords) {
+      setPeople([]);
+      return;
+    }
+
+    api
+      .getCommunityPeople({
+        city: activeCityName,
+        latitude: hasCoords ? mapCenter[0] : undefined,
+        longitude: hasCoords ? mapCenter[1] : undefined
+      })
+      .then((res) => {
+        setPeople(Array.isArray(res.people) ? res.people : []);
+      })
+      .catch(() => {
+        setPeople([]);
+      });
+  }, [activeCityName, mapCenter]);
+
+  const sortedPeople = useMemo(() => {
+    return [...people].sort((a, b) => {
+      const aLeader = a.badges.some((badge) => badge.kind === "messenger") ? 1 : 0;
+      const bLeader = b.badges.some((badge) => badge.kind === "messenger") ? 1 : 0;
+      if (bLeader !== aLeader) {
+        return bLeader - aLeader;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [people]);
+
+  const goToCurrentLocation = () => {
+    if (!("geolocation" in navigator)) {
+      setLocationError("Geolocation is not supported on this device.");
+      return;
+    }
+
+    setLocating(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setMapCenter([position.coords.latitude, position.coords.longitude]);
+        setMapZoom(17);
+        setRecenterKey((prev) => prev + 1);
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        setLocationError("Location permission denied. Enable location access to recenter the map.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
+
+  return (
+    <section className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#e8e0d2]">
+      {/* Map fills the whole screen area under overlays */}
+      <div className="absolute inset-0 z-0">
+        <MapView
+          initialCenter={initialCenter}
+          selectedCityCenter={mapCenter}
+          targetZoom={mapZoom}
+          recenterKey={recenterKey}
+        />
+      </div>
+
+      <MapFloatingControls
+        visible={variant === "allowed"}
+        peopleCount={sortedPeople.length}
+        locating={locating}
+        onTogglePeople={() => {
+          setPeopleOpen((prev) => !prev);
+          setSelectedPerson(null);
+        }}
+        onLocate={goToCurrentLocation}
+        locationError={locationError}
+      />
+
+      <MapCitySwitcher
+        visible={variant === "allowed"}
+        cityName={activeCityName}
+        userLocation={
+          typeof mapCenter?.[0] === "number" && typeof mapCenter?.[1] === "number"
+            ? { latitude: mapCenter[0], longitude: mapCenter[1] }
+            : undefined
+        }
+        onCitySelected={(city) => {
+          setActiveCityName(city.city);
+          setMapCenter([city.latitude, city.longitude]);
+          setMapZoom(13);
+          setRecenterKey((prev) => prev + 1);
+          setLocationError(null);
+          setPeopleOpen(false);
+          setSelectedPerson(null);
+          onCityChange?.({ name: city.city, latitude: city.latitude, longitude: city.longitude });
+        }}
+      />
+
+      <MapPeoplePanel
+        visible={variant === "allowed" && peopleOpen}
+        people={sortedPeople}
+        onSelectPerson={(person) => {
+          setSelectedPerson(person);
+          setPeopleOpen(false);
+        }}
+      />
+
+      <MapNoPermissionOverlay visible={variant === "no-permission"} onEnable={() => onVariantChange("allowed")} />
+
+      <MapPersonSheet person={selectedPerson} onClose={() => setSelectedPerson(null)} onMessage={onGoHome} />
+
+      <MapBottomNav
+        visible={variant === "allowed"}
+        onGoHome={onGoHome}
+        onTogglePeople={() => setPeopleOpen((prev) => !prev)}
+      />
+    </section>
+  );
+};

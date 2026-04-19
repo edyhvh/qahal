@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Paper exact color tokens */
+  --color-teal: #1E5C5A;
+  --color-gold: #C9A46F;
+  --color-dark: #1C2525;
+  --color-cream: #F5F0E8;
+  --color-parchment: #F5EDE4;
+  --color-warm-text: #E8DDD0;
+  --color-muted: #5A5A52;
+  --color-muted-light: #8A8A7E;
+
+  /* Paper fonts */
+  --font-display: "Capriola", system-ui, sans-serif;
+  --font-body: "Source Sans 3", system-ui, sans-serif;
+
+  /* Paper exact gradients */
+  --bg-light-gradient: linear-gradient(
+    165deg,
+    #f3efe8 0%,
+    #ece5d8 35%,
+    #e8e0d2 60%,
+    #ede7db 100%
+  );
+  --bg-dark-base: #1a1612;
+}
+
 html,
 body,
 #root {
@@ -12,5 +38,13 @@ body,
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
+  background: var(--bg-dark-base);
+  color: var(--color-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.qahal-display {
+  font-family: var(--font-display);
 }
