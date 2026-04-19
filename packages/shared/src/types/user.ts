@@ -5,4 +5,6 @@ export interface UserDto {
   lastName?: string;
   photoUrl?: string;
   languageCode?: string;
+  city?: string;
+  onboardingCompleted?: boolean;
 }
