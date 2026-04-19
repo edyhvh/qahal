@@ -36,7 +36,15 @@ const MapSizeInvalidator = () => {
   return null;
 };
 
-const MapCenterSync = ({ center, zoom, recenterKey }: { center: LatLngTuple; zoom: number; recenterKey?: number }) => {
+const MapCenterSync = ({
+  center,
+  zoom,
+  recenterKey,
+}: {
+  center: LatLngTuple;
+  zoom: number;
+  recenterKey?: number;
+}) => {
   const map = useMap();
 
   useEffect(() => {
@@ -46,26 +54,50 @@ const MapCenterSync = ({ center, zoom, recenterKey }: { center: LatLngTuple; zoo
   return null;
 };
 
-export const MapView = ({ initialCenter, selectedCityCenter, targetZoom = 12, recenterKey, className }: MapViewProps) => {
+export const MapView = ({
+  initialCenter,
+  selectedCityCenter,
+  targetZoom = 12,
+  recenterKey,
+  className,
+}: MapViewProps) => {
   const center = selectedCityCenter ?? initialCenter ?? FALLBACK_CENTER;
 
-  const selectedMarker = useMemo<LatLngTuple>(() => selectedCityCenter ?? center, [selectedCityCenter, center]);
+  const selectedMarker = useMemo<LatLngTuple>(
+    () => selectedCityCenter ?? center,
+    [selectedCityCenter, center],
+  );
 
   return (
     <div className={`relative h-full w-full ${className ?? ""}`}>
-      <MapContainer center={center} zoom={targetZoom} zoomControl className="h-full w-full" style={{ background: "#e6e6e6" }}>
+      <MapContainer
+        center={center}
+        zoom={targetZoom}
+        zoomControl
+        className="h-full w-full"
+        style={{ background: "#e6e6e6" }}
+      >
         <MapSizeInvalidator />
-        <MapCenterSync center={center} zoom={targetZoom} recenterKey={recenterKey} />
+        <MapCenterSync
+          center={center}
+          zoom={targetZoom}
+          recenterKey={recenterKey}
+        />
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; OpenStreetMap contributors &copy; CARTO'
+          attribution="&copy; OpenStreetMap contributors &copy; CARTO"
           maxZoom={20}
         />
 
         <CircleMarker
           center={selectedMarker}
           radius={9}
-          pathOptions={{ color: "#1e5c5a", fillColor: "#1e5c5a", fillOpacity: 0.9, weight: 2 }}
+          pathOptions={{
+            color: "#1e5c5a",
+            fillColor: "#1e5c5a",
+            fillOpacity: 0.9,
+            weight: 2,
+          }}
         />
       </MapContainer>
     </div>
