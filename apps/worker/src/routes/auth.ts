@@ -14,7 +14,7 @@ authRoute.post("/telegram/verify", async (c) => {
   }
 
   const maxAgeSeconds = Number(c.env.INITDATA_MAX_AGE_SECONDS ?? "300");
-  const result = verifyTelegramInitData({
+  const result = await verifyTelegramInitData({
     initData: parsed.data.initData,
     botToken: c.env.TELEGRAM_BOT_TOKEN,
     maxAgeSeconds
@@ -24,5 +24,17 @@ authRoute.post("/telegram/verify", async (c) => {
     return c.json({ ok: false, error: result.reason ?? "invalid_init_data" }, 401);
   }
 
-  return c.json({ ok: true, message: "initData accepted" });
+  return c.json({
+    ok: true,
+    user: result.user
+      ? {
+          telegramId: result.user.id,
+          username: result.user.username,
+          firstName: result.user.first_name,
+          lastName: result.user.last_name,
+          photoUrl: result.user.photo_url,
+          languageCode: result.user.language_code
+        }
+      : null
+  });
 });

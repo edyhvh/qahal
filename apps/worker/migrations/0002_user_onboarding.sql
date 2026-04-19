@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN city TEXT;
+ALTER TABLE users ADD COLUMN onboarding_completed INTEGER NOT NULL DEFAULT 0;
