@@ -1,0 +1,23 @@
+{
+  "name": "qahal",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "bun@1.2.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run dev:miniapp & bun run dev:worker",
+    "dev:miniapp": "bun run --filter @qahal/miniapp dev",
+    "dev:worker": "bun run --filter @qahal/worker dev",
+    "build": "bun run build:shared && bun run build:miniapp && bun run build:worker",
+    "build:shared": "bun run --filter @qahal/shared build",
+    "build:miniapp": "bun run --filter @qahal/miniapp build",
+    "build:worker": "bun run --filter @qahal/worker build",
+    "check": "bun run check:shared && bun run check:miniapp && bun run check:worker",
+    "check:shared": "bun run --filter @qahal/shared typecheck",
+    "check:miniapp": "bun run --filter @qahal/miniapp typecheck",
+    "check:worker": "bun run --filter @qahal/worker typecheck"
+  }
+}

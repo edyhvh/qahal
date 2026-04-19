@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Builds
+build/
+dist/
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Tooling
+.wrangler/
+.vscode/*.log
+
+# OS
+.DS_Store
