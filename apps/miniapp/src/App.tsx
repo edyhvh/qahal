@@ -14,8 +14,8 @@ export default function App() {
     state,
     busy,
     communities,
+    effectiveProfile,
     localProfileRole,
-    localProfileName,
     confirmedBirthDate,
     questionProgress,
     startQuestions,
@@ -33,6 +33,8 @@ export default function App() {
     setLocalProfileRole,
     setLocalProfileName,
     setConfirmedBirthDate,
+    resetLocalData,
+    localDataResetEnabled,
     setMapCity,
   } = useAppFlow();
   const paperScreenKey = resolvePaperScreenKey(state);
@@ -107,6 +109,7 @@ export default function App() {
           onGoProfile={goToProfile}
           profileTestingEnabled={profileTestingEnabled}
           localProfileRole={localProfileRole}
+          effectiveProfile={effectiveProfile}
         />
       ) : null}
 
@@ -115,10 +118,14 @@ export default function App() {
           profileTestingEnabled={profileTestingEnabled}
           localProfileRole={localProfileRole}
           onRoleChange={setLocalProfileRole}
-          profileName={localProfileName}
+          profileName={effectiveProfile.displayName}
+          profileQahalName={effectiveProfile.qahalName}
+          profileBadges={effectiveProfile.badges}
           onProfileNameChange={setLocalProfileName}
           confirmedBirthDate={confirmedBirthDate}
           onConfirmBirthDate={setConfirmedBirthDate}
+          canResetLocalData={localDataResetEnabled}
+          onResetLocalData={resetLocalData}
           onGoHome={goToHome}
           onGoMap={goToMap}
         />

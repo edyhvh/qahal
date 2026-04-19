@@ -3,16 +3,51 @@ import type { CommunityCard, OnboardingSubmit } from "@qahal/shared";
 import { getLocalProfileRoleOption } from "./types";
 import type {
   AppFlowState,
+  EffectiveProfileSnapshot,
   HomeVariant,
   LocalProfileRole,
   MapVariant,
 } from "./types";
 import { api } from "../lib/api";
 import { getTelegramWebApp } from "../lib/telegram";
-import { detectRuntimeTarget, getWebGuestId } from "../lib/runtime";
+import { clearWebGuestId, detectRuntimeTarget, getWebGuestId } from "../lib/runtime";
 import { isProfileTestingEnabled } from "../lib/env";
 
 const TOTAL_QUESTION_STEPS = 9;
+
+const DEFAULT_ROLE_DISPLAY_NAMES = [
+  getLocalProfileRoleOption("none").defaultDisplayName,
+  getLocalProfileRoleOption("member").defaultDisplayName,
+  getLocalProfileRoleOption("leader").defaultDisplayName,
+];
+
+const sanitizeProfileName = (name: string): string => {
+  return name
+    .replace(/\s+/g, " ")
+    .replace(/[^a-zA-Z\s'\-.]/g, "")
+    .trim()
+    .slice(0, 40);
+};
+
+const shouldAutoAdoptFirstName = (currentName: string): boolean => {
+  const normalized = currentName.trim();
+  return !normalized || DEFAULT_ROLE_DISPLAY_NAMES.includes(normalized);
+};
+
+const mergeUniqueBadges = (...lists: string[][]): string[] => {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+  for (const list of lists) {
+    for (const badge of list) {
+      if (!badge || seen.has(badge)) {
+        continue;
+      }
+      seen.add(badge);
+      merged.push(badge);
+    }
+  }
+  return merged;
+};
 
 const getTelegramId = (): number => {
   const webApp = getTelegramWebApp();
@@ -52,20 +87,167 @@ export const useAppFlow = () => {
   const [confirmedBirthDate, setConfirmedBirthDate] = useState<string | null>(
     null,
   );
+  const [persistedBadges, setPersistedBadges] = useState<string[]>([]);
+  const [persistedQahalName, setPersistedQahalName] = useState<string | null>(
+    null,
+  );
+  const localDataResetEnabled = profileTestingEnabled;
 
   useEffect(() => {
     const roleOption = getLocalProfileRoleOption(localProfileRole);
     setLocalProfileName((prev) => {
-      const previousDefaults = [
-        getLocalProfileRoleOption("none").defaultDisplayName,
-        getLocalProfileRoleOption("member").defaultDisplayName,
-        getLocalProfileRoleOption("leader").defaultDisplayName,
-      ];
-      return previousDefaults.includes(prev)
+      return DEFAULT_ROLE_DISPLAY_NAMES.includes(prev)
         ? roleOption.defaultDisplayName
         : prev;
     });
   }, [localProfileRole]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPersistedProfile = async () => {
+      try {
+        const response = await api.getUser(state.telegramId);
+        if (cancelled || !response.user) {
+          return;
+        }
+
+        const user = response.user;
+        const persistedFirstName = sanitizeProfileName(user.firstName ?? "");
+
+        setPersistedBadges(Array.isArray(user.badges) ? user.badges : []);
+        setPersistedQahalName(
+          typeof user.qahalName === "string" && user.qahalName.trim().length > 0
+            ? user.qahalName
+            : null,
+        );
+
+        if (typeof user.birthDate === "string" && user.birthDate) {
+          setConfirmedBirthDate(user.birthDate);
+        }
+
+        if (persistedFirstName) {
+          setLocalProfileName((prev) => {
+            if (shouldAutoAdoptFirstName(prev)) {
+              return persistedFirstName;
+            }
+            return prev;
+          });
+        }
+
+        const hasOnboarding = Boolean(user.onboardingCompleted);
+        if (!hasOnboarding) {
+          return;
+        }
+
+        setState((prev) => ({
+          ...prev,
+          screen: "home",
+          answers: {
+            ...prev.answers,
+            firstName: persistedFirstName || prev.answers.firstName,
+            city: user.city ?? prev.answers.city,
+            languageCode:
+              user.languageCode === "es" ||
+              user.languageCode === "he" ||
+              user.languageCode === "en"
+                ? user.languageCode
+                : prev.answers.languageCode,
+            cityLatitude:
+              typeof user.latestLatitude === "number"
+                ? user.latestLatitude
+                : prev.answers.cityLatitude,
+            cityLongitude:
+              typeof user.latestLongitude === "number"
+                ? user.latestLongitude
+                : prev.answers.cityLongitude,
+          },
+        }));
+
+        if (
+          typeof user.latestLatitude === "number" &&
+          typeof user.latestLongitude === "number"
+        ) {
+          const nearby = await api.getNearby(
+            user.latestLatitude,
+            user.latestLongitude,
+            state.telegramId,
+          );
+          if (!cancelled) {
+            setCommunities(nearby.communities);
+          }
+        }
+      } catch {
+        // Keep UI operational when local worker is not running.
+      }
+    };
+
+    void loadPersistedProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [state.telegramId]);
+
+  const effectiveProfile = useMemo<EffectiveProfileSnapshot>(() => {
+    const fallbackName = sanitizeProfileName(localProfileName);
+    const onboardingName = sanitizeProfileName(state.answers.firstName);
+    const displayName =
+      fallbackName ||
+      onboardingName ||
+      getLocalProfileRoleOption("none").defaultDisplayName;
+
+    if (profileTestingEnabled) {
+      if (localProfileRole === "none") {
+        const noCongregation = getLocalProfileRoleOption("none");
+        return {
+          displayName,
+          qahalName: noCongregation.qahalName,
+          badges: mergeUniqueBadges(persistedBadges),
+          hasCongregation: false,
+        };
+      }
+
+      const selectedRole = getLocalProfileRoleOption(localProfileRole);
+      return {
+        displayName,
+        qahalName: selectedRole.qahalName,
+        badges: mergeUniqueBadges(persistedBadges, selectedRole.badges),
+        hasCongregation: true,
+      };
+    }
+
+    const memberCommunity = communities.find(
+      (community) => community.memberState === "member",
+    );
+    if (memberCommunity) {
+      return {
+        displayName,
+        qahalName: memberCommunity.name,
+        badges:
+          persistedBadges.length > 0
+            ? persistedBadges
+            : getLocalProfileRoleOption("member").badges,
+        hasCongregation: true,
+      };
+    }
+
+    const noCongregation = getLocalProfileRoleOption("none");
+    return {
+      displayName,
+      qahalName: persistedQahalName ?? noCongregation.qahalName,
+      badges: persistedBadges.length > 0 ? persistedBadges : noCongregation.badges,
+      hasCongregation: false,
+    };
+  }, [
+    communities,
+    localProfileName,
+    localProfileRole,
+    persistedBadges,
+    persistedQahalName,
+    profileTestingEnabled,
+    state.answers.firstName,
+  ]);
 
   const questionProgress = useMemo(() => {
     return `${state.questionStep + 1}/${TOTAL_QUESTION_STEPS}`;
@@ -119,17 +301,27 @@ export const useAppFlow = () => {
     languageCode: "en" | "es" | "he",
     cityCoordinates?: { latitude: number; longitude: number },
   ) => {
+    const cleanedFirstName = sanitizeProfileName(firstName);
+
     setState((prev) => ({
       ...prev,
       answers: {
         ...prev.answers,
-        firstName,
+        firstName: cleanedFirstName,
         city,
         cityLatitude: cityCoordinates?.latitude,
         cityLongitude: cityCoordinates?.longitude,
         languageCode,
       },
     }));
+
+    setLocalProfileName((prev) => {
+      if (!shouldAutoAdoptFirstName(prev)) {
+        return prev;
+      }
+
+      return cleanedFirstName || prev;
+    });
   };
 
   const finishOnboarding = async (profile?: {
@@ -138,7 +330,9 @@ export const useAppFlow = () => {
     languageCode: "en" | "es" | "he";
     cityCoordinates?: { latitude: number; longitude: number };
   }) => {
-    const finalFirstName = profile?.firstName ?? state.answers.firstName;
+    const finalFirstName = sanitizeProfileName(
+      profile?.firstName ?? state.answers.firstName,
+    );
     const finalCity = profile?.city ?? state.answers.city;
     const finalLanguageCode =
       profile?.languageCode ?? state.answers.languageCode;
@@ -152,12 +346,24 @@ export const useAppFlow = () => {
       firstName: finalFirstName,
       city: finalCity,
       languageCode: finalLanguageCode,
+      answers: Object.fromEntries(
+        Object.entries(state.answers.values).map(([step, value]) => [
+          String(step),
+          String(value),
+        ]),
+      ),
     };
 
     setBusy(true);
     try {
       try {
-        await api.submitOnboarding(payload);
+        const onboarding = await api.submitOnboarding(payload);
+        if (onboarding.user?.badges && Array.isArray(onboarding.user.badges)) {
+          setPersistedBadges(onboarding.user.badges);
+        }
+        if (typeof onboarding.user?.qahalName === "string") {
+          setPersistedQahalName(onboarding.user.qahalName);
+        }
         if (
           typeof finalCityLatitude === "number" &&
           typeof finalCityLongitude === "number"
@@ -165,6 +371,7 @@ export const useAppFlow = () => {
           const nearby = await api.getNearby(
             finalCityLatitude,
             finalCityLongitude,
+            state.telegramId,
           );
           setCommunities(nearby.communities);
         } else {
@@ -187,9 +394,67 @@ export const useAppFlow = () => {
         screen: "map",
         mapVariant: "allowed",
       }));
+
+      setLocalProfileName((prev) => {
+        if (!shouldAutoAdoptFirstName(prev)) {
+          return prev;
+        }
+
+        return finalFirstName || prev;
+      });
     } finally {
       setBusy(false);
     }
+  };
+
+  const updateLocalProfileName = (name: string) => {
+    const safeName = sanitizeProfileName(name);
+    if (!safeName) {
+      return;
+    }
+
+    setLocalProfileName(safeName);
+    setState((prev) => ({
+      ...prev,
+      answers: {
+        ...prev.answers,
+        firstName: safeName,
+      },
+    }));
+
+    void api.updateUserProfile(state.telegramId, {
+      firstName: safeName,
+    }).catch(() => {
+      // Keep local optimistic update if backend is temporarily unavailable.
+    });
+  };
+
+  const updateConfirmedBirthDate = (birthDate: string | null) => {
+    setConfirmedBirthDate(birthDate);
+    if (!birthDate) {
+      return;
+    }
+
+    void api.updateUserProfile(state.telegramId, {
+      birthDate,
+    }).catch(() => {
+      // Keep local optimistic update if backend is temporarily unavailable.
+    });
+  };
+
+  const resetLocalData = async () => {
+    if (!localDataResetEnabled) {
+      return;
+    }
+
+    try {
+      await api.resetLocalUser(state.telegramId);
+    } catch {
+      // Proceed with local identity reset even if API reset fails.
+    }
+
+    clearWebGuestId();
+    window.location.reload();
   };
 
   const setMapVariant = (variant: MapVariant) => {
@@ -241,6 +506,7 @@ export const useAppFlow = () => {
     state,
     busy,
     communities,
+    effectiveProfile,
     localProfileRole,
     localProfileName,
     confirmedBirthDate,
@@ -258,8 +524,10 @@ export const useAppFlow = () => {
     goToMap,
     goToProfile,
     setLocalProfileRole,
-    setLocalProfileName,
-    setConfirmedBirthDate,
+    setLocalProfileName: updateLocalProfileName,
+    setConfirmedBirthDate: updateConfirmedBirthDate,
+    resetLocalData,
+    localDataResetEnabled,
     setMapCity,
   };
 };

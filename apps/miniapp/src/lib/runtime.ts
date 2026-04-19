@@ -21,3 +21,7 @@ export const getWebGuestId = (): number => {
   window.localStorage.setItem(WEB_GUEST_KEY, String(generated));
   return generated;
 };
+
+export const clearWebGuestId = (): void => {
+  window.localStorage.removeItem(WEB_GUEST_KEY);
+};

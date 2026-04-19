@@ -48,20 +48,80 @@ const postJson = async <T>(path: string, payload: unknown): Promise<T> => {
   return (await response.json()) as T;
 };
 
+const putJson = async <T>(path: string, payload: unknown): Promise<T> => {
+  const response = await fetch(buildUrl(path), {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error(`PUT ${path} failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+};
+
+const deleteJson = async <T>(path: string): Promise<T> => {
+  const response = await fetch(buildUrl(path), {
+    method: "DELETE"
+  });
+
+  if (!response.ok) {
+    throw new Error(`DELETE ${path} failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+};
+
+export interface UserApiProfile {
+  telegramId: number;
+  firstName?: string;
+  city?: string;
+  languageCode?: string;
+  onboardingCompleted?: boolean;
+  birthDate?: string;
+  badges?: string[];
+  qahalName?: string;
+  latestLatitude?: number;
+  latestLongitude?: number;
+}
+
 export const api = {
   submitOnboarding: (payload: OnboardingSubmit) => {
-    return postJson<{ ok: boolean }>("/users/onboarding", payload);
+    return postJson<{ ok: boolean; user?: UserApiProfile }>("/users/onboarding", payload);
+  },
+
+  getUser: (telegramId: number) => {
+    return getJson<{ ok: boolean; user: UserApiProfile | null }>(`/users/${telegramId}`);
+  },
+
+  updateUserProfile: (telegramId: number, payload: { firstName?: string; birthDate?: string | null }) => {
+    return putJson<{ ok: boolean; user: UserApiProfile | null }>(`/users/${telegramId}/profile`, payload);
+  },
+
+  resetLocalUser: (telegramId: number) => {
+    return deleteJson<{ ok: boolean; reset: boolean }>(`/users/${telegramId}/local-reset`);
   },
 
   upsertLocation: (payload: { telegramId: number; latitude: number; longitude: number; accuracy?: number }) => {
     return postJson<{ ok: boolean }>("/locations", payload);
   },
 
-  getNearby: (latitude: number, longitude: number) => {
+  getNearby: (
+    latitude: number,
+    longitude: number,
+    telegramId?: number,
+  ) => {
     const params = new URLSearchParams({
       latitude: String(latitude),
       longitude: String(longitude)
     });
+    if (typeof telegramId === "number") {
+      params.set("telegramId", String(telegramId));
+    }
     return getJson<NearbyResponse>(`/communities/nearby?${params.toString()}`);
   },
 
