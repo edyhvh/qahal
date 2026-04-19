@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import type { CommunityCard, OnboardingSubmit } from "@qahal/shared";
-import type { AppFlowState, HomeVariant, MapVariant } from "./types";
+import type { AppFlowState, HomeVariant, LocalProfileRole, MapVariant } from "./types";
 import { api } from "../lib/api";
 import { getTelegramWebApp } from "../lib/telegram";
 import { detectRuntimeTarget, getWebGuestId } from "../lib/runtime";
+import { isProfileTestingEnabled } from "../lib/env";
 
 const TOTAL_QUESTION_STEPS = 9;
 
@@ -15,6 +16,7 @@ const getTelegramId = (): number => {
 
 export const useAppFlow = () => {
   const runtimeTarget = detectRuntimeTarget();
+  const profileTestingEnabled = isProfileTestingEnabled();
   const [state, setState] = useState<AppFlowState>({
     screen: "onboarding-carousel",
     questionStep: 0,
@@ -32,6 +34,7 @@ export const useAppFlow = () => {
   });
   const [communities, setCommunities] = useState<CommunityCard[]>([]);
   const [busy, setBusy] = useState(false);
+  const [localProfileRole, setLocalProfileRole] = useState<LocalProfileRole>("none");
 
   const questionProgress = useMemo(() => {
     return `${state.questionStep + 1}/${TOTAL_QUESTION_STEPS}`;
@@ -171,6 +174,10 @@ export const useAppFlow = () => {
     setState((prev) => ({ ...prev, screen: "map" }));
   };
 
+  const goToProfile = () => {
+    setState((prev) => ({ ...prev, screen: "profile" }));
+  };
+
   const setMapCity = (city: string, cityCoordinates: { latitude: number; longitude: number }) => {
     setState((prev) => ({
       ...prev,
@@ -185,9 +192,11 @@ export const useAppFlow = () => {
 
   return {
     runtimeTarget,
+    profileTestingEnabled,
     state,
     busy,
     communities,
+    localProfileRole,
     questionProgress,
     startQuestions,
     answerQuestion,
@@ -200,6 +209,8 @@ export const useAppFlow = () => {
     setHomeVariant,
     goToHome,
     goToMap,
+    goToProfile,
+    setLocalProfileRole,
     setMapCity
   };
 };

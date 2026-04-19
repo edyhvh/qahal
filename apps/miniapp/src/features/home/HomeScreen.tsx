@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CommunityCard } from "@qahal/shared";
-import type { HomeVariant } from "../../app/types";
+import type { HomeVariant, LocalProfileRole } from "../../app/types";
 import { HomePopups } from "./components/HomePopups";
 import { JoinRequestToast } from "./components/JoinRequestToast";
-import { ProfileTestingPanel, type LocalProfileRole } from "./components/ProfileTestingPanel";
 
 interface HomeScreenProps {
   variant: HomeVariant;
   communities: CommunityCard[];
   onVariantChange: (variant: HomeVariant) => void;
   onGoMap: () => void;
+  onGoProfile: () => void;
+  profileTestingEnabled: boolean;
+  localProfileRole: LocalProfileRole;
 }
 
 /* ── SVG icons extracted from Paper (4V3-0) ── */
@@ -34,15 +36,20 @@ const PlusIcon = () => (
     <path d="M12 5V19M5 12H19" stroke="#F5F0E8" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
-export const HomeScreen = ({ variant, communities, onVariantChange, onGoMap }: HomeScreenProps) => {
+export const HomeScreen = ({
+  variant,
+  communities,
+  onVariantChange,
+  onGoMap,
+  onGoProfile,
+  profileTestingEnabled,
+  localProfileRole
+}: HomeScreenProps) => {
   const showAlreadyRequestedPopup = variant === "already-requested";
   const showAlreadyMemberPopup = variant === "already-member";
   const [requestedCommunityIds, setRequestedCommunityIds] = useState<Set<number>>(new Set());
   const [memberCommunityIds, setMemberCommunityIds] = useState<Set<number>>(new Set());
   const [showToast, setShowToast] = useState(false);
-  const isLocalTesting = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-  const [profileTestingPanelOpen, setProfileTestingPanelOpen] = useState(false);
-  const [localProfileRole, setLocalProfileRole] = useState<LocalProfileRole>("none");
 
   useEffect(() => {
     const initiallyRequested = new Set<number>();
@@ -241,7 +248,7 @@ export const HomeScreen = ({ variant, communities, onVariantChange, onGoMap }: H
                       <button
                         type="button"
                         onClick={() => {
-                          if (isLocalTesting && c.memberState === "requested") {
+                          if (profileTestingEnabled && c.memberState === "requested") {
                             setRequestedCommunityIds((prev) => {
                               const next = new Set(prev);
                               next.delete(c.id);
@@ -257,7 +264,10 @@ export const HomeScreen = ({ variant, communities, onVariantChange, onGoMap }: H
                           }
 
                           const hasActiveMembership = displayedCommunities.some((community) => community.memberState === "member");
-                          if (hasActiveMembership || (isLocalTesting && (localProfileRole === "member" || localProfileRole === "leader"))) {
+                          if (
+                            hasActiveMembership ||
+                            (profileTestingEnabled && (localProfileRole === "member" || localProfileRole === "leader"))
+                          ) {
                             onVariantChange("already-member");
                             return;
                           }
@@ -283,16 +293,22 @@ export const HomeScreen = ({ variant, communities, onVariantChange, onGoMap }: H
                           flex: 1,
                           borderRadius: 10,
                           padding: "0 12px",
-                          background: c.memberState === "not_member" || (isLocalTesting && c.memberState === "requested") ? "#F5F0E8" : "#F5F0E866",
+                          background:
+                            c.memberState === "not_member" || (profileTestingEnabled && c.memberState === "requested")
+                              ? "#F5F0E8"
+                              : "#F5F0E866",
                           fontSize: 12,
                           fontWeight: 600,
-                          color: c.memberState === "not_member" || (isLocalTesting && c.memberState === "requested") ? "#A0622D" : "#6B7280",
+                          color:
+                            c.memberState === "not_member" || (profileTestingEnabled && c.memberState === "requested")
+                              ? "#A0622D"
+                              : "#6B7280",
                         }}
                       >
                         {c.memberState === "member"
                           ? "Member"
                           : c.memberState === "requested"
-                            ? isLocalTesting
+                            ? profileTestingEnabled
                               ? "Undo Request"
                               : "Requested"
                             : "Join"}
@@ -377,11 +393,7 @@ export const HomeScreen = ({ variant, communities, onVariantChange, onGoMap }: H
           <button
             type="button"
             className="flex flex-col items-center gap-[4px]"
-            onClick={() => {
-              if (isLocalTesting) {
-                setProfileTestingPanelOpen(true);
-              }
-            }}
+            onClick={onGoProfile}
           >
             <ProfileIcon />
             <span style={{ fontSize: 11, color: "#1E5C5A" }}>Profile</span>
@@ -394,15 +406,6 @@ export const HomeScreen = ({ variant, communities, onVariantChange, onGoMap }: H
       <HomePopups variant={variant} onClose={() => onVariantChange("default")} />
 
       <JoinRequestToast visible={showToast} />
-
-      {isLocalTesting ? (
-        <ProfileTestingPanel
-          visible={profileTestingPanelOpen}
-          role={localProfileRole}
-          onRoleChange={setLocalProfileRole}
-          onClose={() => setProfileTestingPanelOpen(false)}
-        />
-      ) : null}
     </section>
   );
 };

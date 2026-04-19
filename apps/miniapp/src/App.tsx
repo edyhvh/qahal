@@ -3,15 +3,18 @@ import { OnboardingQuestionsScreen } from "./features/onboarding/OnboardingQuest
 import { OnboardingDataScreen } from "./features/onboarding/OnboardingDataScreen";
 import { MapScreen } from "./features/map/MapScreen";
 import { HomeScreen } from "./features/home/HomeScreen";
+import { ProfileScreen } from "./features/profile/ProfileScreen";
 import { useAppFlow } from "./app/useAppFlow";
 import { resolvePaperScreenKey } from "./app/paperMapping";
 
 export default function App() {
   const {
     runtimeTarget,
+    profileTestingEnabled,
     state,
     busy,
     communities,
+    localProfileRole,
     questionProgress,
     startQuestions,
     answerQuestion,
@@ -24,6 +27,8 @@ export default function App() {
     setHomeVariant,
     goToHome,
     goToMap,
+    goToProfile,
+    setLocalProfileRole,
     setMapCity
   } = useAppFlow();
   const paperScreenKey = resolvePaperScreenKey(state);
@@ -64,6 +69,7 @@ export default function App() {
             communities={communities}
             onVariantChange={setMapVariant}
             onGoHome={goToHome}
+            onGoProfile={goToProfile}
             cityName={state.answers.city}
             onCityChange={({ name, latitude, longitude }) => {
               setMapCity(name, { latitude, longitude });
@@ -77,7 +83,25 @@ export default function App() {
         ) : null}
 
         {state.screen === "home" ? (
-          <HomeScreen variant={state.homeVariant} communities={communities} onVariantChange={setHomeVariant} onGoMap={goToMap} />
+          <HomeScreen
+            variant={state.homeVariant}
+            communities={communities}
+            onVariantChange={setHomeVariant}
+            onGoMap={goToMap}
+            onGoProfile={goToProfile}
+            profileTestingEnabled={profileTestingEnabled}
+            localProfileRole={localProfileRole}
+          />
+        ) : null}
+
+        {state.screen === "profile" ? (
+          <ProfileScreen
+            profileTestingEnabled={profileTestingEnabled}
+            localProfileRole={localProfileRole}
+            onRoleChange={setLocalProfileRole}
+            onGoHome={goToHome}
+            onGoMap={goToMap}
+          />
         ) : null}
     </div>
   );

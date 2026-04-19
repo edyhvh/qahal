@@ -15,12 +15,13 @@ interface MapScreenProps {
   communities: CommunityCard[];
   onVariantChange: (variant: MapVariant) => void;
   onGoHome: () => void;
+  onGoProfile: () => void;
   cityName?: string;
   initialCenter?: [number, number];
   onCityChange?: (city: { name: string; latitude: number; longitude: number }) => void;
 }
 
-export const MapScreen = ({ variant, onVariantChange, onGoHome, cityName, initialCenter, onCityChange }: MapScreenProps) => {
+export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cityName, initialCenter, onCityChange }: MapScreenProps) => {
   const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(initialCenter);
   const [activeCityName, setActiveCityName] = useState(cityName);
   const [mapZoom, setMapZoom] = useState(12);
@@ -163,6 +164,7 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, cityName, initia
         visible={variant === "allowed"}
         onGoHome={onGoHome}
         onTogglePeople={() => setPeopleOpen((prev) => !prev)}
+        onGoProfile={onGoProfile}
       />
     </section>
   );

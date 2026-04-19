@@ -2,6 +2,7 @@ interface MapBottomNavProps {
   visible: boolean;
   onGoHome: () => void;
   onTogglePeople: () => void;
+  onGoProfile: () => void;
 }
 
 const HomeIcon = () => (
@@ -23,7 +24,7 @@ const ProfileIcon = () => (
   </svg>
 );
 
-export const MapBottomNav = ({ visible, onGoHome, onTogglePeople }: MapBottomNavProps) => {
+export const MapBottomNav = ({ visible, onGoHome, onTogglePeople, onGoProfile }: MapBottomNavProps) => {
   if (!visible) {
     return null;
   }
@@ -53,7 +54,7 @@ export const MapBottomNav = ({ visible, onGoHome, onTogglePeople }: MapBottomNav
           </div>
         </button>
 
-        <button type="button" className="flex flex-col items-center gap-[4px]">
+        <button type="button" className="flex flex-col items-center gap-[4px]" onClick={onGoProfile}>
           <ProfileIcon />
           <span style={{ fontSize: 11, color: "#1E5C5A" }}>Profile</span>
         </button>

@@ -68,7 +68,7 @@ export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelecte
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-10 max-w-full items-center gap-2 self-start rounded-full border border-[#d1c7b8] bg-white/95 px-3 text-sm font-semibold text-[#334155] shadow-md"
+        className="inline-flex h-10 max-w-full items-center gap-2 self-end rounded-full border border-[#d1c7b8] bg-white/95 px-3 text-sm font-semibold text-[#334155] shadow-md"
       >
         <span className="truncate">{cityName?.trim() || "Select city"}</span>
         <span aria-hidden="true">{open ? "▲" : "▼"}</span>

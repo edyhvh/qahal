@@ -1,8 +1,10 @@
-export type RootScreen = "onboarding-carousel" | "onboarding-questions" | "onboarding-data" | "map" | "home";
+export type RootScreen = "onboarding-carousel" | "onboarding-questions" | "onboarding-data" | "map" | "home" | "profile";
 
 export type MapVariant = "allowed" | "selected" | "no-permission";
 
 export type HomeVariant = "default" | "already-member" | "already-requested" | "join-requested" | "qahal-exists";
+
+export type LocalProfileRole = "none" | "member" | "leader";
 
 export interface OnboardingAnswers {
   values: Record<number, string>;

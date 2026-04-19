@@ -25,5 +25,9 @@ export const resolvePaperScreenKey = (state: AppFlowState): string => {
     return `${PAPER_ARTBOARDS.map.id}:${state.mapVariant}`;
   }
 
+  if (state.screen === "profile") {
+    return `${PAPER_ARTBOARDS.home.id}:profile`;
+  }
+
   return `${PAPER_ARTBOARDS.home.id}:${state.homeVariant}`;
 };
