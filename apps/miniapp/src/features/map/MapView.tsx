@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { CircleMarker, MapContainer, TileLayer, useMap } from "react-leaflet";
 
 export type LatLngTuple = [number, number];
@@ -47,24 +47,13 @@ const MapCenterSync = ({ center, zoom, recenterKey }: { center: LatLngTuple; zoo
 };
 
 export const MapView = ({ initialCenter, selectedCityCenter, targetZoom = 12, recenterKey, className }: MapViewProps) => {
-  const [center, setCenter] = useState<LatLngTuple>(selectedCityCenter ?? initialCenter ?? FALLBACK_CENTER);
-
-  useEffect(() => {
-    if (selectedCityCenter) {
-      setCenter(selectedCityCenter);
-      return;
-    }
-
-    if (initialCenter) {
-      setCenter(initialCenter);
-    }
-  }, [initialCenter, selectedCityCenter]);
+  const center = selectedCityCenter ?? initialCenter ?? FALLBACK_CENTER;
 
   const selectedMarker = useMemo<LatLngTuple>(() => selectedCityCenter ?? center, [selectedCityCenter, center]);
 
   return (
     <div className={`relative h-full w-full ${className ?? ""}`}>
-      <MapContainer center={center} zoom={12} zoomControl className="h-full w-full" style={{ background: "#e6e6e6" }}>
+      <MapContainer center={center} zoom={targetZoom} zoomControl className="h-full w-full" style={{ background: "#e6e6e6" }}>
         <MapSizeInvalidator />
         <MapCenterSync center={center} zoom={targetZoom} recenterKey={recenterKey} />
         <TileLayer
