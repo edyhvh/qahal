@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CitySearch } from "./CitySearch";
 
 interface OnboardingDataScreenProps {
@@ -32,11 +32,70 @@ export const OnboardingDataScreen = ({
     initialLanguageCode,
   );
   const [step, setStep] = useState<"name" | "city">("name");
+  const [isNameInputFocused, setIsNameInputFocused] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   const canContinue = step === "name" ? firstName.trim().length > 0 : true;
 
+  useEffect(() => {
+    if (step !== "name") {
+      setKeyboardInset(0);
+      return;
+    }
+
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return;
+    }
+
+    const updateKeyboardInset = () => {
+      if (!isNameInputFocused) {
+        setKeyboardInset(0);
+        return;
+      }
+
+      const inset = Math.max(
+        0,
+        window.innerHeight - viewport.height - viewport.offsetTop,
+      );
+      // Ignore tiny viewport changes caused by browser chrome animations.
+      setKeyboardInset(inset > 80 ? inset : 0);
+    };
+
+    updateKeyboardInset();
+    viewport.addEventListener("resize", updateKeyboardInset);
+    viewport.addEventListener("scroll", updateKeyboardInset);
+
+    return () => {
+      viewport.removeEventListener("resize", updateKeyboardInset);
+      viewport.removeEventListener("scroll", updateKeyboardInset);
+    };
+  }, [isNameInputFocused, step]);
+
+  const dismissNameKeyboard = (target: EventTarget | null) => {
+    if (step !== "name" || !isNameInputFocused) {
+      return;
+    }
+
+    const node = target as HTMLElement | null;
+    if (!node) {
+      return;
+    }
+
+    if (node.closest("input, button, [role='button']")) {
+      return;
+    }
+
+    nameInputRef.current?.blur();
+    setIsNameInputFocused(false);
+  };
+
   return (
-    <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
+    <section
+      className="relative flex min-h-[100dvh] flex-col overflow-hidden"
+      onPointerDownCapture={(event) => dismissNameKeyboard(event.target)}
+    >
       {/* Paper: same dark background as questions */}
       <div
         className="absolute inset-0"
@@ -54,7 +113,13 @@ export const OnboardingDataScreen = ({
       />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-1 flex-col justify-between px-[28px] pb-[36px] pt-[56px]">
+      <div
+        className="relative z-10 flex flex-1 flex-col justify-between px-[28px] pt-[56px]"
+        style={{
+          paddingBottom:
+            step === "name" ? `${Math.max(20, 36 + keyboardInset)}px` : "36px",
+        }}
+      >
         <div className="h-[14px]" />
 
         {/* Center content */}
@@ -92,8 +157,11 @@ export const OnboardingDataScreen = ({
           {/* Input — Paper 3TX-0 */}
           {step === "name" ? (
             <input
+              ref={nameInputRef}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              onFocus={() => setIsNameInputFocused(true)}
+              onBlur={() => setIsNameInputFocused(false)}
               placeholder="Your name"
               autoFocus
               style={{
@@ -131,6 +199,8 @@ export const OnboardingDataScreen = ({
             disabled={!canContinue || busy}
             onClick={() => {
               if (step === "name") {
+                nameInputRef.current?.blur();
+                setIsNameInputFocused(false);
                 setStep("city");
               } else {
                 onSubmit(
