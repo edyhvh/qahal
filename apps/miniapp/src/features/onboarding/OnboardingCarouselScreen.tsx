@@ -99,21 +99,6 @@ export const OnboardingCarouselScreen = ({
           transition,
         }}
       >
-        {/* Language badge — Paper XB-0 */}
-        <div className="flex justify-center">
-          <span
-            className="inline-block text-[16px] text-black"
-            style={{
-              borderRadius: 12,
-              padding: "3px 14px",
-              background: "#F5EDE480",
-              border: "1px solid #1C25252E",
-            }}
-          >
-            English
-          </span>
-        </div>
-
         {/* QAHAL title — Paper XD-0 */}
         <div className="mt-[48px] text-center">
           <h1
@@ -229,32 +214,6 @@ export const OnboardingCarouselScreen = ({
           transition,
         }}
       >
-        {/* Header — Paper 179-0: language + step */}
-        <div className="flex items-center justify-between">
-          <span
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#1C2525",
-              opacity: 0.5,
-            }}
-          >
-            Español
-          </span>
-          <span
-            className="qahal-display"
-            style={{
-              fontSize: 14,
-              fontWeight: 300,
-              color: "#1C2525",
-              opacity: 0.35,
-            }}
-          >
-            02
-          </span>
-        </div>
-
         {/* Title — Paper 17C-0 */}
         <h1
           className="qahal-display mt-[24px] text-center"
@@ -330,32 +289,6 @@ export const OnboardingCarouselScreen = ({
           transition,
         }}
       >
-        {/* Header — Paper 1IT-0: language + step */}
-        <div className="flex items-center justify-between">
-          <span
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#1C2525",
-              opacity: 0.5,
-            }}
-          >
-            Español
-          </span>
-          <span
-            className="qahal-display"
-            style={{
-              fontSize: 14,
-              fontWeight: 300,
-              color: "#1C2525",
-              opacity: 0.35,
-            }}
-          >
-            03
-          </span>
-        </div>
-
         {/* Title — Paper 1IW-0 */}
         <h1
           className="qahal-display mt-[24px] text-center"
