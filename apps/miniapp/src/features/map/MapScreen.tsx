@@ -18,11 +18,25 @@ interface MapScreenProps {
   onGoProfile: () => void;
   cityName?: string;
   initialCenter?: [number, number];
-  onCityChange?: (city: { name: string; latitude: number; longitude: number }) => void;
+  onCityChange?: (city: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  }) => void;
 }
 
-export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cityName, initialCenter, onCityChange }: MapScreenProps) => {
-  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(initialCenter);
+export const MapScreen = ({
+  variant,
+  onVariantChange,
+  onGoHome,
+  onGoProfile,
+  cityName,
+  initialCenter,
+  onCityChange,
+}: MapScreenProps) => {
+  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(
+    initialCenter,
+  );
   const [activeCityName, setActiveCityName] = useState(cityName);
   const [mapZoom, setMapZoom] = useState(12);
   const [recenterKey, setRecenterKey] = useState(0);
@@ -30,7 +44,9 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
   const [locationError, setLocationError] = useState<string | null>(null);
   const [people, setPeople] = useState<CommunityPerson[]>([]);
   const [peopleOpen, setPeopleOpen] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState<CommunityPerson | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<CommunityPerson | null>(
+    null,
+  );
 
   useEffect(() => {
     setMapCenter(initialCenter);
@@ -44,7 +60,8 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
   }, [cityName]);
 
   useEffect(() => {
-    const hasCoords = typeof mapCenter?.[0] === "number" && typeof mapCenter?.[1] === "number";
+    const hasCoords =
+      typeof mapCenter?.[0] === "number" && typeof mapCenter?.[1] === "number";
     if (!activeCityName && !hasCoords) {
       setPeople([]);
       return;
@@ -54,7 +71,7 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
       .getCommunityPeople({
         city: activeCityName,
         latitude: hasCoords ? mapCenter[0] : undefined,
-        longitude: hasCoords ? mapCenter[1] : undefined
+        longitude: hasCoords ? mapCenter[1] : undefined,
       })
       .then((res) => {
         setPeople(Array.isArray(res.people) ? res.people : []);
@@ -66,8 +83,12 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
 
   const sortedPeople = useMemo(() => {
     return [...people].sort((a, b) => {
-      const aLeader = a.badges.some((badge) => badge.kind === "messenger") ? 1 : 0;
-      const bLeader = b.badges.some((badge) => badge.kind === "messenger") ? 1 : 0;
+      const aLeader = a.badges.some((badge) => badge.kind === "messenger")
+        ? 1
+        : 0;
+      const bLeader = b.badges.some((badge) => badge.kind === "messenger")
+        ? 1
+        : 0;
       if (bLeader !== aLeader) {
         return bLeader - aLeader;
       }
@@ -93,15 +114,19 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
       },
       () => {
         setLocating(false);
-        setLocationError("Location permission denied. Enable location access to recenter the map.");
+        setLocationError(
+          "Location permission denied. Enable location access to recenter the map.",
+        );
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 60000
-      }
+        maximumAge: 60000,
+      },
     );
   };
+
+  const peoplePanelVisible = variant === "allowed" && peopleOpen;
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#e8e0d2]">
@@ -131,7 +156,8 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
         visible={variant === "allowed"}
         cityName={activeCityName}
         userLocation={
-          typeof mapCenter?.[0] === "number" && typeof mapCenter?.[1] === "number"
+          typeof mapCenter?.[0] === "number" &&
+          typeof mapCenter?.[1] === "number"
             ? { latitude: mapCenter[0], longitude: mapCenter[1] }
             : undefined
         }
@@ -143,12 +169,28 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
           setLocationError(null);
           setPeopleOpen(false);
           setSelectedPerson(null);
-          onCityChange?.({ name: city.city, latitude: city.latitude, longitude: city.longitude });
+          onCityChange?.({
+            name: city.city,
+            latitude: city.latitude,
+            longitude: city.longitude,
+          });
         }}
       />
 
+      {peoplePanelVisible ? (
+        <button
+          type="button"
+          aria-label="Close people list"
+          className="absolute inset-0 z-20"
+          onClick={() => {
+            setPeopleOpen(false);
+            setSelectedPerson(null);
+          }}
+        />
+      ) : null}
+
       <MapPeoplePanel
-        visible={variant === "allowed" && peopleOpen}
+        visible={peoplePanelVisible}
         people={sortedPeople}
         onSelectPerson={(person) => {
           setSelectedPerson(person);
@@ -156,9 +198,16 @@ export const MapScreen = ({ variant, onVariantChange, onGoHome, onGoProfile, cit
         }}
       />
 
-      <MapNoPermissionOverlay visible={variant === "no-permission"} onEnable={() => onVariantChange("allowed")} />
+      <MapNoPermissionOverlay
+        visible={variant === "no-permission"}
+        onEnable={() => onVariantChange("allowed")}
+      />
 
-      <MapPersonSheet person={selectedPerson} onClose={() => setSelectedPerson(null)} onMessage={onGoHome} />
+      <MapPersonSheet
+        person={selectedPerson}
+        onClose={() => setSelectedPerson(null)}
+        onMessage={onGoHome}
+      />
 
       <MapBottomNav
         visible={variant === "allowed"}
