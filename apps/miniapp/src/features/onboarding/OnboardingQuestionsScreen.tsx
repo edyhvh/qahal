@@ -64,7 +64,6 @@ export const OnboardingQuestionsScreen = ({
   const question = QUESTIONS[step] ?? QUESTIONS[0];
   const isIntro = step === 0;
   const isResult = step === QUESTIONS.length - 1;
-  const stepLabel = String(step + 1).padStart(2, "0");
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
@@ -87,32 +86,7 @@ export const OnboardingQuestionsScreen = ({
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 flex-col justify-between px-[28px] pb-[36px] pt-[56px]">
-        {/* Top bar: language + step number */}
-        <div className="flex items-center justify-between px-[4px] opacity-50">
-          <span
-            style={{
-              color: "#C9A46F",
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase" as const,
-              opacity: 0.7,
-            }}
-          >
-            English
-          </span>
-          <span
-            style={{
-              color: "#E8DDD0",
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.12em",
-              opacity: 0.35,
-            }}
-          >
-            {stepLabel}
-          </span>
-        </div>
+        <div className="h-[14px]" />
 
         {/* Center content */}
         <div className="flex flex-col items-center gap-[24px] px-[8px]">

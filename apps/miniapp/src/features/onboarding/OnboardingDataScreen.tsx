@@ -11,7 +11,7 @@ interface OnboardingDataScreenProps {
     firstName: string,
     city: string,
     languageCode: "en" | "es" | "he",
-    cityCoordinates?: { latitude: number; longitude: number }
+    cityCoordinates?: { latitude: number; longitude: number },
   ) => Promise<void>;
 }
 
@@ -25,11 +25,16 @@ export const OnboardingDataScreen = ({
 }: OnboardingDataScreenProps) => {
   const [firstName, setFirstName] = useState(initialFirstName);
   const [city, setCity] = useState(initialCity);
-  const [cityCoordinates, setCityCoordinates] = useState<{ latitude: number; longitude: number } | undefined>(undefined);
-  const [languageCode, setLanguageCode] = useState<"en" | "es" | "he">(initialLanguageCode);
+  const [cityCoordinates, setCityCoordinates] = useState<
+    { latitude: number; longitude: number } | undefined
+  >(undefined);
+  const [languageCode, setLanguageCode] = useState<"en" | "es" | "he">(
+    initialLanguageCode,
+  );
   const [step, setStep] = useState<"name" | "city">("name");
 
-  const canContinue = step === "name" ? firstName.trim().length > 0 : city.trim().length > 0;
+  const canContinue =
+    step === "name" ? firstName.trim().length > 0 : city.trim().length > 0;
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
@@ -51,21 +56,7 @@ export const OnboardingDataScreen = ({
 
       {/* Content */}
       <div className="relative z-10 flex flex-1 flex-col justify-between px-[28px] pb-[36px] pt-[56px]">
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-[4px] opacity-50">
-          <span />
-          <span
-            style={{
-              color: "#E8DDD0",
-              fontSize: 11,
-              fontWeight: 500,
-              letterSpacing: "0.12em",
-              opacity: 0.35,
-            }}
-          >
-            {step === "name" ? "01" : "02"}
-          </span>
-        </div>
+        <div className="h-[14px]" />
 
         {/* Center content */}
         <div className="flex flex-col items-center gap-[32px] px-[8px]">
@@ -95,7 +86,8 @@ export const OnboardingDataScreen = ({
                 marginTop: -16,
               }}
             >
-              You can also select a city where you&apos;re traveling or moving to
+              You can also select a city where you&apos;re traveling or moving
+              to
             </p>
           )}
 
@@ -124,11 +116,13 @@ export const OnboardingDataScreen = ({
               initialValue={city}
               onCitySelected={(suggestion) => {
                 setCity(suggestion.city);
-                setCityCoordinates({ latitude: suggestion.latitude, longitude: suggestion.longitude });
+                setCityCoordinates({
+                  latitude: suggestion.latitude,
+                  longitude: suggestion.longitude,
+                });
               }}
             />
           )}
-
         </div>
 
         {/* Bottom buttons + dots */}
@@ -141,7 +135,12 @@ export const OnboardingDataScreen = ({
               if (step === "name") {
                 setStep("city");
               } else {
-                onSubmit(firstName.trim(), city.trim(), languageCode, cityCoordinates);
+                onSubmit(
+                  firstName.trim(),
+                  city.trim(),
+                  languageCode,
+                  cityCoordinates,
+                );
               }
             }}
             className="flex shrink-0 items-center justify-center disabled:opacity-40"

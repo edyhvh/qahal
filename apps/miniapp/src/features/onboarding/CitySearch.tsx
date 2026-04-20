@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react";
-import { Placeholder } from "@telegram-apps/telegram-ui";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from "@headlessui/react";
 import type { CitySuggestion } from "@qahal/shared";
 import { api } from "../../lib/api";
 
@@ -13,14 +17,21 @@ interface CitySearchProps {
   onCitySelected: (city: CitySuggestion) => void;
 }
 
-export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: CitySearchProps) => {
+export const CitySearch = ({
+  telegramId,
+  initialValue = "",
+  onCitySelected,
+}: CitySearchProps) => {
   const [query, setQuery] = useState(initialValue);
   const [selectedCity, setSelectedCity] = useState<CitySuggestion | null>(null);
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [locationState, setLocationState] = useState<LocationState>("idle");
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   const debouncedQuery = useMemo(() => query.trim(), [query]);
 
@@ -36,7 +47,11 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
       setLoading(true);
 
       api
-        .searchCities(debouncedQuery, controller.signal, userLocation ?? undefined)
+        .searchCities(
+          debouncedQuery,
+          controller.signal,
+          userLocation ?? undefined,
+        )
         .then((res) => {
           setSuggestions(res.suggestions);
         })
@@ -49,7 +64,6 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
         .finally(() => {
           setLoading(false);
         });
-
     }, 280);
 
     return () => {
@@ -69,7 +83,7 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
       (position) => {
         setUserLocation({
           latitude: position.coords.latitude,
-          longitude: position.coords.longitude
+          longitude: position.coords.longitude,
         });
         setLocationState("granted");
       },
@@ -79,8 +93,8 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
       {
         enableHighAccuracy: false,
         timeout: 10000,
-        maximumAge: 300000
-      }
+        maximumAge: 300000,
+      },
     );
   };
 
@@ -132,7 +146,7 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
         state: value.state,
         country: value.country,
         latitude: value.latitude,
-        longitude: value.longitude
+        longitude: value.longitude,
       });
       onCitySelected(value);
       setSaveState("saved");
@@ -141,7 +155,8 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
     }
   };
 
-  const showEmptyState = !loading && debouncedQuery.length >= 2 && suggestions.length === 0;
+  const showEmptyState =
+    !loading && debouncedQuery.length >= 2 && suggestions.length === 0;
 
   return (
     <div className="w-full">
@@ -152,18 +167,26 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
           disabled={locationState === "requesting"}
           className="mb-3 inline-flex items-center rounded-xl border border-[#C9A46F66] bg-[#E8DDD012] px-3 py-2 text-xs font-semibold text-[#E8DDD0] disabled:opacity-60"
         >
-          {locationState === "requesting" ? "Requesting location..." : "Allow location access"}
+          {locationState === "requesting"
+            ? "Requesting location..."
+            : "Allow location access"}
         </button>
       ) : null}
 
       {locationState === "granted" ? (
-        <p className="mb-3 text-xs text-[#9ED7B6]">Location granted. Results are ordered from closest to farthest.</p>
+        <p className="mb-3 text-xs text-[#9ED7B6]">
+          Location granted. Results are ordered from closest to farthest.
+        </p>
       ) : null}
       {locationState === "denied" ? (
-        <p className="mb-3 text-xs text-[#F4C58A]">Location access denied. City suggestions will use text relevance only.</p>
+        <p className="mb-3 text-xs text-[#F4C58A]">
+          Location access denied. City suggestions will use text relevance only.
+        </p>
       ) : null}
       {locationState === "error" ? (
-        <p className="mb-3 text-xs text-[#F4A7A7]">This browser does not support location access.</p>
+        <p className="mb-3 text-xs text-[#F4A7A7]">
+          This browser does not support location access.
+        </p>
       ) : null}
 
       <Combobox value={selectedCity} onChange={handleSelect}>
@@ -191,7 +214,9 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
 
           <ComboboxOptions className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border border-[#C9A46F40] bg-[#1D1814] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
             {loading ? (
-              <div className="px-3 py-2 text-sm text-[#E8DDD0B3]">Searching cities...</div>
+              <div className="px-3 py-2 text-sm text-[#E8DDD0B3]">
+                Searching cities...
+              </div>
             ) : null}
 
             {!loading
@@ -207,22 +232,31 @@ export const CitySearch = ({ telegramId, initialValue = "", onCitySelected }: Ci
               : null}
 
             {showEmptyState ? (
-              <div className="px-3 py-2 text-sm text-[#E8DDD099]">No matching cities found.</div>
+              <div className="px-3 py-2 text-sm text-[#E8DDD099]">
+                No matching cities found.
+              </div>
             ) : null}
           </ComboboxOptions>
         </div>
       </Combobox>
 
-      {saveState === "saving" ? <p className="mt-3 text-xs text-[#E8DDD099]">Saving selected city...</p> : null}
+      {saveState === "saving" ? (
+        <p className="mt-3 text-xs text-[#E8DDD099]">Saving selected city...</p>
+      ) : null}
       {saveState === "error" ? (
-        <p className="mt-3 text-xs text-[#F4A7A7]">Could not save city. Please try again.</p>
+        <p className="mt-3 text-xs text-[#F4A7A7]">
+          Could not save city. Please try again.
+        </p>
       ) : null}
       {saveState === "saved" && selectedCity ? (
-        <div className="mt-3 rounded-xl border border-[#2E7D5B66] bg-[#2E7D5B1F] px-1 py-2">
-          <Placeholder
-            header="City saved"
-            description={`${selectedCity.city}, ${selectedCity.state}, ${selectedCity.country}`}
-          />
+        <div className="mt-3 rounded-xl border border-[#2E7D5B66] bg-[#2E7D5B1F] px-3 py-3">
+          <p className="text-sm font-semibold text-[#BFEBD5]">City saved</p>
+          <p className="mt-1 text-sm text-[#E8DDD0]">
+            {selectedCity.city}, {selectedCity.state}, {selectedCity.country}
+          </p>
+          <p className="mt-2 text-xs text-[#9ED7B6]">
+            Tap Continue to open the map in this city.
+          </p>
         </div>
       ) : null}
     </div>
