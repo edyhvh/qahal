@@ -261,7 +261,7 @@ export const HomeScreen = ({
   }, [effectiveProfile.badges]);
 
   return (
-    <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
+    <section className="relative flex h-[100dvh] flex-col overflow-hidden">
       {/* Paper 4RR-0: light parchment gradient background */}
       <div
         className="absolute inset-0"
@@ -615,7 +615,7 @@ export const HomeScreen = ({
 
       {/* Bottom Nav — Paper 4V3-0 */}
       <div
-        className="absolute bottom-0 left-0 right-0 z-20 flex flex-col items-center"
+        className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[375px] -translate-x-1/2 flex-col items-center"
         style={{
           backgroundImage:
             "linear-gradient(0deg, rgba(237,233,225,0.95) 0%, rgba(237,233,225,0.85) 60%, rgba(237,233,225,0) 100%)",
