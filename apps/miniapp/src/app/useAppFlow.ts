@@ -10,7 +10,11 @@ import type {
 } from "./types";
 import { api } from "../lib/api";
 import { getTelegramWebApp } from "../lib/telegram";
-import { clearWebGuestId, detectRuntimeTarget, getWebGuestId } from "../lib/runtime";
+import {
+  clearWebGuestId,
+  detectRuntimeTarget,
+  getWebGuestId,
+} from "../lib/runtime";
 import { isProfileTestingEnabled } from "../lib/env";
 
 const TOTAL_QUESTION_STEPS = 9;
@@ -236,7 +240,8 @@ export const useAppFlow = () => {
     return {
       displayName,
       qahalName: persistedQahalName ?? noCongregation.qahalName,
-      badges: persistedBadges.length > 0 ? persistedBadges : noCongregation.badges,
+      badges:
+        persistedBadges.length > 0 ? persistedBadges : noCongregation.badges,
       hasCongregation: false,
     };
   }, [
@@ -302,13 +307,14 @@ export const useAppFlow = () => {
     cityCoordinates?: { latitude: number; longitude: number },
   ) => {
     const cleanedFirstName = sanitizeProfileName(firstName);
+    const cleanedCity = city.trim();
 
     setState((prev) => ({
       ...prev,
       answers: {
         ...prev.answers,
         firstName: cleanedFirstName,
-        city,
+        city: cleanedCity,
         cityLatitude: cityCoordinates?.latitude,
         cityLongitude: cityCoordinates?.longitude,
         languageCode,
@@ -333,7 +339,7 @@ export const useAppFlow = () => {
     const finalFirstName = sanitizeProfileName(
       profile?.firstName ?? state.answers.firstName,
     );
-    const finalCity = profile?.city ?? state.answers.city;
+    const finalCity = (profile?.city ?? state.answers.city).trim();
     const finalLanguageCode =
       profile?.languageCode ?? state.answers.languageCode;
     const finalCityLatitude =
@@ -344,7 +350,6 @@ export const useAppFlow = () => {
     const payload: OnboardingSubmit = {
       telegramId: state.telegramId,
       firstName: finalFirstName,
-      city: finalCity,
       languageCode: finalLanguageCode,
       answers: Object.fromEntries(
         Object.entries(state.answers.values).map(([step, value]) => [
@@ -353,6 +358,10 @@ export const useAppFlow = () => {
         ]),
       ),
     };
+
+    if (finalCity) {
+      payload.city = finalCity;
+    }
 
     setBusy(true);
     try {
@@ -422,11 +431,13 @@ export const useAppFlow = () => {
       },
     }));
 
-    void api.updateUserProfile(state.telegramId, {
-      firstName: safeName,
-    }).catch(() => {
-      // Keep local optimistic update if backend is temporarily unavailable.
-    });
+    void api
+      .updateUserProfile(state.telegramId, {
+        firstName: safeName,
+      })
+      .catch(() => {
+        // Keep local optimistic update if backend is temporarily unavailable.
+      });
   };
 
   const updateConfirmedBirthDate = (birthDate: string | null) => {
@@ -435,11 +446,13 @@ export const useAppFlow = () => {
       return;
     }
 
-    void api.updateUserProfile(state.telegramId, {
-      birthDate,
-    }).catch(() => {
-      // Keep local optimistic update if backend is temporarily unavailable.
-    });
+    void api
+      .updateUserProfile(state.telegramId, {
+        birthDate,
+      })
+      .catch(() => {
+        // Keep local optimistic update if backend is temporarily unavailable.
+      });
   };
 
   const resetLocalData = async () => {

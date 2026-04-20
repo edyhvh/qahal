@@ -33,8 +33,7 @@ export const OnboardingDataScreen = ({
   );
   const [step, setStep] = useState<"name" | "city">("name");
 
-  const canContinue =
-    step === "name" ? firstName.trim().length > 0 : city.trim().length > 0;
+  const canContinue = step === "name" ? firstName.trim().length > 0 : true;
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
@@ -86,8 +85,7 @@ export const OnboardingDataScreen = ({
                 marginTop: -16,
               }}
             >
-              You can also select a city where you&apos;re traveling or moving
-              to
+              You can select your city now, or continue and choose it later.
             </p>
           )}
 

@@ -3,31 +3,34 @@ import { z } from "zod";
 export const onboardingSubmitSchema = z.object({
   telegramId: z.number().int().positive(),
   firstName: z.string().min(1).max(80),
-  city: z.string().min(1).max(120),
+  city: z.string().trim().min(1).max(120).optional(),
   languageCode: z.enum(["en", "es", "he"]).default("en"),
-  answers: z.record(z.string().min(1), z.string().min(1).max(16)).optional()
+  answers: z.record(z.string().min(1), z.string().min(1).max(16)).optional(),
 });
 
 export const locationUpsertSchema = z.object({
   telegramId: z.number().int().positive(),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  accuracy: z.number().nonnegative().optional()
+  accuracy: z.number().nonnegative().optional(),
 });
 
 export const citySearchQuerySchema = z
   .object({
     q: z.string().trim().min(2).max(120),
     userLat: z.coerce.number().min(-90).max(90).optional(),
-    userLng: z.coerce.number().min(-180).max(180).optional()
+    userLng: z.coerce.number().min(-180).max(180).optional(),
   })
-  .refine((value) => {
-    const hasLat = typeof value.userLat === "number";
-    const hasLng = typeof value.userLng === "number";
-    return hasLat === hasLng;
-  }, {
-    message: "userLat and userLng must be provided together"
-  });
+  .refine(
+    (value) => {
+      const hasLat = typeof value.userLat === "number";
+      const hasLng = typeof value.userLng === "number";
+      return hasLat === hasLng;
+    },
+    {
+      message: "userLat and userLng must be provided together",
+    },
+  );
 
 export const citySuggestionSchema = z.object({
   city: z.string().min(1),
@@ -35,12 +38,12 @@ export const citySuggestionSchema = z.object({
   country: z.string().min(1),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  label: z.string().min(1)
+  label: z.string().min(1),
 });
 
 export const citySearchResponseSchema = z.object({
   ok: z.literal(true),
-  suggestions: z.array(citySuggestionSchema)
+  suggestions: z.array(citySuggestionSchema),
 });
 
 export const locationSaveSchema = z.object({
@@ -49,13 +52,13 @@ export const locationSaveSchema = z.object({
   state: z.string().trim().min(1).max(120),
   country: z.string().trim().min(1).max(120),
   latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180)
+  longitude: z.number().min(-180).max(180),
 });
 
 export const nearbyQuerySchema = z.object({
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
-  telegramId: z.coerce.number().int().positive().optional()
+  telegramId: z.coerce.number().int().positive().optional(),
 });
 
 export const communityCardSchema = z.object({
@@ -63,12 +66,12 @@ export const communityCardSchema = z.object({
   name: z.string().min(1),
   city: z.string().min(1),
   distanceKm: z.number().nonnegative(),
-  memberState: z.enum(["not_member", "requested", "member"])
+  memberState: z.enum(["not_member", "requested", "member"]),
 });
 
 export const nearbyResponseSchema = z.object({
   ok: z.literal(true),
-  communities: z.array(communityCardSchema)
+  communities: z.array(communityCardSchema),
 });
 
 export type OnboardingSubmit = z.infer<typeof onboardingSubmitSchema>;

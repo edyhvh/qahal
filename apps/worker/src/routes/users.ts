@@ -36,8 +36,9 @@ const selectUserBase = async (
   telegramId: number,
 ): Promise<Record<string, unknown> | null> => {
   try {
-    return await db.prepare(
-      `SELECT telegram_id as telegramId,
+    return await db
+      .prepare(
+        `SELECT telegram_id as telegramId,
               username,
               first_name as firstName,
               last_name as lastName,
@@ -48,22 +49,23 @@ const selectUserBase = async (
               created_at as createdAt,
               onboarding_completed as onboardingCompleted
        FROM users
-       WHERE telegram_id = ?1`
-    )
+       WHERE telegram_id = ?1`,
+      )
       .bind(telegramId)
       .first<Record<string, unknown>>();
   } catch {
     // Backward compatibility for D1 instances without city/onboarding_completed columns.
-    const legacyUser = await db.prepare(
-      `SELECT telegram_id as telegramId,
+    const legacyUser = await db
+      .prepare(
+        `SELECT telegram_id as telegramId,
               username,
               first_name as firstName,
               last_name as lastName,
               photo_url as photoUrl,
               language_code as languageCode
        FROM users
-       WHERE telegram_id = ?1`
-    )
+       WHERE telegram_id = ?1`,
+      )
       .bind(telegramId)
       .first<Record<string, unknown>>();
 
@@ -75,20 +77,24 @@ const selectUserBase = async (
       ...legacyUser,
       city: null,
       birthDate: null,
-      onboardingCompleted: false
+      onboardingCompleted: false,
     };
   }
 };
 
-const selectUserBadges = async (db: D1Like, telegramId: number): Promise<string[]> => {
+const selectUserBadges = async (
+  db: D1Like,
+  telegramId: number,
+): Promise<string[]> => {
   try {
     type BadgeRow = { badgeLabel: string };
-    const result = await db.prepare(
-      `SELECT badge_label as badgeLabel
+    const result = await db
+      .prepare(
+        `SELECT badge_label as badgeLabel
        FROM user_badges
        WHERE telegram_id = ?1
-       ORDER BY badge_label ASC`
-    )
+       ORDER BY badge_label ASC`,
+      )
       .bind(telegramId)
       .all<BadgeRow>();
 
@@ -111,7 +117,7 @@ const selectUserQahalName = async (
          JOIN communities c ON c.id = m.community_id
          WHERE m.telegram_id = ?1 AND m.status = 'member'
          ORDER BY m.updated_at DESC
-         LIMIT 1`
+         LIMIT 1`,
       )
       .bind(telegramId)
       .first<QahalRow>();
@@ -139,7 +145,7 @@ const selectLatestLocation = async (
          FROM user_locations
          WHERE telegram_id = ?1
          ORDER BY id DESC
-         LIMIT 1`
+         LIMIT 1`,
       )
       .bind(telegramId)
       .first<LocationRow>();
@@ -219,7 +225,7 @@ const upsertOnboardingAnswers = async (
          VALUES (?1, ?2, ?3)
          ON CONFLICT(telegram_id, question_key) DO UPDATE SET
            answer_value=excluded.answer_value,
-           updated_at=CURRENT_TIMESTAMP`
+           updated_at=CURRENT_TIMESTAMP`,
       )
       .bind(telegramId, questionKey, answerValue)
       .run();
@@ -238,7 +244,7 @@ const syncEmunahBadge = async (
          VALUES (?1, ?2, ?3)
          ON CONFLICT(telegram_id, badge_key) DO UPDATE SET
            badge_label=excluded.badge_label,
-           updated_at=CURRENT_TIMESTAMP`
+           updated_at=CURRENT_TIMESTAMP`,
       )
       .bind(telegramId, EMUNAH_BADGE.key, EMUNAH_BADGE.label)
       .run();
@@ -248,7 +254,7 @@ const syncEmunahBadge = async (
   await db
     .prepare(
       `DELETE FROM user_badges
-       WHERE telegram_id = ?1 AND badge_key = ?2`
+       WHERE telegram_id = ?1 AND badge_key = ?2`,
     )
     .bind(telegramId, EMUNAH_BADGE.key)
     .run();
@@ -265,9 +271,20 @@ usersRoute.post("/onboarding", async (c) => {
   }
 
   const { telegramId, firstName, city, languageCode, answers } = parsed.data;
+  const normalizedCity =
+    typeof city === "string" && city.trim().length > 0 ? city.trim() : null;
 
   if (!hasD1(c.env.DB)) {
-    return c.json({ ok: true, user: { telegramId, firstName, city, languageCode, onboardingCompleted: true } });
+    return c.json({
+      ok: true,
+      user: {
+        telegramId,
+        firstName,
+        city: normalizedCity ?? undefined,
+        languageCode,
+        onboardingCompleted: true,
+      },
+    });
   }
 
   try {
@@ -279,9 +296,9 @@ usersRoute.post("/onboarding", async (c) => {
          city=excluded.city,
          language_code=excluded.language_code,
          onboarding_completed=1,
-         updated_at=CURRENT_TIMESTAMP`
+         updated_at=CURRENT_TIMESTAMP`,
     )
-      .bind(telegramId, firstName, city, languageCode)
+      .bind(telegramId, firstName, normalizedCity, languageCode)
       .run();
 
     await upsertOnboardingAnswers(c.env.DB, telegramId, answers);
@@ -299,7 +316,7 @@ usersRoute.post("/onboarding", async (c) => {
          ON CONFLICT(telegram_id) DO UPDATE SET
            first_name=excluded.first_name,
            language_code=excluded.language_code,
-           updated_at=CURRENT_TIMESTAMP`
+           updated_at=CURRENT_TIMESTAMP`,
       )
         .bind(telegramId, firstName, languageCode)
         .run();
@@ -314,8 +331,14 @@ usersRoute.post("/onboarding", async (c) => {
       console.error("onboarding save failed", { error, telegramId });
       return c.json({
         ok: true,
-        user: { telegramId, firstName, city, languageCode, onboardingCompleted: true },
-        persisted: false
+        user: {
+          telegramId,
+          firstName,
+          city: normalizedCity ?? undefined,
+          languageCode,
+          onboardingCompleted: true,
+        },
+        persisted: false,
       });
     }
   }
@@ -365,26 +388,24 @@ usersRoute.put("/:telegramId/profile", async (c) => {
       : null;
 
   try {
-    await c.env.DB
-      .prepare(
-        `INSERT INTO users (telegram_id, first_name, birth_date)
+    await c.env.DB.prepare(
+      `INSERT INTO users (telegram_id, first_name, birth_date)
          VALUES (?1, ?2, ?3)
          ON CONFLICT(telegram_id) DO UPDATE SET
            first_name=COALESCE(?2, users.first_name),
            birth_date=COALESCE(?3, users.birth_date),
-           updated_at=CURRENT_TIMESTAMP`
-      )
+           updated_at=CURRENT_TIMESTAMP`,
+    )
       .bind(telegramId, safeFirstName, safeBirthDate)
       .run();
   } catch {
-    await c.env.DB
-      .prepare(
-        `INSERT INTO users (telegram_id, first_name)
+    await c.env.DB.prepare(
+      `INSERT INTO users (telegram_id, first_name)
          VALUES (?1, ?2)
          ON CONFLICT(telegram_id) DO UPDATE SET
            first_name=COALESCE(?2, users.first_name),
-           updated_at=CURRENT_TIMESTAMP`
-      )
+           updated_at=CURRENT_TIMESTAMP`,
+    )
       .bind(telegramId, safeFirstName)
       .run();
   }
