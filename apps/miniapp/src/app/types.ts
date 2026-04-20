@@ -126,10 +126,21 @@ export const LOCAL_PROFILE_ROLE_OPTIONS: LocalProfileRoleOption[] = [
 export const getLocalProfileRoleOption = (
   role: LocalProfileRole,
 ): LocalProfileRoleOption => {
-  return (
-    LOCAL_PROFILE_ROLE_OPTIONS.find((option) => option.value === role) ??
-    LOCAL_PROFILE_ROLE_OPTIONS[0]
+  const matched = LOCAL_PROFILE_ROLE_OPTIONS.find(
+    (option) => option.value === role,
   );
+  if (matched) {
+    return matched;
+  }
+
+  return {
+    value: "none",
+    label: "No Congregation Yet",
+    description: "Can request to join a congregation.",
+    defaultDisplayName: "New Pilgrim",
+    qahalName: "No congregation yet",
+    badges: [],
+  };
 };
 
 export interface OnboardingAnswers {
