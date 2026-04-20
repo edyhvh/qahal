@@ -168,19 +168,6 @@ export const OnboardingCarouselScreen = ({
             Find brothers and congregations near to you.
           </p>
 
-          {/* Card small text — Paper XI-0 */}
-          <p
-            style={{
-              fontSize: 13,
-              lineHeight: "19px",
-              color: "#1C2525",
-              opacity: 0.5,
-              marginTop: 8,
-            }}
-          >
-            We&apos;ll ask you a couple of questions to get you started.
-          </p>
-
           {/* Button — single Go! */}
           <div className="mt-[20px]">
             <button
