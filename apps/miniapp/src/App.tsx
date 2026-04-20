@@ -47,25 +47,48 @@ export default function App() {
       onLanguageCodeChange={setLanguageCode}
     >
       <div
-        className="mx-auto min-h-[100dvh] max-w-[375px]"
+        className="relative mx-auto min-h-[100dvh] max-w-[375px]"
         data-paper-screen={paperScreenKey}
         data-runtime={runtimeTarget}
       >
+        {profileTestingEnabled ? (
+          <div className="pointer-events-none absolute left-1/2 top-3 z-[70] -translate-x-1/2">
+            <label
+              className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-[#C9A46F66] bg-[#1C2525CC] px-3 py-2 text-xs text-[#F5F0E8] backdrop-blur"
+              htmlFor="debug-language-switcher"
+            >
+              <span>Language</span>
+              <select
+                id="debug-language-switcher"
+                value={state.answers.languageCode}
+                onChange={(event) =>
+                  setLanguageCode(event.target.value as "en" | "es" | "he")
+                }
+                className="rounded-md border border-[#C9A46F66] bg-[#1C2525] px-2 py-1 text-xs text-[#F5F0E8] outline-none"
+              >
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="he">Hebrew</option>
+              </select>
+            </label>
+          </div>
+        ) : null}
+
         {state.screen === "onboarding-carousel" ? (
           <OnboardingCarouselScreen onStart={startQuestions} />
         ) : null}
 
-      {state.screen === "onboarding-questions" ? (
-        <OnboardingQuestionsScreen
-          step={state.questionStep}
-          progressLabel={questionProgress}
-          selectedValue={state.answers.values[state.questionStep]}
-          onSelect={answerQuestion}
-          onNext={nextQuestion}
-          onBack={previousQuestion}
-          onExit={goToCarousel}
-        />
-      ) : null}
+        {state.screen === "onboarding-questions" ? (
+          <OnboardingQuestionsScreen
+            step={state.questionStep}
+            progressLabel={questionProgress}
+            selectedValue={state.answers.values[state.questionStep]}
+            onSelect={answerQuestion}
+            onNext={nextQuestion}
+            onBack={previousQuestion}
+            onExit={goToCarousel}
+          />
+        ) : null}
 
         {state.screen === "onboarding-data" ? (
           <OnboardingDataScreen
@@ -74,7 +97,12 @@ export default function App() {
             initialCity={state.answers.city}
             initialLanguageCode={state.answers.languageCode}
             busy={busy}
-            onSubmit={async (firstName, city, languageCode, cityCoordinates) => {
+            onSubmit={async (
+              firstName,
+              city,
+              languageCode,
+              cityCoordinates,
+            ) => {
               setLanguageCode(languageCode);
               updateProfile(firstName, city, languageCode, cityCoordinates);
               await finishOnboarding({

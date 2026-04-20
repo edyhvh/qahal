@@ -38,6 +38,7 @@ export interface Messages {
     no: string;
     ok: string;
     questions: string[];
+    references: string[][];
   };
   onboardingData: {
     nameTitle: string;

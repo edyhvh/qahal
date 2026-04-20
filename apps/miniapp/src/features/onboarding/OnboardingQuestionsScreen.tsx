@@ -1,17 +1,5 @@
 import { useI18n } from "../../app/i18n";
 
-const QUESTION_REFERENCES: string[][] = [
-  [],
-  ["Isaiah 53:5", "John 20:31"],
-  ["Isaiah 8:20", "Revelation 14:12"],
-  ["Deuteronomy 18:18", "Acts 7:37"],
-  ["Deuteronomy 6:4", "John 17:3"],
-  ["Psalm 110:1", "Philippians 2:11"],
-  ["Zechariah 2:11", "John 10:16"],
-  ["Acts 15:29"],
-  [],
-];
-
 const TOTAL_DOTS = 9;
 
 interface OnboardingQuestionsScreenProps {
@@ -41,7 +29,9 @@ export const OnboardingQuestionsScreen = ({
   ];
   const questionText = questions[step] ?? questions[0];
   const questionReferences =
-    QUESTION_REFERENCES[step] ?? QUESTION_REFERENCES[0] ?? [];
+    t.onboardingQuestions.references[step] ??
+    t.onboardingQuestions.references[0] ??
+    [];
   const isIntro = step === 0;
   const isResult = step === questions.length - 1;
 

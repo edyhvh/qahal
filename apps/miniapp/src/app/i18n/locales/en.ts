@@ -49,6 +49,17 @@ export const enMessages: Messages = {
       "Do you believe that Adonai has made one single people out of Jews and Gentiles?",
       "From now on, will you abstain from what is offered to idols, blood, what is strangled, and sexual inmorality?",
     ],
+    references: [
+      [],
+      ["Isaiah 53:5", "John 20:31"],
+      ["Isaiah 8:20", "Revelation 14:12"],
+      ["Deuteronomy 18:18", "Acts 7:37"],
+      ["Deuteronomy 6:4", "John 17:3"],
+      ["Psalm 110:1", "Philippians 2:11"],
+      ["Zechariah 2:11", "John 10:16"],
+      ["Acts 15:29"],
+      [],
+    ],
   },
   onboardingData: {
     nameTitle: "How will others call you?",
@@ -63,12 +74,15 @@ export const enMessages: Messages = {
   citySearch: {
     requestLocation: "Allow location access",
     requestingLocation: "Requesting location...",
-    locationGranted: "Location granted. Results are ordered from closest to farthest.",
-    locationDenied: "Location access denied. City suggestions will use text relevance only.",
+    locationGranted:
+      "Location granted. Results are ordered from closest to farthest.",
+    locationDenied:
+      "Location access denied. City suggestions will use text relevance only.",
     locationUnsupported: "This browser does not support location access.",
     locationHttpsRequired:
       "Location requires HTTPS in mobile browsers. Open the secure URL to enable it.",
-    locationFetchFailed: "Could not get your location right now. You can still search manually.",
+    locationFetchFailed:
+      "Could not get your location right now. You can still search manually.",
     saveInProgress: "Saving selected city...",
     saveFailed: "Could not save city. Please try again.",
     saveSuccess: "City saved",
@@ -114,7 +128,8 @@ export const enMessages: Messages = {
     geolocationDenied:
       "Location permission denied. Enable location access to recenter the map.",
     noPermissionTitle: "To see brothers",
-    noPermissionBody: "Share your location to see who walks in Emunah near you.",
+    noPermissionBody:
+      "Share your location to see who walks in Emunah near you.",
     noPermissionCta: "Enable Location",
     telegramMessage: "Message on Telegram",
     yearsInEmunahShort: (years) => `${years}y Emunah`,
@@ -147,7 +162,8 @@ export const enMessages: Messages = {
   },
   badges: {
     emunahName: "Emunah",
-    emunahDesc: "Granted after answering all onboarding doctrine questions with yes.",
+    emunahDesc:
+      "Granted after answering all onboarding doctrine questions with yes.",
     kehilahName: "Kehilah",
     kehilahDesc: "Granted when the person belongs to a congregation.",
     yearsName: (years) => `Years in Emunah (${years})`,

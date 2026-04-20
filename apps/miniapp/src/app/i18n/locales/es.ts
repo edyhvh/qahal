@@ -49,11 +49,23 @@ export const esMessages: Messages = {
       "¿Crees que Adonai hizo un solo pueblo de judíos y gentiles?",
       "Desde ahora, ¿te abstendrás de lo ofrecido a ídolos, sangre, ahogado y de inmoralidad sexual?",
     ],
+    references: [
+      [],
+      ["Isaías 53:5", "Juan 20:31"],
+      ["Isaías 8:20", "Apocalipsis 14:12"],
+      ["Deuteronomio 18:18", "Hechos 7:37"],
+      ["Deuteronomio 6:4", "Juan 17:3"],
+      ["Salmos 110:1", "Filipenses 2:11"],
+      ["Zacarías 2:11", "Juan 10:16"],
+      ["Hechos 15:29"],
+      [],
+    ],
   },
   onboardingData: {
     nameTitle: "¿Cómo quieres que te llamen?",
     cityTitle: "Selecciona tu ciudad actual",
-    cityHint: "Puedes seleccionar tu ciudad ahora, o continuar y elegirla luego.",
+    cityHint:
+      "Puedes seleccionar tu ciudad ahora, o continuar y elegirla luego.",
     namePlaceholder: "Tu nombre",
     languageLabel: "Idioma",
     languageEnglish: "Inglés",
@@ -63,7 +75,8 @@ export const esMessages: Messages = {
   citySearch: {
     requestLocation: "Permitir acceso a ubicación",
     requestingLocation: "Solicitando ubicación...",
-    locationGranted: "Ubicación concedida. Los resultados van de más cerca a más lejos.",
+    locationGranted:
+      "Ubicación concedida. Los resultados van de más cerca a más lejos.",
     locationDenied:
       "Acceso a ubicación denegado. Las sugerencias usarán solo relevancia de texto.",
     locationUnsupported: "Este navegador no admite acceso a ubicación.",
@@ -112,11 +125,13 @@ export const esMessages: Messages = {
     closePeopleList: "Cerrar lista de personas",
     showPeopleList: "Mostrar lista de personas",
     centerOnMyLocation: "Centrar mapa en mi ubicación",
-    geolocationUnsupported: "La geolocalización no está disponible en este dispositivo.",
+    geolocationUnsupported:
+      "La geolocalización no está disponible en este dispositivo.",
     geolocationDenied:
       "Permiso de ubicación denegado. Actívalo para recentrar el mapa.",
     noPermissionTitle: "Para ver hermanos",
-    noPermissionBody: "Comparte tu ubicación para ver quién camina en Emunah cerca de ti.",
+    noPermissionBody:
+      "Comparte tu ubicación para ver quién camina en Emunah cerca de ti.",
     noPermissionCta: "Activar Ubicación",
     telegramMessage: "Enviar mensaje por Telegram",
     yearsInEmunahShort: (years) => `${years} años Emunah`,
@@ -141,7 +156,8 @@ export const esMessages: Messages = {
     roleMemberDesc: "Ya pertenece a una congregación.",
     roleLeaderDesc: "Líder de una congregación (estado miembro).",
     localDataTitle: "Datos Locales",
-    localDataBody: "Empieza de nuevo localmente con un perfil totalmente nuevo.",
+    localDataBody:
+      "Empieza de nuevo localmente con un perfil totalmente nuevo.",
     localDataDelete: "Eliminar Mis Datos Locales",
     confirmAgeTitle: "Confirmar Edad",
     confirmAgeValue: (age) => `Edad a guardar: ${age}`,
