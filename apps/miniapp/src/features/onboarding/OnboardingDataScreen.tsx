@@ -24,16 +24,12 @@ export const OnboardingDataScreen = ({
   busy,
   onSubmit,
 }: OnboardingDataScreenProps) => {
-  const { t, setLanguageCode } = useI18n();
-  const normalizedInitialLanguage = initialLanguageCode === "es" ? "es" : "en";
+  const { t } = useI18n();
   const [firstName, setFirstName] = useState(initialFirstName);
   const [city, setCity] = useState(initialCity);
   const [cityCoordinates, setCityCoordinates] = useState<
     { latitude: number; longitude: number } | undefined
   >(undefined);
-  const [languageCode, setLanguageCodeState] = useState<"en" | "es">(
-    normalizedInitialLanguage,
-  );
   const [step, setStep] = useState<"name" | "city">("name");
   const [isNameInputFocused, setIsNameInputFocused] = useState(false);
   const [keyboardInset, setKeyboardInset] = useState(0);
@@ -206,11 +202,10 @@ export const OnboardingDataScreen = ({
                 setIsNameInputFocused(false);
                 setStep("city");
               } else {
-                setLanguageCode(languageCode);
                 onSubmit(
                   firstName.trim(),
                   city.trim(),
-                  languageCode,
+                  initialLanguageCode,
                   cityCoordinates,
                 );
               }
@@ -230,34 +225,6 @@ export const OnboardingDataScreen = ({
           >
             {busy ? t.onboardingData.saving : t.common.continue}
           </button>
-
-          {step === "name" ? (
-            <div className="flex items-center justify-center gap-[10px]">
-              <span style={{ fontSize: 13, color: "#E8DDD0", opacity: 0.7 }}>
-                {t.onboardingData.languageLabel}
-              </span>
-              <select
-                value={languageCode}
-                onChange={(event) => {
-                  const nextLanguage = event.target.value as "en" | "es";
-                  setLanguageCodeState(nextLanguage);
-                  setLanguageCode(nextLanguage);
-                }}
-                style={{
-                  height: 34,
-                  borderRadius: 10,
-                  border: "1px solid #C9A46F33",
-                  background: "#E8DDD00F",
-                  color: "#E8DDD0",
-                  fontSize: 13,
-                  padding: "0 10px",
-                }}
-              >
-                <option value="en">{t.onboardingData.languageEnglish}</option>
-                <option value="es">{t.onboardingData.languageSpanish}</option>
-              </select>
-            </div>
-          ) : null}
 
           {step === "city" && (
             <button
