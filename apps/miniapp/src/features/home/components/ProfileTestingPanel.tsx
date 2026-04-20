@@ -1,3 +1,5 @@
+import { useI18n } from "../../../app/i18n";
+
 export type LocalProfileRole = "none" | "member" | "leader";
 
 interface ProfileTestingPanelProps {
@@ -7,25 +9,27 @@ interface ProfileTestingPanelProps {
   onClose: () => void;
 }
 
-const roleOptions: Array<{ value: LocalProfileRole; label: string; description: string }> = [
-  {
-    value: "none",
-    label: "No Congregation Yet",
-    description: "Can request to join a congregation."
-  },
-  {
-    value: "member",
-    label: "Member",
-    description: "Already belongs to one congregation."
-  },
-  {
-    value: "leader",
-    label: "Community Leader",
-    description: "Leader of a congregation (member state)."
-  }
-];
-
 export const ProfileTestingPanel = ({ visible, role, onRoleChange, onClose }: ProfileTestingPanelProps) => {
+  const { t } = useI18n();
+
+  const roleOptions: Array<{ value: LocalProfileRole; label: string; description: string }> = [
+    {
+      value: "none",
+      label: t.profile.roleNone,
+      description: t.profile.roleNoneDesc,
+    },
+    {
+      value: "member",
+      label: t.profile.roleMember,
+      description: t.profile.roleMemberDesc,
+    },
+    {
+      value: "leader",
+      label: t.profile.roleLeader,
+      description: t.profile.roleLeaderDesc,
+    },
+  ];
+
   if (!visible) {
     return null;
   }
@@ -43,11 +47,11 @@ export const ProfileTestingPanel = ({ visible, role, onRoleChange, onClose }: Pr
         }}
       >
         <h3 className="qahal-display text-center" style={{ fontSize: 22, fontWeight: 600, color: "#1C2526" }}>
-          Testing Profile Role
+          {t.profile.testingRoleTitle}
         </h3>
 
         <p className="text-center" style={{ fontSize: 13, color: "#5A5A52" }}>
-          Local testing only. Select how your profile should behave.
+          {t.profile.testingRoleBody}
         </p>
 
         <div className="flex flex-col gap-[8px]">
@@ -84,7 +88,7 @@ export const ProfileTestingPanel = ({ visible, role, onRoleChange, onClose }: Pr
             color: "#FFFFFF"
           }}
         >
-          Done
+          {t.common.done}
         </button>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { HomeScreen } from "./features/home/HomeScreen";
 import { ProfileScreen } from "./features/profile/ProfileScreen";
 import { useAppFlow } from "./app/useAppFlow";
 import { resolvePaperScreenKey } from "./app/paperMapping";
+import { I18nProvider } from "./app/i18n";
 
 export default function App() {
   const {
@@ -36,18 +37,23 @@ export default function App() {
     resetLocalData,
     localDataResetEnabled,
     setMapCity,
+    setLanguageCode,
   } = useAppFlow();
   const paperScreenKey = resolvePaperScreenKey(state);
 
   return (
-    <div
-      className="mx-auto min-h-[100dvh] max-w-[375px]"
-      data-paper-screen={paperScreenKey}
-      data-runtime={runtimeTarget}
+    <I18nProvider
+      languageCode={state.answers.languageCode}
+      onLanguageCodeChange={setLanguageCode}
     >
-      {state.screen === "onboarding-carousel" ? (
-        <OnboardingCarouselScreen onStart={startQuestions} />
-      ) : null}
+      <div
+        className="mx-auto min-h-[100dvh] max-w-[375px]"
+        data-paper-screen={paperScreenKey}
+        data-runtime={runtimeTarget}
+      >
+        {state.screen === "onboarding-carousel" ? (
+          <OnboardingCarouselScreen onStart={startQuestions} />
+        ) : null}
 
       {state.screen === "onboarding-questions" ? (
         <OnboardingQuestionsScreen
@@ -61,74 +67,76 @@ export default function App() {
         />
       ) : null}
 
-      {state.screen === "onboarding-data" ? (
-        <OnboardingDataScreen
-          telegramId={state.telegramId}
-          initialFirstName={state.answers.firstName}
-          initialCity={state.answers.city}
-          initialLanguageCode={state.answers.languageCode}
-          busy={busy}
-          onSubmit={async (firstName, city, languageCode, cityCoordinates) => {
-            updateProfile(firstName, city, languageCode, cityCoordinates);
-            await finishOnboarding({
-              firstName,
-              city,
-              languageCode,
-              cityCoordinates,
-            });
-          }}
-        />
-      ) : null}
+        {state.screen === "onboarding-data" ? (
+          <OnboardingDataScreen
+            telegramId={state.telegramId}
+            initialFirstName={state.answers.firstName}
+            initialCity={state.answers.city}
+            initialLanguageCode={state.answers.languageCode}
+            busy={busy}
+            onSubmit={async (firstName, city, languageCode, cityCoordinates) => {
+              setLanguageCode(languageCode);
+              updateProfile(firstName, city, languageCode, cityCoordinates);
+              await finishOnboarding({
+                firstName,
+                city,
+                languageCode,
+                cityCoordinates,
+              });
+            }}
+          />
+        ) : null}
 
-      {state.screen === "map" ? (
-        <MapScreen
-          variant={state.mapVariant}
-          communities={communities}
-          onVariantChange={setMapVariant}
-          onGoHome={goToHome}
-          onGoProfile={goToProfile}
-          cityName={state.answers.city}
-          onCityChange={({ name, latitude, longitude }) => {
-            setMapCity(name, { latitude, longitude });
-          }}
-          initialCenter={
-            typeof state.answers.cityLatitude === "number" &&
-            typeof state.answers.cityLongitude === "number"
-              ? [state.answers.cityLatitude, state.answers.cityLongitude]
-              : undefined
-          }
-        />
-      ) : null}
+        {state.screen === "map" ? (
+          <MapScreen
+            variant={state.mapVariant}
+            communities={communities}
+            onVariantChange={setMapVariant}
+            onGoHome={goToHome}
+            onGoProfile={goToProfile}
+            cityName={state.answers.city}
+            onCityChange={({ name, latitude, longitude }) => {
+              setMapCity(name, { latitude, longitude });
+            }}
+            initialCenter={
+              typeof state.answers.cityLatitude === "number" &&
+              typeof state.answers.cityLongitude === "number"
+                ? [state.answers.cityLatitude, state.answers.cityLongitude]
+                : undefined
+            }
+          />
+        ) : null}
 
-      {state.screen === "home" ? (
-        <HomeScreen
-          variant={state.homeVariant}
-          communities={communities}
-          onVariantChange={setHomeVariant}
-          onGoMap={goToMap}
-          onGoProfile={goToProfile}
-          profileTestingEnabled={profileTestingEnabled}
-          effectiveProfile={effectiveProfile}
-        />
-      ) : null}
+        {state.screen === "home" ? (
+          <HomeScreen
+            variant={state.homeVariant}
+            communities={communities}
+            onVariantChange={setHomeVariant}
+            onGoMap={goToMap}
+            onGoProfile={goToProfile}
+            profileTestingEnabled={profileTestingEnabled}
+            effectiveProfile={effectiveProfile}
+          />
+        ) : null}
 
-      {state.screen === "profile" ? (
-        <ProfileScreen
-          profileTestingEnabled={profileTestingEnabled}
-          localProfileRole={localProfileRole}
-          onRoleChange={setLocalProfileRole}
-          profileName={effectiveProfile.displayName}
-          profileQahalName={effectiveProfile.qahalName}
-          profileBadges={effectiveProfile.badges}
-          onProfileNameChange={setLocalProfileName}
-          confirmedBirthDate={confirmedBirthDate}
-          onConfirmBirthDate={setConfirmedBirthDate}
-          canResetLocalData={localDataResetEnabled}
-          onResetLocalData={resetLocalData}
-          onGoHome={goToHome}
-          onGoMap={goToMap}
-        />
-      ) : null}
-    </div>
+        {state.screen === "profile" ? (
+          <ProfileScreen
+            profileTestingEnabled={profileTestingEnabled}
+            localProfileRole={localProfileRole}
+            onRoleChange={setLocalProfileRole}
+            profileName={effectiveProfile.displayName}
+            profileQahalName={effectiveProfile.qahalName}
+            profileBadges={effectiveProfile.badges}
+            onProfileNameChange={setLocalProfileName}
+            confirmedBirthDate={confirmedBirthDate}
+            onConfirmBirthDate={setConfirmedBirthDate}
+            canResetLocalData={localDataResetEnabled}
+            onResetLocalData={resetLocalData}
+            onGoHome={goToHome}
+            onGoMap={goToMap}
+          />
+        ) : null}
+      </div>
+    </I18nProvider>
   );
 }

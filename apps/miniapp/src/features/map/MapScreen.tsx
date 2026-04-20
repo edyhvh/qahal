@@ -9,6 +9,7 @@ import { MapPersonSheet } from "./components/MapPersonSheet";
 import { MapNoPermissionOverlay } from "./components/MapNoPermissionOverlay";
 import { MapBottomNav } from "./components/MapBottomNav";
 import { MapCitySwitcher } from "./components/MapCitySwitcher";
+import { useI18n } from "../../app/i18n";
 
 interface MapScreenProps {
   variant: MapVariant;
@@ -34,6 +35,7 @@ export const MapScreen = ({
   initialCenter,
   onCityChange,
 }: MapScreenProps) => {
+  const { t } = useI18n();
   const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(
     initialCenter,
   );
@@ -98,7 +100,7 @@ export const MapScreen = ({
 
   const goToCurrentLocation = () => {
     if (!("geolocation" in navigator)) {
-      setLocationError("Geolocation is not supported on this device.");
+      setLocationError(t.map.geolocationUnsupported);
       return;
     }
 
@@ -114,9 +116,7 @@ export const MapScreen = ({
       },
       () => {
         setLocating(false);
-        setLocationError(
-          "Location permission denied. Enable location access to recenter the map.",
-        );
+        setLocationError(t.map.geolocationDenied);
       },
       {
         enableHighAccuracy: true,
@@ -180,7 +180,7 @@ export const MapScreen = ({
       {peoplePanelVisible ? (
         <button
           type="button"
-          aria-label="Close people list"
+          aria-label={t.map.closePeopleList}
           className="absolute inset-0 z-20"
           onClick={() => {
             setPeopleOpen(false);

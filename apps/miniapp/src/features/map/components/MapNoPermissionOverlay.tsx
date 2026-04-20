@@ -1,3 +1,5 @@
+import { useI18n } from "../../../app/i18n";
+
 interface MapNoPermissionOverlayProps {
   visible: boolean;
   onEnable: () => void;
@@ -11,6 +13,8 @@ const LocationIcon = () => (
 );
 
 export const MapNoPermissionOverlay = ({ visible, onEnable }: MapNoPermissionOverlayProps) => {
+  const { t } = useI18n();
+
   if (!visible) {
     return null;
   }
@@ -31,10 +35,10 @@ export const MapNoPermissionOverlay = ({ visible, onEnable }: MapNoPermissionOve
           <LocationIcon />
         </div>
         <h3 className="qahal-display" style={{ fontSize: 22, fontWeight: 600, color: "#1C2526" }}>
-          To see brothers
+          {t.map.noPermissionTitle}
         </h3>
         <p style={{ fontSize: 15, lineHeight: "22px", color: "#5A5A52" }}>
-          Share your location to see who walks in Emunah near you.
+          {t.map.noPermissionBody}
         </p>
         <button
           type="button"
@@ -50,7 +54,7 @@ export const MapNoPermissionOverlay = ({ visible, onEnable }: MapNoPermissionOve
             color: "#F5F0E8",
           }}
         >
-          Enable Location
+          {t.map.noPermissionCta}
         </button>
       </div>
     </div>

@@ -19,6 +19,13 @@ import { isProfileTestingEnabled } from "../lib/env";
 
 const TOTAL_QUESTION_STEPS = 9;
 
+const resolveLanguageCode = (value: unknown): "en" | "es" | "he" => {
+  if (value === "es" || value === "he" || value === "en") {
+    return value;
+  }
+  return "en";
+};
+
 const DEFAULT_ROLE_DISPLAY_NAMES = [
   getLocalProfileRoleOption("none").defaultDisplayName,
   getLocalProfileRoleOption("member").defaultDisplayName,
@@ -63,6 +70,27 @@ const getTelegramId = (): number => {
     : getWebGuestId();
 };
 
+const getInitialLanguageCode = (): "en" | "es" | "he" => {
+  const webApp = getTelegramWebApp();
+  const userCandidate = (
+    webApp?.initDataUnsafe as { user?: { language_code?: string } } | undefined
+  )?.user;
+
+  const normalized = String(userCandidate?.language_code ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (normalized.startsWith("es")) {
+    return "es";
+  }
+
+  if (normalized.startsWith("he")) {
+    return "he";
+  }
+
+  return "en";
+};
+
 export const useAppFlow = () => {
   const runtimeTarget = detectRuntimeTarget();
   const profileTestingEnabled = isProfileTestingEnabled();
@@ -75,7 +103,7 @@ export const useAppFlow = () => {
       city: "",
       cityLatitude: undefined,
       cityLongitude: undefined,
-      languageCode: "en",
+      languageCode: getInitialLanguageCode(),
     },
     mapVariant: "allowed",
     homeVariant: "default",
@@ -513,6 +541,17 @@ export const useAppFlow = () => {
     }));
   };
 
+  const setLanguageCode = (languageCode: "en" | "es" | "he") => {
+    const safeLanguageCode = resolveLanguageCode(languageCode);
+    setState((prev) => ({
+      ...prev,
+      answers: {
+        ...prev.answers,
+        languageCode: safeLanguageCode,
+      },
+    }));
+  };
+
   return {
     runtimeTarget,
     profileTestingEnabled,
@@ -542,5 +581,6 @@ export const useAppFlow = () => {
     resetLocalData,
     localDataResetEnabled,
     setMapCity,
+    setLanguageCode,
   };
 };

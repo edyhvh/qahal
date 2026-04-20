@@ -1,3 +1,5 @@
+import { useI18n } from "../../../app/i18n";
+
 interface MapBottomNavProps {
   visible: boolean;
   onGoHome: () => void;
@@ -54,6 +56,8 @@ export const MapBottomNav = ({
   onTogglePeople,
   onGoProfile,
 }: MapBottomNavProps) => {
+  const { t } = useI18n();
+
   if (!visible) {
     return null;
   }
@@ -85,7 +89,7 @@ export const MapBottomNav = ({
               lineHeight: "16px",
             }}
           >
-            Home
+            {t.common.home}
           </span>
         </button>
 
@@ -114,7 +118,7 @@ export const MapBottomNav = ({
               visibility: "hidden",
             }}
           >
-            Map
+            {t.common.map}
           </span>
         </button>
 
@@ -134,7 +138,7 @@ export const MapBottomNav = ({
               lineHeight: "16px",
             }}
           >
-            Profile
+            {t.common.profile}
           </span>
         </button>
       </div>

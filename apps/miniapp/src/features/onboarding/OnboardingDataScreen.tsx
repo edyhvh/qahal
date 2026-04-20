@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CitySearch } from "./CitySearch";
+import { useI18n } from "../../app/i18n";
 
 interface OnboardingDataScreenProps {
   telegramId: number;
@@ -23,13 +24,15 @@ export const OnboardingDataScreen = ({
   busy,
   onSubmit,
 }: OnboardingDataScreenProps) => {
+  const { t, setLanguageCode } = useI18n();
+  const normalizedInitialLanguage = initialLanguageCode === "es" ? "es" : "en";
   const [firstName, setFirstName] = useState(initialFirstName);
   const [city, setCity] = useState(initialCity);
   const [cityCoordinates, setCityCoordinates] = useState<
     { latitude: number; longitude: number } | undefined
   >(undefined);
-  const [languageCode, setLanguageCode] = useState<"en" | "es" | "he">(
-    initialLanguageCode,
+  const [languageCode, setLanguageCodeState] = useState<"en" | "es">(
+    normalizedInitialLanguage,
   );
   const [step, setStep] = useState<"name" | "city">("name");
   const [isNameInputFocused, setIsNameInputFocused] = useState(false);
@@ -135,8 +138,8 @@ export const OnboardingDataScreen = ({
             }}
           >
             {step === "name"
-              ? "How will others call you?"
-              : "Select your current city"}
+              ? t.onboardingData.nameTitle
+              : t.onboardingData.cityTitle}
           </h2>
 
           {step === "city" && (
@@ -150,7 +153,7 @@ export const OnboardingDataScreen = ({
                 marginTop: -16,
               }}
             >
-              You can select your city now, or continue and choose it later.
+              {t.onboardingData.cityHint}
             </p>
           )}
 
@@ -162,7 +165,7 @@ export const OnboardingDataScreen = ({
               onChange={(e) => setFirstName(e.target.value)}
               onFocus={() => setIsNameInputFocused(true)}
               onBlur={() => setIsNameInputFocused(false)}
-              placeholder="Your name"
+              placeholder={t.onboardingData.namePlaceholder}
               autoFocus
               style={{
                 width: "100%",
@@ -203,6 +206,7 @@ export const OnboardingDataScreen = ({
                 setIsNameInputFocused(false);
                 setStep("city");
               } else {
+                setLanguageCode(languageCode);
                 onSubmit(
                   firstName.trim(),
                   city.trim(),
@@ -224,8 +228,36 @@ export const OnboardingDataScreen = ({
               color: "#E8DDD0",
             }}
           >
-            {busy ? "Saving..." : "Continue"}
+            {busy ? t.onboardingData.saving : t.common.continue}
           </button>
+
+          {step === "name" ? (
+            <div className="flex items-center justify-center gap-[10px]">
+              <span style={{ fontSize: 13, color: "#E8DDD0", opacity: 0.7 }}>
+                {t.onboardingData.languageLabel}
+              </span>
+              <select
+                value={languageCode}
+                onChange={(event) => {
+                  const nextLanguage = event.target.value as "en" | "es";
+                  setLanguageCodeState(nextLanguage);
+                  setLanguageCode(nextLanguage);
+                }}
+                style={{
+                  height: 34,
+                  borderRadius: 10,
+                  border: "1px solid #C9A46F33",
+                  background: "#E8DDD00F",
+                  color: "#E8DDD0",
+                  fontSize: 13,
+                  padding: "0 10px",
+                }}
+              >
+                <option value="en">{t.onboardingData.languageEnglish}</option>
+                <option value="es">{t.onboardingData.languageSpanish}</option>
+              </select>
+            </div>
+          ) : null}
 
           {step === "city" && (
             <button
@@ -240,7 +272,7 @@ export const OnboardingDataScreen = ({
                 opacity: 0.5,
               }}
             >
-              Back
+              {t.common.back}
             </button>
           )}
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CommunityCard } from "@qahal/shared";
 import { resolveBadgeDefinition } from "../../app/types";
 import type { EffectiveProfileSnapshot, HomeVariant } from "../../app/types";
+import { getBadgeLocalized, useI18n } from "../../app/i18n";
 import { HomePopups } from "./components/HomePopups";
 import { JoinRequestToast } from "./components/JoinRequestToast";
 
@@ -177,6 +178,7 @@ export const HomeScreen = ({
   profileTestingEnabled,
   effectiveProfile,
 }: HomeScreenProps) => {
+  const { t } = useI18n();
   const [requestedCommunityIds, setRequestedCommunityIds] = useState<
     Set<number>
   >(new Set());
@@ -242,15 +244,10 @@ export const HomeScreen = ({
   }, [communities, requestedCommunityIds, memberCommunityIds]);
 
   const badgeShowcase = useMemo(() => {
-    return [
-      resolveBadgeDefinition("Emunah"),
-      resolveBadgeDefinition("Kehilah"),
-      resolveBadgeDefinition("Years in Emunah (0)"),
-      resolveBadgeDefinition("Messenger"),
-      resolveBadgeDefinition("Hebrew Teacher"),
-      resolveBadgeDefinition("Hebrew Student"),
-    ];
-  }, []);
+    return ["Emunah", "Kehilah", "Years in Emunah (0)", "Messenger", "Hebrew Teacher", "Hebrew Student"].map(
+      (badgeName) => getBadgeLocalized(t, badgeName),
+    );
+  }, [t]);
 
   const earnedBadgeKinds = useMemo(() => {
     const set = new Set<string>();
@@ -296,7 +293,7 @@ export const HomeScreen = ({
               color: "#1C2526",
             }}
           >
-            Home
+            {t.common.home}
           </h1>
           {/* Paper 4S9-0 */}
           <span
@@ -336,11 +333,9 @@ export const HomeScreen = ({
               className="qahal-display"
               style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
             >
-              Create a Qahal
+              {t.home.createQahalTitle}
             </h2>
-            <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
-              Start a new congregation in your area
-            </p>
+            <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>{t.home.createQahalBody}</p>
             <button
               type="button"
               onClick={() => onVariantChange("qahal-exists")}
@@ -355,7 +350,7 @@ export const HomeScreen = ({
                 color: "#F5F0E8",
               }}
             >
-              Start New Congregation
+              {t.home.createQahalCta}
             </button>
           </div>
 
@@ -374,13 +369,11 @@ export const HomeScreen = ({
               className="qahal-display"
               style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
             >
-              Near You
+              {t.home.nearYouTitle}
             </h2>
             <div className="flex flex-col gap-[8px]">
               {displayedCommunities.length === 0 ? (
-                <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
-                  No congregations found nearby yet.
-                </p>
+                <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>{t.home.nearYouEmpty}</p>
               ) : (
                 displayedCommunities.map((c) => (
                   <div
@@ -440,7 +433,7 @@ export const HomeScreen = ({
                           letterSpacing: "0.04em",
                         }}
                       >
-                        MEMBER
+                        {t.home.member.toUpperCase()}
                       </button>
                     ) : (
                       <div className="flex gap-[6px]">
@@ -459,7 +452,7 @@ export const HomeScreen = ({
                             color: "#F5F0E8",
                           }}
                         >
-                          Contact
+                          {t.home.contact}
                         </button>
                         <button
                           type="button"
@@ -516,7 +509,6 @@ export const HomeScreen = ({
                             setShowToast(true);
                             onVariantChange("join-requested");
                           }}
-                          disabled={c.memberState === "member"}
                           className="flex items-center justify-center"
                           style={{
                             height: 38,
@@ -539,13 +531,11 @@ export const HomeScreen = ({
                                 : "#6B7280",
                           }}
                         >
-                          {c.memberState === "member"
-                            ? "Member"
-                            : c.memberState === "requested"
-                              ? profileTestingEnabled
-                                ? "Undo Request"
-                                : "Requested"
-                              : "Join"}
+                          {c.memberState === "requested"
+                            ? profileTestingEnabled
+                              ? t.home.undoRequest
+                              : t.home.requested
+                            : t.home.join}
                         </button>
                       </div>
                     )}
@@ -570,7 +560,7 @@ export const HomeScreen = ({
               className="qahal-display"
               style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
             >
-              Badges
+              {t.home.badgesTitle}
             </h2>
             {badgeShowcase.map((badge) => {
               const earned = earnedBadgeKinds.has(badge.kind);
@@ -600,7 +590,7 @@ export const HomeScreen = ({
                       }}
                     >
                       {badge.name}
-                      {earned ? " · Earned" : ""}
+                      {earned ? ` · ${t.home.earnedSuffix}` : ""}
                     </div>
                     <div style={{ fontSize: 12, color: "#F5F0E899" }}>
                       {badge.desc}
@@ -650,7 +640,7 @@ export const HomeScreen = ({
                 visibility: "hidden",
               }}
             >
-              Home
+              {t.common.home}
             </span>
           </button>
           {/* Map */}
@@ -670,7 +660,7 @@ export const HomeScreen = ({
                 lineHeight: "16px",
               }}
             >
-              Map
+              {t.common.map}
             </span>
           </button>
           {/* Profile */}
@@ -690,7 +680,7 @@ export const HomeScreen = ({
                 lineHeight: "16px",
               }}
             >
-              Profile
+              {t.common.profile}
             </span>
           </button>
         </div>

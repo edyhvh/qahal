@@ -1,4 +1,5 @@
 import type { HomeVariant } from "../../../app/types";
+import { useI18n } from "../../../app/i18n";
 
 interface HomePopupsProps {
   variant: HomeVariant;
@@ -76,13 +77,15 @@ const PopupShell = ({
 };
 
 export const HomePopups = ({ variant, onClose }: HomePopupsProps) => {
+  const { t } = useI18n();
+
   if (variant === "qahal-exists") {
     return (
       <PopupShell
-        title="A Qahal already exists near you"
-        description="Consider joining the existing congregation before creating a new one."
-        primaryAction={{ label: "View Nearby Qahal", onClick: onClose }}
-        secondaryAction={{ label: "Create anyway", onClick: onClose }}
+        title={t.home.popupQahalExistsTitle}
+        description={t.home.popupQahalExistsBody}
+        primaryAction={{ label: t.home.popupQahalExistsPrimary, onClick: onClose }}
+        secondaryAction={{ label: t.home.popupQahalExistsSecondary, onClick: onClose }}
       />
     );
   }
@@ -90,9 +93,9 @@ export const HomePopups = ({ variant, onClose }: HomePopupsProps) => {
   if (variant === "already-requested") {
     return (
       <PopupShell
-        title="Request already sent"
-        description="You already requested to join another congregation. Please wait for the leader response first."
-        primaryAction={{ label: "Understood", onClick: onClose }}
+        title={t.home.popupAlreadyRequestedTitle}
+        description={t.home.popupAlreadyRequestedBody}
+        primaryAction={{ label: t.home.popupUnderstood, onClick: onClose }}
       />
     );
   }
@@ -100,9 +103,9 @@ export const HomePopups = ({ variant, onClose }: HomePopupsProps) => {
   if (variant === "already-member") {
     return (
       <PopupShell
-        title="You already belong to a Qahal"
-        description="Members can only belong to one congregation at a time. Leave your current congregation before requesting another one."
-        primaryAction={{ label: "Understood", onClick: onClose }}
+        title={t.home.popupAlreadyMemberTitle}
+        description={t.home.popupAlreadyMemberBody}
+        primaryAction={{ label: t.home.popupUnderstood, onClick: onClose }}
       />
     );
   }

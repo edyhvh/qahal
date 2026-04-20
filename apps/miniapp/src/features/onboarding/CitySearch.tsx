@@ -7,6 +7,7 @@ import {
 } from "@headlessui/react";
 import type { CitySuggestion } from "@qahal/shared";
 import { api } from "../../lib/api";
+import { useI18n } from "../../app/i18n";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 type LocationState = "idle" | "requesting" | "granted" | "denied" | "error";
@@ -22,6 +23,7 @@ export const CitySearch = ({
   initialValue = "",
   onCitySelected,
 }: CitySearchProps) => {
+  const { t } = useI18n();
   const [query, setQuery] = useState(initialValue);
   const [selectedCity, setSelectedCity] = useState<CitySuggestion | null>(null);
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
@@ -78,15 +80,13 @@ export const CitySearch = ({
 
   const requestLocationAccess = useCallback(() => {
     if (!("geolocation" in navigator)) {
-      setLocationErrorMessage("This browser does not support location access.");
+      setLocationErrorMessage(t.citySearch.locationUnsupported);
       setLocationState("error");
       return;
     }
 
     if (!window.isSecureContext) {
-      setLocationErrorMessage(
-        "Location requires HTTPS in mobile browsers. Open the secure URL to enable it.",
-      );
+      setLocationErrorMessage(t.citySearch.locationHttpsRequired);
       setLocationState("error");
       return;
     }
@@ -108,9 +108,7 @@ export const CitySearch = ({
           return;
         }
 
-        setLocationErrorMessage(
-          "Could not get your location right now. You can still search manually.",
-        );
+        setLocationErrorMessage(t.citySearch.locationFetchFailed);
         setLocationState("denied");
       },
       {
@@ -119,7 +117,11 @@ export const CitySearch = ({
         maximumAge: 300000,
       },
     );
-  }, []);
+  }, [
+    t.citySearch.locationFetchFailed,
+    t.citySearch.locationHttpsRequired,
+    t.citySearch.locationUnsupported,
+  ]);
 
   useEffect(() => {
     if (hasAutoRequestedLocation.current) {
@@ -128,7 +130,7 @@ export const CitySearch = ({
     hasAutoRequestedLocation.current = true;
 
     if (!("geolocation" in navigator)) {
-      setLocationErrorMessage("This browser does not support location access.");
+      setLocationErrorMessage(t.citySearch.locationUnsupported);
       setLocationState("error");
       return;
     }
@@ -168,7 +170,7 @@ export const CitySearch = ({
     return () => {
       cancelled = true;
     };
-  }, [requestLocationAccess]);
+  }, [requestLocationAccess, t.citySearch.locationUnsupported]);
 
   const handleSelect = async (value: CitySuggestion | null) => {
     if (!value) {
@@ -208,25 +210,24 @@ export const CitySearch = ({
           className="mb-3 inline-flex items-center rounded-xl border border-[#C9A46F66] bg-[#E8DDD012] px-3 py-2 text-xs font-semibold text-[#E8DDD0] disabled:opacity-60"
         >
           {locationState === "requesting"
-            ? "Requesting location..."
-            : "Allow location access"}
+            ? t.citySearch.requestingLocation
+            : t.citySearch.requestLocation}
         </button>
       ) : null}
 
       {locationState === "granted" ? (
         <p className="mb-3 text-xs text-[#9ED7B6]">
-          Location granted. Results are ordered from closest to farthest.
+          {t.citySearch.locationGranted}
         </p>
       ) : null}
       {locationState === "denied" ? (
         <p className="mb-3 text-xs text-[#F4C58A]">
-          Location access denied. City suggestions will use text relevance only.
+          {t.citySearch.locationDenied}
         </p>
       ) : null}
       {locationState === "error" ? (
         <p className="mb-3 text-xs text-[#F4A7A7]">
-          {locationErrorMessage ??
-            "This browser does not support location access."}
+          {locationErrorMessage ?? t.citySearch.locationUnsupported}
         </p>
       ) : null}
 
@@ -250,13 +251,13 @@ export const CitySearch = ({
               }
             }}
             autoFocus
-            placeholder="Search city..."
+            placeholder={t.common.searchCity}
           />
 
           <ComboboxOptions className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border border-[#C9A46F40] bg-[#1D1814] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
             {loading ? (
               <div className="px-3 py-2 text-sm text-[#E8DDD0B3]">
-                Searching cities...
+                {t.common.searchingCities}
               </div>
             ) : null}
 
@@ -274,7 +275,7 @@ export const CitySearch = ({
 
             {showEmptyState ? (
               <div className="px-3 py-2 text-sm text-[#E8DDD099]">
-                No matching cities found.
+                {t.common.noMatchingCities}
               </div>
             ) : null}
           </ComboboxOptions>
@@ -282,21 +283,21 @@ export const CitySearch = ({
       </Combobox>
 
       {saveState === "saving" ? (
-        <p className="mt-3 text-xs text-[#E8DDD099]">Saving selected city...</p>
+        <p className="mt-3 text-xs text-[#E8DDD099]">{t.citySearch.saveInProgress}</p>
       ) : null}
       {saveState === "error" ? (
         <p className="mt-3 text-xs text-[#F4A7A7]">
-          Could not save city. Please try again.
+          {t.citySearch.saveFailed}
         </p>
       ) : null}
       {saveState === "saved" && selectedCity ? (
         <div className="mt-3 rounded-xl border border-[#2E7D5B66] bg-[#2E7D5B1F] px-3 py-3">
-          <p className="text-sm font-semibold text-[#BFEBD5]">City saved</p>
+          <p className="text-sm font-semibold text-[#BFEBD5]">{t.citySearch.saveSuccess}</p>
           <p className="mt-1 text-sm text-[#E8DDD0]">
             {selectedCity.city}, {selectedCity.state}, {selectedCity.country}
           </p>
           <p className="mt-2 text-xs text-[#9ED7B6]">
-            Tap Continue to open the map in this city.
+            {t.citySearch.continueHint}
           </p>
         </div>
       ) : null}

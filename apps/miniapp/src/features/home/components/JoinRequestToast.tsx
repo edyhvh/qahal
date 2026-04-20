@@ -1,3 +1,5 @@
+import { useI18n } from "../../../app/i18n";
+
 interface JoinRequestToastProps {
   visible: boolean;
 }
@@ -9,6 +11,8 @@ const CheckIcon = () => (
 );
 
 export const JoinRequestToast = ({ visible }: JoinRequestToastProps) => {
+  const { t } = useI18n();
+
   if (!visible) {
     return null;
   }
@@ -26,7 +30,7 @@ export const JoinRequestToast = ({ visible }: JoinRequestToastProps) => {
     >
       <CheckIcon />
       <span style={{ fontSize: 14, fontWeight: 500, color: "#F5F0E8" }}>
-        A join request was sent to the leader
+        {t.home.joinRequestToast}
       </span>
     </div>
   );

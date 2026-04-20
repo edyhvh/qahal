@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { useI18n } from "../../app/i18n";
 
 interface OnboardingCarouselScreenProps {
   onStart: () => void;
@@ -9,6 +10,7 @@ const TOTAL_SLIDES = 3;
 export const OnboardingCarouselScreen = ({
   onStart,
 }: OnboardingCarouselScreenProps) => {
+  const { t } = useI18n();
   const [slide, setSlide] = useState(0);
   const touchRef = useRef({ startX: 0, delta: 0, active: false });
   const [dragDelta, setDragDelta] = useState(0);
@@ -19,8 +21,13 @@ export const OnboardingCarouselScreen = ({
   }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) {
+      return;
+    }
+
     touchRef.current = {
-      startX: e.touches[0].clientX,
+      startX: touch.clientX,
       delta: 0,
       active: true,
     };
@@ -28,7 +35,12 @@ export const OnboardingCarouselScreen = ({
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!touchRef.current.active) return;
-    const delta = e.touches[0].clientX - touchRef.current.startX;
+    const touch = e.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    const delta = touch.clientX - touchRef.current.startX;
     touchRef.current.delta = delta;
     setDragDelta(delta);
   }, []);
@@ -153,7 +165,7 @@ export const OnboardingCarouselScreen = ({
               marginBottom: 14,
             }}
           >
-            Did you receive the Emunah?
+            {t.onboardingCarousel.slide1Title}
           </h2>
 
           {/* Card body — Paper XH-0 */}
@@ -165,7 +177,7 @@ export const OnboardingCarouselScreen = ({
               opacity: 0.72,
             }}
           >
-            Find brothers and congregations near to you.
+            {t.onboardingCarousel.slide1Subtitle}
           </p>
 
           {/* Button — single Go! */}
@@ -185,7 +197,7 @@ export const OnboardingCarouselScreen = ({
                 color: "#FFFFFF",
               }}
             >
-              Go!
+              {t.onboardingCarousel.slide1Button}
             </button>
           </div>
 
@@ -212,7 +224,7 @@ export const OnboardingCarouselScreen = ({
             textShadow: "#F5EDE499 0px 1px 3px",
           }}
         >
-          Encuentra tu gente
+          {t.onboardingCarousel.slide2Title}
         </h1>
 
         <div className="flex-1" />
@@ -239,8 +251,7 @@ export const OnboardingCarouselScreen = ({
               textAlign: "center",
             }}
           >
-            Personas reales, congregaciones reales en tu ciudad y en tu barrio.
-            Gente que camina en Emunah y quiere conocerte.
+            {t.onboardingCarousel.slide2Body}
           </p>
         </div>
 
@@ -262,7 +273,7 @@ export const OnboardingCarouselScreen = ({
               color: "#FFFFFF",
             }}
           >
-            Agree
+            {t.onboardingCarousel.slide2Button}
           </button>
           <div className="mt-[16px]">{dots}</div>
         </div>
@@ -287,7 +298,7 @@ export const OnboardingCarouselScreen = ({
             textShadow: "#F5EDE499 0px 1px 3px",
           }}
         >
-          Reúnete donde estás
+          {t.onboardingCarousel.slide3Title}
         </h1>
 
         <div className="flex-1" />
@@ -314,9 +325,7 @@ export const OnboardingCarouselScreen = ({
               textAlign: "center",
             }}
           >
-            Comparte tu ubicación para ver quién camina en Emunah cerca de ti.
-            Tu localización sólo se usa para conectarte — nunca se comparte
-            públicamente.
+            {t.onboardingCarousel.slide3Body}
           </p>
         </div>
 
@@ -338,7 +347,7 @@ export const OnboardingCarouselScreen = ({
               color: "#FFFFFF",
             }}
           >
-            Comenzar
+            {t.onboardingCarousel.slide3PrimaryButton}
           </button>
           <div className="mt-[16px]">{dots}</div>
         </div>

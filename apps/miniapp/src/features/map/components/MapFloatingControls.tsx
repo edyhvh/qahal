@@ -1,3 +1,5 @@
+import { useI18n } from "../../../app/i18n";
+
 interface MapFloatingControlsProps {
   visible: boolean;
   peopleCount: number;
@@ -34,6 +36,8 @@ export const MapFloatingControls = ({
   onLocate,
   locationError,
 }: MapFloatingControlsProps) => {
+  const { t } = useI18n();
+
   if (!visible) {
     return null;
   }
@@ -45,8 +49,8 @@ export const MapFloatingControls = ({
         onClick={onTogglePeople}
         className="absolute right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#C9A46F] bg-[#1E5C5A] text-[16px] font-bold text-[#F5F0E8] shadow-[0_8px_20px_rgba(30,92,90,0.42),0_0_0_2px_rgba(245,240,232,0.22)]"
         style={{ bottom: 178 }}
-        aria-label="Toggle people list"
-        title="Show people list"
+        aria-label={t.map.showPeopleList}
+        title={t.map.showPeopleList}
       >
         {peopleCount}
       </button>
@@ -57,8 +61,8 @@ export const MapFloatingControls = ({
         disabled={locating}
         className="absolute right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-[#d1c7b8] bg-white text-[#334155] shadow-md disabled:opacity-60"
         style={{ bottom: 118 }}
-        aria-label="Center map on my location"
-        title="Center map on my location"
+        aria-label={t.map.centerOnMyLocation}
+        title={t.map.centerOnMyLocation}
       >
         <CrosshairIcon />
       </button>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react";
 import type { CitySuggestion } from "@qahal/shared";
 import { api } from "../../../lib/api";
+import { useI18n } from "../../../app/i18n";
 
 interface MapCitySwitcherProps {
   visible: boolean;
@@ -11,6 +12,7 @@ interface MapCitySwitcherProps {
 }
 
 export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelected }: MapCitySwitcherProps) => {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState<CitySuggestion | null>(null);
@@ -70,7 +72,7 @@ export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelecte
         onClick={() => setOpen((prev) => !prev)}
         className="inline-flex h-10 max-w-full items-center gap-2 self-end rounded-full border border-[#d1c7b8] bg-white/95 px-3 text-sm font-semibold text-[#334155] shadow-md"
       >
-        <span className="truncate">{cityName?.trim() || "Select city"}</span>
+        <span className="truncate">{cityName?.trim() || t.map.selectCity}</span>
         <span aria-hidden="true">{open ? "▲" : "▼"}</span>
       </button>
 
@@ -97,11 +99,11 @@ export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelecte
                     setSelectedCity(null);
                   }
                 }}
-                placeholder="Search city..."
+                placeholder={t.common.searchCity}
                 autoFocus
               />
               <ComboboxOptions className="mt-2 max-h-56 overflow-auto rounded-xl border border-[#e5e7eb] bg-white p-1">
-                {loading ? <div className="px-2 py-2 text-xs text-[#6b7280]">Searching cities...</div> : null}
+                {loading ? <div className="px-2 py-2 text-xs text-[#6b7280]">{t.common.searchingCities}</div> : null}
                 {!loading
                   ? suggestions.map((option) => (
                       <ComboboxOption
@@ -114,7 +116,7 @@ export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelecte
                     ))
                   : null}
                 {!loading && debouncedQuery.length >= 2 && suggestions.length === 0 ? (
-                  <div className="px-2 py-2 text-xs text-[#6b7280]">No matching cities found.</div>
+                  <div className="px-2 py-2 text-xs text-[#6b7280]">{t.common.noMatchingCities}</div>
                 ) : null}
               </ComboboxOptions>
             </div>

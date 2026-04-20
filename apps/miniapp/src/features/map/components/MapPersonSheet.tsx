@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { CommunityPerson } from "../../../lib/api";
+import { useI18n } from "../../../app/i18n";
 
 interface MapPersonSheetProps {
   person: CommunityPerson | null;
@@ -21,6 +22,7 @@ export const MapPersonSheet = ({
   onClose,
   onMessage,
 }: MapPersonSheetProps) => {
+  const { t } = useI18n();
   const [dragOffsetY, setDragOffsetY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartYRef = useRef<number | null>(null);
@@ -189,7 +191,7 @@ export const MapPersonSheet = ({
             }}
           >
             {badge.kind === "years" && typeof badge.years === "number"
-              ? `${badge.years}y Emunah`
+              ? t.map.yearsInEmunahShort(badge.years)
               : badge.label}
           </span>
         ))}
@@ -213,7 +215,7 @@ export const MapPersonSheet = ({
         }}
       >
         <TelegramIcon />
-        Message on Telegram
+        {t.map.telegramMessage}
       </button>
 
       <button
@@ -221,7 +223,7 @@ export const MapPersonSheet = ({
         onClick={onClose}
         style={{ fontSize: 13, fontWeight: 500, color: "#8A8A7E" }}
       >
-        Close
+        {t.common.close}
       </button>
 
       <div className="flex w-full justify-center pb-[8px] pt-[16px]">

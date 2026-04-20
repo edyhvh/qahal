@@ -1,43 +1,15 @@
-const QUESTIONS: {
-  text: string;
-  references: string[];
-}[] = [
-  {
-    text: "We'll ask you a couple of questions to get you started",
-    references: [],
-  },
-  {
-    text: "Do you believe that Yeshua is the Messiah of Israel?",
-    references: ["Isaiah 53:5", "John 20:31"],
-  },
-  {
-    text: "Do you believe that we're called to keep the Torah and Yeshua's testimony?",
-    references: ["Isaiah 8:20", "Revelation 14:12"],
-  },
-  {
-    text: "Do you believe that Yeshua is The Prophet?",
-    references: ["Deuteronomy 18:18", "Acts 7:37"],
-  },
-  {
-    text: "Do you believe that Elohim is one?",
-    references: ["Deuteronomy 6:4", "John 17:3"],
-  },
-  {
-    text: "Do you believe that Yeshua is YHWH?",
-    references: ["Psalm 110:1", "Philippians 2:11"],
-  },
-  {
-    text: "Do you believe that Adonai has made one single people out of Jews and Gentiles?",
-    references: ["Zechariah 2:11", "John 10:16"],
-  },
-  {
-    text: "From now on, will you abstain from what is offered to idols, blood, what is strangled, and sexual inmorality?",
-    references: ["Acts 15:29"],
-  },
-  {
-    text: "You don't agree with some of the statements",
-    references: [],
-  },
+import { useI18n } from "../../app/i18n";
+
+const QUESTION_REFERENCES: string[][] = [
+  [],
+  ["Isaiah 53:5", "John 20:31"],
+  ["Isaiah 8:20", "Revelation 14:12"],
+  ["Deuteronomy 18:18", "Acts 7:37"],
+  ["Deuteronomy 6:4", "John 17:3"],
+  ["Psalm 110:1", "Philippians 2:11"],
+  ["Zechariah 2:11", "John 10:16"],
+  ["Acts 15:29"],
+  [],
 ];
 
 const TOTAL_DOTS = 9;
@@ -61,9 +33,17 @@ export const OnboardingQuestionsScreen = ({
   onBack,
   onExit,
 }: OnboardingQuestionsScreenProps) => {
-  const question = QUESTIONS[step] ?? QUESTIONS[0];
+  const { t } = useI18n();
+  const questions = [
+    t.onboardingQuestions.introQuestion,
+    ...t.onboardingQuestions.questions,
+    t.onboardingQuestions.resultQuestion,
+  ];
+  const questionText = questions[step] ?? questions[0];
+  const questionReferences =
+    QUESTION_REFERENCES[step] ?? QUESTION_REFERENCES[0] ?? [];
   const isIntro = step === 0;
-  const isResult = step === QUESTIONS.length - 1;
+  const isResult = step === questions.length - 1;
 
   return (
     <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
@@ -100,7 +80,7 @@ export const OnboardingQuestionsScreen = ({
               color: "#E8DDD0",
             }}
           >
-            {question.text}
+            {questionText}
           </h2>
 
           {/* Intro explanation card or scripture references */}
@@ -124,8 +104,7 @@ export const OnboardingQuestionsScreen = ({
                   opacity: 0.8,
                 }}
               >
-                These questions help us understand your walk in Emunah. Answer
-                honestly — there are no tricks, just honest reflection.
+                {t.onboardingQuestions.introBody}
               </p>
             </div>
           ) : isResult ? (
@@ -148,11 +127,10 @@ export const OnboardingQuestionsScreen = ({
                   opacity: 0.8,
                 }}
               >
-                You can always ask Adonai about it. Do your own research. Come
-                back when you&apos;re ready.
+                {t.onboardingQuestions.resultBody}
               </p>
             </div>
-          ) : question.references.length > 0 ? (
+          ) : questionReferences.length > 0 ? (
             <div
               className="flex w-full flex-col gap-[14px]"
               style={{
@@ -160,7 +138,7 @@ export const OnboardingQuestionsScreen = ({
                 padding: "18px 16px",
               }}
             >
-              {question.references.map((ref) => (
+              {questionReferences.map((ref) => (
                 <span
                   key={ref}
                   style={{
@@ -199,7 +177,7 @@ export const OnboardingQuestionsScreen = ({
                 color: "#E8DDD0",
               }}
             >
-              Understood
+              {t.onboardingQuestions.understood}
             </button>
           ) : isResult ? (
             /* Result: single "Ok" button — returns to carousel */
@@ -218,7 +196,7 @@ export const OnboardingQuestionsScreen = ({
                 opacity: 0.7,
               }}
             >
-              Ok
+              {t.onboardingQuestions.ok}
             </button>
           ) : (
             /* Question: Yes / No buttons */
@@ -242,7 +220,7 @@ export const OnboardingQuestionsScreen = ({
                   color: "#E8DDD0",
                 }}
               >
-                Yes
+                {t.onboardingQuestions.yes}
               </button>
               {/* No button — Paper 3FE-0 */}
               <button
@@ -263,7 +241,7 @@ export const OnboardingQuestionsScreen = ({
                   opacity: 0.7,
                 }}
               >
-                No
+                {t.onboardingQuestions.no}
               </button>
             </div>
           )}

@@ -2,9 +2,9 @@ import { useMemo, useRef, useState } from "react";
 import {
   LOCAL_PROFILE_ROLE_OPTIONS,
   getLocalProfileRoleOption,
-  resolveBadgeDefinition,
 } from "../../app/types";
 import type { LocalProfileRole } from "../../app/types";
+import { getBadgeLocalized, useI18n } from "../../app/i18n";
 
 interface ProfileScreenProps {
   profileTestingEnabled: boolean;
@@ -158,16 +158,25 @@ export const ProfileScreen = ({
   onGoHome,
   onGoMap,
 }: ProfileScreenProps) => {
+  const { t } = useI18n();
   const [birthDateDraft, setBirthDateDraft] = useState(() => {
     const parsed = confirmedBirthDate ? parseAgeValue(confirmedBirthDate) : null;
     return parsed === null ? "" : String(parsed);
   });
   const [showAgeConfirmation, setShowAgeConfirmation] = useState(false);
-  const birthDateInputRef = useRef<HTMLInputElement | null>(null);
+  const birthDateInputRef = useRef<HTMLSelectElement | null>(null);
 
   const roleOption = useMemo(
     () => getLocalProfileRoleOption(localProfileRole),
     [localProfileRole],
+  );
+  const roleDescriptions = useMemo(
+    () => ({
+      none: t.profile.roleNoneDesc,
+      member: t.profile.roleMemberDesc,
+      leader: t.profile.roleLeaderDesc,
+    }),
+    [t],
   );
   const computedAge = useMemo(
     () => parseAgeValue(birthDateDraft) ?? 0,
@@ -177,6 +186,13 @@ export const ProfileScreen = ({
     () => (confirmedBirthDate ? parseAgeValue(confirmedBirthDate) : null),
     [confirmedBirthDate],
   );
+  const displayedQahalName = useMemo(() => {
+    const fallbackQahal = getLocalProfileRoleOption("none").qahalName;
+    if (profileQahalName === fallbackQahal) {
+      return t.profile.roleNone;
+    }
+    return profileQahalName;
+  }, [profileQahalName, t]);
   const canEditAge = confirmedBirthDate === null;
 
   const openAgeConfirmation = () => {
@@ -228,7 +244,7 @@ export const ProfileScreen = ({
               color: "#1C2526",
             }}
           >
-            Profile
+            {t.profile.title}
           </h1>
           <span
             className="qahal-display"
@@ -253,7 +269,7 @@ export const ProfileScreen = ({
                 color: "#A0622D",
               }}
             >
-              Name
+              {t.profile.name}
             </span>
             <div className="flex items-center gap-[10px]">
               <span style={{ fontSize: 20, fontWeight: 700, color: "#1C2526" }}>
@@ -263,7 +279,7 @@ export const ProfileScreen = ({
                 type="button"
                 onClick={() => {
                   const nextName = window.prompt(
-                    "Update your name",
+                    t.profile.editNamePrompt,
                     profileName,
                   );
                   if (typeof nextName === "string" && nextName.trim()) {
@@ -272,7 +288,7 @@ export const ProfileScreen = ({
                 }}
                 style={{ fontSize: 12, color: "#1E5C5A", fontWeight: 700 }}
               >
-                Edit
+                {t.profile.edit}
               </button>
             </div>
           </div>
@@ -286,10 +302,10 @@ export const ProfileScreen = ({
                 color: "#A0622D",
               }}
             >
-              Qahal
+              {t.profile.qahal}
             </span>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#1C2526" }}>
-              {profileQahalName}
+              {displayedQahalName}
             </span>
           </div>
 
@@ -302,7 +318,7 @@ export const ProfileScreen = ({
                 color: "#A0622D",
               }}
             >
-              Age
+              {t.profile.age}
             </span>
             {canEditAge ? (
               <div className="flex items-center gap-[8px]">
@@ -322,7 +338,7 @@ export const ProfileScreen = ({
                     padding: "0 8px",
                   }}
                 >
-                  <option value="">Age</option>
+                  <option value="">{t.profile.agePlaceholder}</option>
                   {Array.from({ length: 121 }).map((_, age) => (
                     <option key={age} value={String(age)}>
                       {age}
@@ -339,7 +355,7 @@ export const ProfileScreen = ({
                     fontWeight: 700,
                   }}
                 >
-                  Confirm
+                  {t.profile.confirmAge}
                 </button>
               </div>
             ) : (
@@ -359,11 +375,11 @@ export const ProfileScreen = ({
                 marginBottom: 8,
               }}
             >
-              Badges
+              {t.profile.badges}
             </div>
             <div className="flex flex-wrap gap-[8px]">
               {profileBadges.map((badgeName) => {
-                const badge = resolveBadgeDefinition(badgeName);
+                const badge = getBadgeLocalized(t, badgeName);
                 return (
                 <span
                   key={badge.name}
@@ -393,11 +409,10 @@ export const ProfileScreen = ({
                 className="qahal-display"
                 style={{ fontSize: 20, color: "#1C2526", fontWeight: 600 }}
               >
-                Testing Profile Role
+                {t.profile.testingRoleTitle}
               </div>
               <p style={{ fontSize: 13, color: "#5A5A52" }}>
-                Testing environment only. Choose how profile membership should
-                behave.
+                {t.profile.testingRoleBody}
               </p>
               <select
                 value={localProfileRole}
@@ -418,12 +433,16 @@ export const ProfileScreen = ({
               >
                 {LOCAL_PROFILE_ROLE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {option.value === "none"
+                      ? t.profile.roleNone
+                      : option.value === "member"
+                        ? t.profile.roleMember
+                        : t.profile.roleLeader}
                   </option>
                 ))}
               </select>
               <p style={{ fontSize: 12, color: "#6B7280" }}>
-                {roleOption.description}
+                {roleDescriptions[roleOption.value]}
               </p>
             </div>
           ) : null}
@@ -434,10 +453,10 @@ export const ProfileScreen = ({
                 className="qahal-display"
                 style={{ fontSize: 16, color: "#1C2526", fontWeight: 600 }}
               >
-                Local Data
+                {t.profile.localDataTitle}
               </div>
               <p style={{ fontSize: 12, color: "#6B7280" }}>
-                Start over locally with a brand new user profile.
+                {t.profile.localDataBody}
               </p>
               <button
                 type="button"
@@ -453,7 +472,7 @@ export const ProfileScreen = ({
                   color: "#A0622D",
                 }}
               >
-                Delete My Local Data
+                {t.profile.localDataDelete}
               </button>
             </div>
           ) : null}
@@ -476,13 +495,13 @@ export const ProfileScreen = ({
               className="qahal-display"
               style={{ fontSize: 20, color: "#1C2526", fontWeight: 700 }}
             >
-              Confirm Age
+              {t.profile.confirmAgeTitle}
             </div>
             <p style={{ fontSize: 15, color: "#1C2526", fontWeight: 700 }}>
-              Age to save: {computedAge}
+              {t.profile.confirmAgeValue(computedAge)}
             </p>
             <p style={{ fontSize: 12, color: "#A0622D" }}>
-              After confirming, this age setting cannot be edited.
+              {t.profile.confirmAgeWarning}
             </p>
 
             <div className="flex gap-[8px] pt-[4px]">
@@ -500,7 +519,7 @@ export const ProfileScreen = ({
                   color: "#1C2526",
                 }}
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="button"
@@ -515,7 +534,7 @@ export const ProfileScreen = ({
                   color: "#FFFFFF",
                 }}
               >
-                Confirm
+                {t.common.confirm}
               </button>
             </div>
           </div>
@@ -548,7 +567,7 @@ export const ProfileScreen = ({
                 lineHeight: "16px",
               }}
             >
-              Home
+              {t.common.home}
             </span>
           </button>
 
@@ -568,7 +587,7 @@ export const ProfileScreen = ({
                 lineHeight: "16px",
               }}
             >
-              Map
+              {t.common.map}
             </span>
           </button>
 
@@ -596,7 +615,7 @@ export const ProfileScreen = ({
                 visibility: "hidden",
               }}
             >
-              Profile
+              {t.common.profile}
             </span>
           </button>
         </div>
