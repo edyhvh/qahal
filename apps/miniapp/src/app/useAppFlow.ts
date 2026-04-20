@@ -94,6 +94,9 @@ const getInitialLanguageCode = (): "en" | "es" | "he" => {
 export const useAppFlow = () => {
   const runtimeTarget = detectRuntimeTarget();
   const profileTestingEnabled = isProfileTestingEnabled();
+  const [telegramIdentityReady, setTelegramIdentityReady] = useState(
+    runtimeTarget !== "telegram",
+  );
   const [state, setState] = useState<AppFlowState>({
     screen: "onboarding-carousel",
     questionStep: 0,
@@ -135,6 +138,66 @@ export const useAppFlow = () => {
   }, [localProfileRole]);
 
   useEffect(() => {
+    if (runtimeTarget !== "telegram") {
+      return;
+    }
+
+    let cancelled = false;
+
+    const verifyTelegramIdentity = async () => {
+      const webApp = getTelegramWebApp();
+      const initData = webApp?.initData?.trim();
+
+      if (!initData) {
+        if (!cancelled) {
+          setTelegramIdentityReady(true);
+        }
+        return;
+      }
+
+      try {
+        const response = await api.verifyTelegramInitData(initData);
+        if (cancelled) {
+          return;
+        }
+
+        const user = response.user;
+        if (user && typeof user.telegramId === "number") {
+          setState((prev) => ({
+            ...prev,
+            telegramId: user.telegramId,
+            answers: {
+              ...prev.answers,
+              languageCode:
+                user.languageCode === "es" ||
+                user.languageCode === "he" ||
+                user.languageCode === "en"
+                  ? user.languageCode
+                  : prev.answers.languageCode,
+            },
+          }));
+        }
+      } catch {
+        // Keep app usable in local dev and preview URLs even when verify is unavailable.
+      } finally {
+        if (!cancelled) {
+          setTelegramIdentityReady(true);
+        }
+      }
+    };
+
+    void verifyTelegramIdentity();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [runtimeTarget]);
+
+  useEffect(() => {
+    if (!telegramIdentityReady) {
+      return;
+    }
+
     let cancelled = false;
 
     const loadPersistedProfile = async () => {
@@ -219,7 +282,7 @@ export const useAppFlow = () => {
     return () => {
       cancelled = true;
     };
-  }, [state.telegramId]);
+  }, [state.telegramId, telegramIdentityReady]);
 
   const effectiveProfile = useMemo<EffectiveProfileSnapshot>(() => {
     const fallbackName = sanitizeProfileName(localProfileName);

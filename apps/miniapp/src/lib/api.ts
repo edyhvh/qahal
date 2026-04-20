@@ -1,4 +1,9 @@
-import type { CitySearchResponse, LocationSave, NearbyResponse, OnboardingSubmit } from "@qahal/shared";
+import type {
+  CitySearchResponse,
+  LocationSave,
+  NearbyResponse,
+  OnboardingSubmit,
+} from "@qahal/shared";
 import { env } from "./env";
 
 export interface CommunityPerson {
@@ -9,7 +14,9 @@ export interface CommunityPerson {
   badges: Array<{ kind: string; label: string; years?: number }>;
 }
 
-const baseUrl = env.apiBaseUrl.endsWith("/") ? env.apiBaseUrl.slice(0, -1) : env.apiBaseUrl;
+const baseUrl = env.apiBaseUrl.endsWith("/")
+  ? env.apiBaseUrl.slice(0, -1)
+  : env.apiBaseUrl;
 
 const buildUrl = (path: string): string => {
   if (/^https?:\/\//.test(path)) {
@@ -36,9 +43,9 @@ const postJson = async <T>(path: string, payload: unknown): Promise<T> => {
   const response = await fetch(buildUrl(path), {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -52,9 +59,9 @@ const putJson = async <T>(path: string, payload: unknown): Promise<T> => {
   const response = await fetch(buildUrl(path), {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -66,7 +73,7 @@ const putJson = async <T>(path: string, payload: unknown): Promise<T> => {
 
 const deleteJson = async <T>(path: string): Promise<T> => {
   const response = await fetch(buildUrl(path), {
-    method: "DELETE"
+    method: "DELETE",
   });
 
   if (!response.ok) {
@@ -89,35 +96,65 @@ export interface UserApiProfile {
   latestLongitude?: number;
 }
 
+export interface TelegramVerifiedUser {
+  telegramId: number;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  photoUrl?: string;
+  languageCode?: string;
+}
+
 export const api = {
+  verifyTelegramInitData: (initData: string) => {
+    return postJson<{ ok: boolean; user: TelegramVerifiedUser | null }>(
+      "/auth/telegram/verify",
+      { initData },
+    );
+  },
+
   submitOnboarding: (payload: OnboardingSubmit) => {
-    return postJson<{ ok: boolean; user?: UserApiProfile }>("/users/onboarding", payload);
+    return postJson<{ ok: boolean; user?: UserApiProfile }>(
+      "/users/onboarding",
+      payload,
+    );
   },
 
   getUser: (telegramId: number) => {
-    return getJson<{ ok: boolean; user: UserApiProfile | null }>(`/users/${telegramId}`);
+    return getJson<{ ok: boolean; user: UserApiProfile | null }>(
+      `/users/${telegramId}`,
+    );
   },
 
-  updateUserProfile: (telegramId: number, payload: { firstName?: string; birthDate?: string | null }) => {
-    return putJson<{ ok: boolean; user: UserApiProfile | null }>(`/users/${telegramId}/profile`, payload);
+  updateUserProfile: (
+    telegramId: number,
+    payload: { firstName?: string; birthDate?: string | null },
+  ) => {
+    return putJson<{ ok: boolean; user: UserApiProfile | null }>(
+      `/users/${telegramId}/profile`,
+      payload,
+    );
   },
 
   resetLocalUser: (telegramId: number) => {
-    return deleteJson<{ ok: boolean; reset: boolean }>(`/users/${telegramId}/local-reset`);
+    return deleteJson<{ ok: boolean; reset: boolean }>(
+      `/users/${telegramId}/local-reset`,
+    );
   },
 
-  upsertLocation: (payload: { telegramId: number; latitude: number; longitude: number; accuracy?: number }) => {
+  upsertLocation: (payload: {
+    telegramId: number;
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+  }) => {
     return postJson<{ ok: boolean }>("/locations", payload);
   },
 
-  getNearby: (
-    latitude: number,
-    longitude: number,
-    telegramId?: number,
-  ) => {
+  getNearby: (latitude: number, longitude: number, telegramId?: number) => {
     const params = new URLSearchParams({
       latitude: String(latitude),
-      longitude: String(longitude)
+      longitude: String(longitude),
     });
     if (typeof telegramId === "number") {
       params.set("telegramId", String(telegramId));
@@ -125,29 +162,45 @@ export const api = {
     return getJson<NearbyResponse>(`/communities/nearby?${params.toString()}`);
   },
 
-  getCommunityPeople: (params: { city?: string; latitude?: number; longitude?: number }) => {
+  getCommunityPeople: (params: {
+    city?: string;
+    latitude?: number;
+    longitude?: number;
+  }) => {
     const search = new URLSearchParams();
     if (params.city) {
       search.set("city", params.city);
     }
-    if (typeof params.latitude === "number" && typeof params.longitude === "number") {
+    if (
+      typeof params.latitude === "number" &&
+      typeof params.longitude === "number"
+    ) {
       search.set("latitude", String(params.latitude));
       search.set("longitude", String(params.longitude));
     }
 
-    return getJson<{ ok: boolean; people: CommunityPerson[] }>(`/communities/people?${search.toString()}`);
+    return getJson<{ ok: boolean; people: CommunityPerson[] }>(
+      `/communities/people?${search.toString()}`,
+    );
   },
 
-  searchCities: (query: string, signal?: AbortSignal, userLocation?: { latitude: number; longitude: number }) => {
+  searchCities: (
+    query: string,
+    signal?: AbortSignal,
+    userLocation?: { latitude: number; longitude: number },
+  ) => {
     const params = new URLSearchParams({ q: query });
     if (userLocation) {
       params.set("userLat", String(userLocation.latitude));
       params.set("userLng", String(userLocation.longitude));
     }
-    return getJson<CitySearchResponse>(`/api/cities/search?${params.toString()}`, signal);
+    return getJson<CitySearchResponse>(
+      `/api/cities/search?${params.toString()}`,
+      signal,
+    );
   },
 
   saveLocation: (payload: LocationSave) => {
     return postJson<{ ok: boolean }>("/api/location/save", payload);
-  }
+  },
 };
