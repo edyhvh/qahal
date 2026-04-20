@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Combobox,
   ComboboxInput,
@@ -32,6 +32,10 @@ export const CitySearch = ({
     latitude: number;
     longitude: number;
   } | null>(null);
+  const [locationErrorMessage, setLocationErrorMessage] = useState<
+    string | null
+  >(null);
+  const hasAutoRequestedLocation = useRef(false);
 
   const debouncedQuery = useMemo(() => query.trim(), [query]);
 
@@ -72,13 +76,23 @@ export const CitySearch = ({
     };
   }, [debouncedQuery, userLocation]);
 
-  const requestLocationAccess = () => {
+  const requestLocationAccess = useCallback(() => {
     if (!("geolocation" in navigator)) {
+      setLocationErrorMessage("This browser does not support location access.");
+      setLocationState("error");
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      setLocationErrorMessage(
+        "Location requires HTTPS in mobile browsers. Open the secure URL to enable it.",
+      );
       setLocationState("error");
       return;
     }
 
     setLocationState("requesting");
+    setLocationErrorMessage(null);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation({
@@ -86,8 +100,17 @@ export const CitySearch = ({
           longitude: position.coords.longitude,
         });
         setLocationState("granted");
+        setLocationErrorMessage(null);
       },
-      () => {
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationState("denied");
+          return;
+        }
+
+        setLocationErrorMessage(
+          "Could not get your location right now. You can still search manually.",
+        );
         setLocationState("denied");
       },
       {
@@ -96,14 +119,26 @@ export const CitySearch = ({
         maximumAge: 300000,
       },
     );
-  };
+  }, []);
 
   useEffect(() => {
-    if (!("geolocation" in navigator) || !("permissions" in navigator)) {
+    if (hasAutoRequestedLocation.current) {
+      return;
+    }
+    hasAutoRequestedLocation.current = true;
+
+    if (!("geolocation" in navigator)) {
+      setLocationErrorMessage("This browser does not support location access.");
+      setLocationState("error");
       return;
     }
 
     let cancelled = false;
+
+    if (!("permissions" in navigator)) {
+      requestLocationAccess();
+      return;
+    }
 
     navigator.permissions
       .query({ name: "geolocation" })
@@ -119,16 +154,21 @@ export const CitySearch = ({
 
         if (permissionStatus.state === "denied") {
           setLocationState("denied");
+          return;
         }
+
+        // "prompt" state: ask immediately when city step opens.
+        requestLocationAccess();
       })
       .catch(() => {
-        // Ignore unsupported/blocked Permissions API in some WebViews.
+        // Fallback for WebViews/browsers where Permissions API is blocked.
+        requestLocationAccess();
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [requestLocationAccess]);
 
   const handleSelect = async (value: CitySuggestion | null) => {
     if (!value) {
@@ -185,7 +225,8 @@ export const CitySearch = ({
       ) : null}
       {locationState === "error" ? (
         <p className="mb-3 text-xs text-[#F4A7A7]">
-          This browser does not support location access.
+          {locationErrorMessage ??
+            "This browser does not support location access."}
         </p>
       ) : null}
 
