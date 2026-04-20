@@ -108,7 +108,6 @@ export default function App() {
           onGoMap={goToMap}
           onGoProfile={goToProfile}
           profileTestingEnabled={profileTestingEnabled}
-          localProfileRole={localProfileRole}
           effectiveProfile={effectiveProfile}
         />
       ) : null}

@@ -1,7 +1,11 @@
 import { Hono } from "hono";
 import { nearbyQuerySchema } from "@qahal/shared";
 import type { Bindings } from "../types/env";
-import { getNearestSeedLocation, getSeedLeadersByCity, getSeedLocationByCity } from "../services/seedData";
+import {
+  getNearestSeedLocation,
+  getSeedLeadersByCity,
+  getSeedLocationByCity,
+} from "../services/seedData";
 
 export const communitiesRoute = new Hono<{ Bindings: Bindings }>();
 
@@ -73,7 +77,10 @@ const getNearestCommunitiesFromDb = async (
     return [];
   }
 
-  const membershipByCommunityId = new Map<number, "not_member" | "requested" | "member">();
+  const membershipByCommunityId = new Map<
+    number,
+    "not_member" | "requested" | "member"
+  >();
 
   if (typeof telegramId === "number") {
     type MembershipRow = {
@@ -103,14 +110,18 @@ const getNearestCommunitiesFromDb = async (
     name: community.name,
     city: community.city,
     distanceKm: Number(
-      distanceKm(latitude, longitude, community.latitude, community.longitude).toFixed(1),
+      distanceKm(
+        latitude,
+        longitude,
+        community.latitude,
+        community.longitude,
+      ).toFixed(1),
     ),
-    memberState:
-      forceNoMembership
-        ? "not_member"
-        : (membershipByCommunityId.get(community.id) ??
-          community.defaultMemberState ??
-          "not_member"),
+    memberState: forceNoMembership
+      ? "not_member"
+      : (membershipByCommunityId.get(community.id) ??
+        community.defaultMemberState ??
+        "not_member"),
   }));
 };
 
@@ -246,17 +257,30 @@ communitiesRoute.get("/nearby", async (c) => {
         return c.json({ ok: true, communities });
       }
     } catch (error) {
-      console.warn("communities nearby db lookup failed, falling back to seed", {
-        error,
-      });
+      console.warn(
+        "communities nearby db lookup failed, falling back to seed",
+        {
+          error,
+        },
+      );
     }
   }
 
-  const nearest = getNearestSeedLocation(parsed.data.latitude, parsed.data.longitude);
+  const nearest = getNearestSeedLocation(
+    parsed.data.latitude,
+    parsed.data.longitude,
+  );
+  const communities =
+    typeof parsed.data.telegramId === "number"
+      ? nearest.communities.map((community) => ({
+          ...community,
+          memberState: "not_member" as const,
+        }))
+      : nearest.communities;
 
   return c.json({
     ok: true,
-    communities: nearest.communities
+    communities,
   });
 });
 
@@ -277,9 +301,12 @@ communitiesRoute.get("/people", async (c) => {
         });
       }
     } catch (error) {
-      console.warn("communities people db lookup failed, falling back to seed", {
-        error,
-      });
+      console.warn(
+        "communities people db lookup failed, falling back to seed",
+        {
+          error,
+        },
+      );
     }
   }
 
@@ -289,7 +316,7 @@ communitiesRoute.get("/people", async (c) => {
     return c.json({
       ok: true,
       location: { city: byCity.city, country: byCity.country },
-      people: byCity.people
+      people: byCity.people,
     });
   }
 
@@ -302,7 +329,7 @@ communitiesRoute.get("/people", async (c) => {
       return c.json({
         ok: true,
         location: { city: nearest.city, country: nearest.country },
-        people: nearest.people
+        people: nearest.people,
       });
     }
   }
@@ -325,9 +352,8 @@ communitiesRoute.get("/leaders", async (c) => {
         leaderName: string;
       };
 
-      const leaders = await c.env.DB
-        .prepare(
-          `SELECT c.id as communityId,
+      const leaders = await c.env.DB.prepare(
+        `SELECT c.id as communityId,
                   c.name as communityName,
                   cp.id as personId,
                   cp.name as leaderName
@@ -337,7 +363,7 @@ communitiesRoute.get("/leaders", async (c) => {
            WHERE lower(cp.city) = lower(?1)
              AND cpb.kind = 'messenger'
            ORDER BY c.name ASC`,
-        )
+      )
         .bind(city)
         .all<DbLeaderRow>();
 
@@ -349,15 +375,18 @@ communitiesRoute.get("/leaders", async (c) => {
         });
       }
     } catch (error) {
-      console.warn("communities leaders db lookup failed, falling back to seed", {
-        error,
-      });
+      console.warn(
+        "communities leaders db lookup failed, falling back to seed",
+        {
+          error,
+        },
+      );
     }
   }
 
   return c.json({
     ok: true,
     city,
-    leaders: getSeedLeadersByCity(city)
+    leaders: getSeedLeadersByCity(city),
   });
 });
