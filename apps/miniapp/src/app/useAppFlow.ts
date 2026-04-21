@@ -18,6 +18,7 @@ import {
 import { isProfileTestingEnabled } from "../lib/env";
 
 const TOTAL_QUESTION_STEPS = 9;
+const EMUNAH_BADGE_LABEL = "Emunah";
 
 const resolveLanguageCode = (value: unknown): "en" | "es" | "he" => {
   if (value === "es" || value === "he" || value === "en") {
@@ -58,6 +59,13 @@ const mergeUniqueBadges = (...lists: string[][]): string[] => {
     }
   }
   return merged;
+};
+
+const shouldGrantEmunahBadge = (answers: Record<string, string>): boolean => {
+  const doctrinalSteps = ["1", "2", "3", "4", "5", "6", "7"];
+  return doctrinalSteps.every((stepKey) => {
+    return String(answers[stepKey] ?? "").trim().toLowerCase() === "yes";
+  });
 };
 
 const getTelegramId = (): number => {
@@ -454,12 +462,24 @@ export const useAppFlow = () => {
       payload.city = finalCity;
     }
 
+    const shouldGrantEmunah = shouldGrantEmunahBadge(payload.answers ?? {});
+
     setBusy(true);
     try {
       try {
         const onboarding = await api.submitOnboarding(payload);
+        if (shouldGrantEmunah) {
+          setPersistedBadges((prev) =>
+            mergeUniqueBadges(prev, [EMUNAH_BADGE_LABEL]),
+          );
+        }
         if (onboarding.user?.badges && Array.isArray(onboarding.user.badges)) {
-          setPersistedBadges(onboarding.user.badges);
+          const userBadges = onboarding.user.badges;
+          setPersistedBadges((prev) =>
+            shouldGrantEmunah
+              ? mergeUniqueBadges(prev, userBadges, [EMUNAH_BADGE_LABEL])
+              : mergeUniqueBadges(prev, userBadges),
+          );
         }
         if (typeof onboarding.user?.qahalName === "string") {
           setPersistedQahalName(onboarding.user.qahalName);
@@ -478,6 +498,11 @@ export const useAppFlow = () => {
           setCommunities([]);
         }
       } catch {
+        if (shouldGrantEmunah) {
+          setPersistedBadges((prev) =>
+            mergeUniqueBadges(prev, [EMUNAH_BADGE_LABEL]),
+          );
+        }
         setCommunities([]);
       }
 

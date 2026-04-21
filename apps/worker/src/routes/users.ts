@@ -27,8 +27,42 @@ const shouldGrantEmunahBadge = (
 
   const doctrinalSteps = ["1", "2", "3", "4", "5", "6", "7"];
   return doctrinalSteps.every((stepKey) => {
-    return String(answers[stepKey] ?? "").toLowerCase() === "yes";
+    return String(answers[stepKey] ?? "").trim().toLowerCase() === "yes";
   });
+};
+
+const shouldGrantEmunahBadgeFromStoredAnswers = async (
+  db: D1Like,
+  telegramId: number,
+): Promise<boolean | null> => {
+  try {
+    type AnswerRow = { questionKey: string; answerValue: string };
+    const result = await db
+      .prepare(
+        `SELECT question_key as questionKey,
+                answer_value as answerValue
+         FROM user_onboarding_answers
+         WHERE telegram_id = ?1
+           AND question_key IN ('1', '2', '3', '4', '5', '6', '7')`,
+      )
+      .bind(telegramId)
+      .all<AnswerRow>();
+
+    const answersByStep = new Map<string, string>();
+    for (const row of result.results ?? []) {
+      answersByStep.set(row.questionKey, row.answerValue);
+    }
+
+    const doctrinalSteps = ["1", "2", "3", "4", "5", "6", "7"];
+    return doctrinalSteps.every((stepKey) => {
+      return (
+        String(answersByStep.get(stepKey) ?? "").trim().toLowerCase() ===
+        "yes"
+      );
+    });
+  } catch {
+    return null;
+  }
 };
 
 const selectUserBase = async (
@@ -172,6 +206,14 @@ const selectUser = async (
     return null;
   }
 
+  const shouldGrantFromStored = await shouldGrantEmunahBadgeFromStoredAnswers(
+    db,
+    telegramId,
+  );
+  if (typeof shouldGrantFromStored === "boolean") {
+    await syncEmunahBadge(db, telegramId, shouldGrantFromStored);
+  }
+
   const [baseBadges, qahalName, latestLocation] = await Promise.all([
     selectUserBadges(db, telegramId),
     selectUserQahalName(db, telegramId),
@@ -271,6 +313,7 @@ usersRoute.post("/onboarding", async (c) => {
   }
 
   const { telegramId, firstName, city, languageCode, answers } = parsed.data;
+  const grantEmunah = shouldGrantEmunahBadge(answers);
   const normalizedCity =
     typeof city === "string" && city.trim().length > 0 ? city.trim() : null;
 
@@ -283,6 +326,7 @@ usersRoute.post("/onboarding", async (c) => {
         city: normalizedCity ?? undefined,
         languageCode,
         onboardingCompleted: true,
+        badges: grantEmunah ? [EMUNAH_BADGE.label] : [],
       },
     });
   }
@@ -302,11 +346,7 @@ usersRoute.post("/onboarding", async (c) => {
       .run();
 
     await upsertOnboardingAnswers(c.env.DB, telegramId, answers);
-    await syncEmunahBadge(
-      c.env.DB,
-      telegramId,
-      shouldGrantEmunahBadge(answers),
-    );
+    await syncEmunahBadge(c.env.DB, telegramId, grantEmunah);
   } catch {
     try {
       // Backward compatibility for D1 instances without city/onboarding_completed columns.
@@ -322,11 +362,7 @@ usersRoute.post("/onboarding", async (c) => {
         .run();
 
       await upsertOnboardingAnswers(c.env.DB, telegramId, answers);
-      await syncEmunahBadge(
-        c.env.DB,
-        telegramId,
-        shouldGrantEmunahBadge(answers),
-      );
+      await syncEmunahBadge(c.env.DB, telegramId, grantEmunah);
     } catch (error) {
       console.error("onboarding save failed", { error, telegramId });
       return c.json({
@@ -337,6 +373,7 @@ usersRoute.post("/onboarding", async (c) => {
           city: normalizedCity ?? undefined,
           languageCode,
           onboardingCompleted: true,
+          badges: grantEmunah ? [EMUNAH_BADGE.label] : [],
         },
         persisted: false,
       });
