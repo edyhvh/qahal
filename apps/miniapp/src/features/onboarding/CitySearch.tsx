@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Combobox,
   ComboboxInput,
@@ -37,8 +37,6 @@ export const CitySearch = ({
   const [locationErrorMessage, setLocationErrorMessage] = useState<
     string | null
   >(null);
-  const hasAutoRequestedLocation = useRef(false);
-
   const debouncedQuery = useMemo(() => query.trim(), [query]);
 
   useEffect(() => {
@@ -124,23 +122,11 @@ export const CitySearch = ({
   ]);
 
   useEffect(() => {
-    if (hasAutoRequestedLocation.current) {
-      return;
-    }
-    hasAutoRequestedLocation.current = true;
-
-    if (!("geolocation" in navigator)) {
-      setLocationErrorMessage(t.citySearch.locationUnsupported);
-      setLocationState("error");
+    if (!("geolocation" in navigator) || !("permissions" in navigator)) {
       return;
     }
 
     let cancelled = false;
-
-    if (!("permissions" in navigator)) {
-      requestLocationAccess();
-      return;
-    }
 
     navigator.permissions
       .query({ name: "geolocation" })
@@ -156,21 +142,16 @@ export const CitySearch = ({
 
         if (permissionStatus.state === "denied") {
           setLocationState("denied");
-          return;
         }
-
-        // "prompt" state: ask immediately when city step opens.
-        requestLocationAccess();
       })
       .catch(() => {
-        // Fallback for WebViews/browsers where Permissions API is blocked.
-        requestLocationAccess();
+        // Ignore unsupported permission query behavior in WebViews.
       });
 
     return () => {
       cancelled = true;
     };
-  }, [requestLocationAccess, t.citySearch.locationUnsupported]);
+  }, [requestLocationAccess]);
 
   const handleSelect = async (value: CitySuggestion | null) => {
     if (!value) {
@@ -202,19 +183,6 @@ export const CitySearch = ({
 
   return (
     <div className="w-full">
-      {locationState !== "granted" ? (
-        <button
-          type="button"
-          onClick={requestLocationAccess}
-          disabled={locationState === "requesting"}
-          className="mb-3 inline-flex items-center rounded-xl border border-[#C9A46F66] bg-[#E8DDD012] px-3 py-2 text-xs font-semibold text-[#E8DDD0] disabled:opacity-60"
-        >
-          {locationState === "requesting"
-            ? t.citySearch.requestingLocation
-            : t.citySearch.requestLocation}
-        </button>
-      ) : null}
-
       {locationState === "granted" ? (
         <p className="mb-3 text-xs text-[#9ED7B6]">
           {t.citySearch.locationGranted}
