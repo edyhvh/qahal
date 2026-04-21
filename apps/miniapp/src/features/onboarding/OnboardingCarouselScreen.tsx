@@ -71,8 +71,11 @@ export const OnboardingCarouselScreen = ({
           key={i}
           className="h-[3px] w-[28px] rounded-[2px]"
           style={{
-            backgroundColor: i <= slide ? "#1E5C5A" : "#1C2525",
-            opacity: i <= slide ? 1 : 0.15,
+            backgroundColor:
+              i <= slide
+                ? "var(--theme-accent)"
+                : "var(--theme-onboarding-dot-inactive)",
+            opacity: 1,
           }}
         />
       ))}
@@ -90,16 +93,14 @@ export const OnboardingCarouselScreen = ({
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(165deg, #f3efe8 0%, #ece5d8 35%, #e8e0d2 60%, #ede7db 100%)",
+          background: "var(--theme-bg-main)",
         }}
       />
       {/* Paper 206-0: radial overlays (shared) */}
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(circle at 20% 15%, rgba(160,148,130,0.15) 0%, transparent 45%), radial-gradient(circle at 75% 25%, rgba(140,155,148,0.12) 0%, transparent 40%), radial-gradient(circle at 50% 80%, rgba(170,155,130,0.10) 0%, transparent 50%)",
+          background: "var(--theme-bg-overlay)",
         }}
       />
 
@@ -120,8 +121,8 @@ export const OnboardingCarouselScreen = ({
               fontWeight: 700,
               letterSpacing: "0.08em",
               lineHeight: "76px",
-              color: "#1C2525",
-              textShadow: "#F5EDE499 0px 1px 3px",
+              color: "var(--theme-onboarding-title)",
+              textShadow: "var(--theme-onboarding-title-shadow)",
             }}
           >
             QAHAL
@@ -132,8 +133,8 @@ export const OnboardingCarouselScreen = ({
             style={{
               fontSize: 18,
               letterSpacing: "0.15em",
-              color: "#1C2525",
-              opacity: 0.45,
+              color: "var(--theme-onboarding-subtitle)",
+              opacity: 1,
             }}
           >
             קהל
@@ -148,10 +149,10 @@ export const OnboardingCarouselScreen = ({
           style={{
             borderRadius: 16,
             padding: "28px 24px",
-            background: "#F5EDE4D1",
-            border: "1px solid #1C25251F",
+            background: "var(--theme-onboarding-card-bg)",
+            border: "1px solid var(--theme-onboarding-card-border)",
             backdropFilter: "blur(8px)",
-            boxShadow: "#1C252514 0px 2px 12px",
+            boxShadow: "var(--theme-onboarding-card-shadow)",
           }}
         >
           {/* Card heading — Paper XG-0 */}
@@ -161,7 +162,7 @@ export const OnboardingCarouselScreen = ({
               fontSize: 26,
               lineHeight: "32px",
               fontWeight: 600,
-              color: "#1C2525",
+              color: "var(--theme-onboarding-title)",
               marginBottom: 14,
             }}
           >
@@ -173,8 +174,8 @@ export const OnboardingCarouselScreen = ({
             style={{
               fontSize: 15,
               lineHeight: "22px",
-              color: "#1C2525",
-              opacity: 0.72,
+              color: "var(--theme-onboarding-body)",
+              opacity: 1,
             }}
           >
             {t.onboardingCarousel.slide1Subtitle}
@@ -189,7 +190,7 @@ export const OnboardingCarouselScreen = ({
                 width: "100%",
                 height: 52,
                 borderRadius: 14,
-                background: "#1E5C5A",
+                background: "var(--theme-accent)",
                 border: "2px solid #C9A46F",
                 boxShadow: "#1E5C5A40 0px 2px 8px",
                 fontSize: 16,
@@ -220,8 +221,8 @@ export const OnboardingCarouselScreen = ({
             fontSize: 40,
             lineHeight: "46px",
             fontWeight: 700,
-            color: "#1C2525",
-            textShadow: "#F5EDE499 0px 1px 3px",
+            color: "var(--theme-onboarding-title)",
+            textShadow: "var(--theme-onboarding-title-shadow)",
           }}
         >
           {t.onboardingCarousel.slide2Title}
@@ -235,10 +236,10 @@ export const OnboardingCarouselScreen = ({
           style={{
             borderRadius: 16,
             padding: "24px 22px",
-            background: "#F5EDE4D1",
-            border: "1px solid #1C25251F",
+            background: "var(--theme-onboarding-card-bg)",
+            border: "1px solid var(--theme-onboarding-card-border)",
             backdropFilter: "blur(8px)",
-            boxShadow: "#1C252514 0px 2px 12px",
+            boxShadow: "var(--theme-onboarding-card-shadow)",
           }}
         >
           {/* Body — Paper 17E-0 */}
@@ -246,8 +247,8 @@ export const OnboardingCarouselScreen = ({
             style={{
               fontSize: 15,
               lineHeight: "23px",
-              color: "#1C2525",
-              opacity: 0.78,
+              color: "var(--theme-onboarding-body)",
+              opacity: 1,
               textAlign: "center",
             }}
           >
@@ -265,7 +266,7 @@ export const OnboardingCarouselScreen = ({
               width: "100%",
               height: 52,
               borderRadius: 14,
-              background: "#1E5C5A",
+              background: "var(--theme-accent)",
               border: "2px solid #C9A46F",
               boxShadow: "#1E5C5A40 0px 2px 8px",
               fontSize: 16,
@@ -294,8 +295,8 @@ export const OnboardingCarouselScreen = ({
             fontSize: 38,
             lineHeight: "44px",
             fontWeight: 700,
-            color: "#1C2525",
-            textShadow: "#F5EDE499 0px 1px 3px",
+            color: "var(--theme-onboarding-title)",
+            textShadow: "var(--theme-onboarding-title-shadow)",
           }}
         >
           {t.onboardingCarousel.slide3Title}
@@ -309,10 +310,10 @@ export const OnboardingCarouselScreen = ({
           style={{
             borderRadius: 16,
             padding: "24px 22px",
-            background: "#F5EDE4D1",
-            border: "1px solid #1C25251F",
+            background: "var(--theme-onboarding-card-bg)",
+            border: "1px solid var(--theme-onboarding-card-border)",
             backdropFilter: "blur(8px)",
-            boxShadow: "#1C252514 0px 2px 12px",
+            boxShadow: "var(--theme-onboarding-card-shadow)",
           }}
         >
           {/* Body — Paper 1IY-0 */}
@@ -320,8 +321,8 @@ export const OnboardingCarouselScreen = ({
             style={{
               fontSize: 15,
               lineHeight: "23px",
-              color: "#1C2525",
-              opacity: 0.78,
+              color: "var(--theme-onboarding-body)",
+              opacity: 1,
               textAlign: "center",
             }}
           >
@@ -339,7 +340,7 @@ export const OnboardingCarouselScreen = ({
               width: "100%",
               height: 56,
               borderRadius: 14,
-              background: "#1E5C5A",
+              background: "var(--theme-accent)",
               border: "2px solid #C9A46F",
               boxShadow: "#1E5C5A4D 0px 3px 12px",
               fontSize: 17,

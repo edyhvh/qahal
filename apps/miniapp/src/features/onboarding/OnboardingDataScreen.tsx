@@ -99,15 +99,13 @@ export const OnboardingDataScreen = ({
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(circle at 30% 20%, #2a241e 0%, #1a1612 60%), radial-gradient(circle at 70% 80%, #22201a 0%, #1a1612 50%)",
+          background: "var(--theme-bg-main)",
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(circle at 50% 40%, transparent 35%, rgba(10,8,6,0.45) 100%)",
+          background: "var(--theme-bg-overlay)",
         }}
       />
 
@@ -214,7 +212,7 @@ export const OnboardingDataScreen = ({
             style={{
               height: 52,
               borderRadius: 14,
-              background: "#1E5C5A",
+              background: "var(--theme-accent)",
               border: "1.5px solid #C9A46F",
               boxShadow: "#1E5C5A40 0px 8px 24px",
               fontSize: 16,

@@ -91,58 +91,6 @@ const ProfileIcon = ({ color }: { color: string }) => (
   </svg>
 );
 
-const BadgeIcon = ({ kind }: { kind: string }) => {
-  const stroke = "#1E5C5A";
-
-  if (kind === "emunah") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M12 3L14.8 8.8L21 9.7L16.5 14L17.6 20.2L12 17.2L6.4 20.2L7.5 14L3 9.7L9.2 8.8L12 3Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (kind === "kehilah") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M4 10.5L12 4L20 10.5V20H4V10.5Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (kind === "years") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="8" stroke={stroke} strokeWidth="1.5" />
-        <path d="M12 8V12L15 14" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (kind === "messenger") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M12 4L18 7V12C18 15.8 15.4 19.2 12 20C8.6 19.2 6 15.8 6 12V7L12 4Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  if (kind === "hebrew-teacher" || kind === "hebrew-student") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-        <path d="M4 6H11C12.7 6 14 7.3 14 9V18H7C5.3 18 4 16.7 4 15V6Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M20 6H13C11.3 6 10 7.3 10 9V18H17C18.7 18 20 16.7 20 15V6Z" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="7" stroke={stroke} strokeWidth="1.5" />
-    </svg>
-  );
-};
-
 export const ProfileScreen = ({
   profileTestingEnabled,
   localProfileRole,
@@ -218,22 +166,20 @@ export const ProfileScreen = ({
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(165deg, #f3efe8 0%, #ece5d8 35%, #e8e0d2 60%, #ede7db 100%)",
+          background: "var(--theme-bg-main)",
         }}
       />
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(circle at 20% 18%, rgba(30,92,90,0.08) 0%, transparent 45%), radial-gradient(circle at 80% 65%, rgba(160,98,45,0.08) 0%, transparent 50%)",
+          background: "var(--theme-bg-overlay)",
         }}
       />
 
       <div className="relative z-10 flex flex-1 flex-col overflow-y-auto pb-[120px]">
         <header
-          className="flex items-center justify-between"
-          style={{ padding: "8px 24px 16px 24px" }}
+          className="flex items-center"
+          style={{ padding: "64px 24px 16px 24px" }}
         >
           <h1
             className="qahal-display"
@@ -241,22 +187,11 @@ export const ProfileScreen = ({
               fontSize: 32,
               lineHeight: "38px",
               fontWeight: 700,
-              color: "#1C2526",
+              color: "var(--theme-text-primary)",
             }}
           >
             {t.profile.title}
           </h1>
-          <span
-            className="qahal-display"
-            style={{
-              fontSize: 14,
-              letterSpacing: "0.15em",
-              color: "#C9A46F",
-              fontWeight: 600,
-            }}
-          >
-            QAHAL
-          </span>
         </header>
 
         <div className="flex flex-col gap-[18px] px-[24px]">
@@ -266,13 +201,19 @@ export const ProfileScreen = ({
               style={{
                 fontSize: 14,
                 letterSpacing: "0.06em",
-                color: "#A0622D",
+                color: "var(--theme-text-secondary)",
               }}
             >
               {t.profile.name}
             </span>
             <div className="flex items-center gap-[10px]">
-              <span style={{ fontSize: 20, fontWeight: 700, color: "#1C2526" }}>
+              <span
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "var(--theme-text-primary)",
+                }}
+              >
                 {profileName}
               </span>
               <button
@@ -286,7 +227,11 @@ export const ProfileScreen = ({
                     onProfileNameChange(nextName.trim());
                   }
                 }}
-                style={{ fontSize: 12, color: "#1E5C5A", fontWeight: 700 }}
+                style={{
+                  fontSize: 12,
+                  color: "var(--theme-accent)",
+                  fontWeight: 700,
+                }}
               >
                 {t.profile.edit}
               </button>
@@ -299,12 +244,18 @@ export const ProfileScreen = ({
               style={{
                 fontSize: 14,
                 letterSpacing: "0.06em",
-                color: "#A0622D",
+                color: "var(--theme-text-secondary)",
               }}
             >
               {t.profile.qahal}
             </span>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#1C2526" }}>
+            <span
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: "var(--theme-text-primary)",
+              }}
+            >
               {displayedQahalName}
             </span>
           </div>
@@ -315,7 +266,7 @@ export const ProfileScreen = ({
               style={{
                 fontSize: 14,
                 letterSpacing: "0.06em",
-                color: "#A0622D",
+                color: "var(--theme-text-secondary)",
               }}
             >
               {t.profile.age}
@@ -330,10 +281,10 @@ export const ProfileScreen = ({
                     width: 84,
                     height: 36,
                     borderRadius: 10,
-                    border: "1px solid #D5C8B6",
-                    background: "#FFFFFF",
+                    border: "1px solid var(--theme-surface-warm-border)",
+                    background: "var(--theme-surface-warm)",
                     fontSize: 13,
-                    color: "#1C2526",
+                    color: "var(--theme-surface-warm-text)",
                     fontWeight: 700,
                     padding: "0 8px",
                   }}
@@ -359,7 +310,13 @@ export const ProfileScreen = ({
                 </button>
               </div>
             ) : (
-              <span style={{ fontSize: 16, fontWeight: 700, color: "#1C2526" }}>
+              <span
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: "var(--theme-text-primary)",
+                }}
+              >
                 {confirmedAge ?? 0}
               </span>
             )}
@@ -371,7 +328,7 @@ export const ProfileScreen = ({
               style={{
                 fontSize: 14,
                 letterSpacing: "0.06em",
-                color: "#A0622D",
+                color: "var(--theme-text-secondary)",
                 marginBottom: 8,
               }}
             >
@@ -393,9 +350,6 @@ export const ProfileScreen = ({
                     color: "#1E5C5A",
                   }}
                 >
-                  <span className="mr-[6px] inline-flex">
-                    <BadgeIcon kind={badge.kind} />
-                  </span>
                   {badge.name}
                 </span>
                 );
@@ -465,11 +419,11 @@ export const ProfileScreen = ({
                 style={{
                   height: 42,
                   borderRadius: 12,
-                  border: "1px solid #A0622D",
-                  background: "#FFF7ED",
+                  border: "1px solid var(--theme-surface-warm-border)",
+                  background: "var(--theme-surface-warm-muted)",
                   fontSize: 13,
                   fontWeight: 700,
-                  color: "#A0622D",
+                  color: "var(--theme-surface-warm-muted-text)",
                 }}
               >
                 {t.profile.localDataDelete}
@@ -486,21 +440,31 @@ export const ProfileScreen = ({
             style={{
               borderRadius: 20,
               padding: 20,
-              background: "#F5F0E8",
-              border: "1px solid #C9A46F4D",
+              background: "var(--theme-card-bg)",
+              border: "1px solid var(--theme-card-border)",
               boxShadow: "#1C252526 0px 16px 36px",
             }}
           >
             <div
               className="qahal-display"
-              style={{ fontSize: 20, color: "#1C2526", fontWeight: 700 }}
+              style={{
+                fontSize: 20,
+                color: "var(--theme-text-primary)",
+                fontWeight: 700,
+              }}
             >
               {t.profile.confirmAgeTitle}
             </div>
-            <p style={{ fontSize: 15, color: "#1C2526", fontWeight: 700 }}>
+            <p
+              style={{
+                fontSize: 15,
+                color: "var(--theme-text-primary)",
+                fontWeight: 700,
+              }}
+            >
               {t.profile.confirmAgeValue(computedAge)}
             </p>
-            <p style={{ fontSize: 12, color: "#A0622D" }}>
+            <p style={{ fontSize: 12, color: "var(--theme-surface-warm-muted-text)" }}>
               {t.profile.confirmAgeWarning}
             </p>
 
@@ -512,11 +476,11 @@ export const ProfileScreen = ({
                 style={{
                   height: 42,
                   borderRadius: 12,
-                  border: "1px solid #D5C8B6",
-                  background: "#FFFFFF",
+                  border: "1px solid var(--theme-surface-warm-border)",
+                  background: "var(--theme-surface-warm)",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#1C2526",
+                  color: "var(--theme-surface-warm-text)",
                 }}
               >
                 {t.common.cancel}
@@ -528,7 +492,7 @@ export const ProfileScreen = ({
                 style={{
                   height: 42,
                   borderRadius: 12,
-                  background: "#1E5C5A",
+                  background: "var(--theme-accent)",
                   fontSize: 13,
                   fontWeight: 600,
                   color: "#FFFFFF",
@@ -544,8 +508,7 @@ export const ProfileScreen = ({
       <div
         className="absolute bottom-0 left-0 right-0 z-20 flex flex-col items-center"
         style={{
-          backgroundImage:
-            "linear-gradient(0deg, rgba(237,233,225,0.95) 0%, rgba(237,233,225,0.85) 60%, rgba(237,233,225,0) 100%)",
+          backgroundImage: "var(--theme-nav-gradient)",
           paddingBottom: 24,
           paddingTop: 20,
         }}
@@ -557,12 +520,12 @@ export const ProfileScreen = ({
             onClick={onGoHome}
           >
             <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-              <HomeIcon color="#1E5C5A" />
+              <HomeIcon color="var(--theme-accent)" />
             </div>
             <span
               style={{
                 fontSize: 11,
-                color: "#1E5C5A",
+                color: "var(--theme-accent)",
                 minHeight: 16,
                 lineHeight: "16px",
               }}
@@ -577,12 +540,12 @@ export const ProfileScreen = ({
             onClick={onGoMap}
           >
             <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-              <MapIcon color="#1E5C5A" />
+              <MapIcon color="var(--theme-accent)" />
             </div>
             <span
               style={{
                 fontSize: 11,
-                color: "#1E5C5A",
+                color: "var(--theme-accent)",
                 minHeight: 16,
                 lineHeight: "16px",
               }}
@@ -600,7 +563,7 @@ export const ProfileScreen = ({
               style={{
                 width: 48,
                 height: 48,
-                background: "#1E5C5A",
+                background: "var(--theme-accent)",
                 boxShadow: "#1E5C5A4D 0px 4px 12px",
               }}
             >
@@ -609,7 +572,7 @@ export const ProfileScreen = ({
             <span
               style={{
                 fontSize: 11,
-                color: "#1E5C5A",
+                color: "var(--theme-accent)",
                 minHeight: 16,
                 lineHeight: "16px",
                 visibility: "hidden",

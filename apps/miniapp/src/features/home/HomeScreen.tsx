@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CommunityCard } from "@qahal/shared";
 import { resolveBadgeDefinition } from "../../app/types";
 import type { EffectiveProfileSnapshot, HomeVariant } from "../../app/types";
@@ -68,107 +68,6 @@ const PlusIcon = () => (
   </svg>
 );
 
-const BadgeIcon = ({ kind }: { kind: string }) => {
-  const stroke = "#F5F0E8";
-
-  if (kind === "emunah") {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 3L14.8 8.8L21 9.7L16.5 14L17.6 20.2L12 17.2L6.4 20.2L7.5 14L3 9.7L9.2 8.8L12 3Z"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (kind === "kehilah") {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M4 10.5L12 4L20 10.5V20H4V10.5Z"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M9 20V14H15V20"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (kind === "years") {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="8" stroke={stroke} strokeWidth="1.5" />
-        <path
-          d="M12 8V12L15 14"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (kind === "messenger") {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 4L18 7V12C18 15.8 15.4 19.2 12 20C8.6 19.2 6 15.8 6 12V7L12 4Z"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M9.5 12.2L11.2 13.8L14.8 10.2"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  if (kind === "hebrew-teacher" || kind === "hebrew-student") {
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M4 6H11C12.7 6 14 7.3 14 9V18H7C5.3 18 4 16.7 4 15V6Z"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M20 6H13C11.3 6 10 7.3 10 9V18H17C18.7 18 20 16.7 20 15V6Z"
-          stroke={stroke}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="7" stroke={stroke} strokeWidth="1.5" />
-    </svg>
-  );
-};
 export const HomeScreen = ({
   variant,
   communities,
@@ -179,6 +78,7 @@ export const HomeScreen = ({
   effectiveProfile,
 }: HomeScreenProps) => {
   const { t } = useI18n();
+  const hasRequestedLocationPermission = useRef(false);
   const [requestedCommunityIds, setRequestedCommunityIds] = useState<
     Set<number>
   >(new Set());
@@ -186,6 +86,32 @@ export const HomeScreen = ({
     new Set(),
   );
   const [showToast, setShowToast] = useState(false);
+  useEffect(() => {
+    if (hasRequestedLocationPermission.current) {
+      return;
+    }
+
+    hasRequestedLocationPermission.current = true;
+
+    if (!("geolocation" in navigator) || !window.isSecureContext) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        // Permission prompt is intentional on Home; position is not needed here.
+      },
+      () => {
+        // Permission can be denied; Home should remain fully usable.
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+  }, []);
+
   useEffect(() => {
     const initiallyRequested = new Set<number>();
     const initiallyMember = new Set<number>();
@@ -263,16 +189,14 @@ export const HomeScreen = ({
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(165deg, #f3efe8 0%, #ece5d8 35%, #e8e0d2 60%, #ede7db 100%)",
+          background: "var(--theme-bg-main)",
         }}
       />
       {/* Paper 4RS-0: warm radial overlays */}
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(circle at 25% 20%, rgba(200,164,111,0.08) 0%, transparent 50%), radial-gradient(circle at 75% 60%, rgba(200,164,111,0.06) 0%, transparent 45%)",
+          background: "var(--theme-bg-overlay)",
         }}
       />
 
@@ -280,8 +204,8 @@ export const HomeScreen = ({
       <div className="relative z-10 flex flex-1 flex-col overflow-y-auto pb-[120px]">
         {/* Header — Paper 4S7-0 */}
         <header
-          className="flex items-center justify-between"
-          style={{ padding: "8px 24px 16px 24px" }}
+          className="flex items-center"
+          style={{ padding: "64px 24px 16px 24px" }}
         >
           {/* Paper 4S8-0 */}
           <h1
@@ -290,23 +214,11 @@ export const HomeScreen = ({
               fontSize: 32,
               lineHeight: "38px",
               fontWeight: 700,
-              color: "#1C2526",
+              color: "var(--theme-text-primary)",
             }}
           >
             {t.common.home}
           </h1>
-          {/* Paper 4S9-0 */}
-          <span
-            className="qahal-display"
-            style={{
-              fontSize: 14,
-              letterSpacing: "0.15em",
-              color: "#C9A46F",
-              fontWeight: 600,
-            }}
-          >
-            QAHAL
-          </span>
         </header>
 
         {/* Cards */}
@@ -317,9 +229,8 @@ export const HomeScreen = ({
             style={{
               borderRadius: 20,
               padding: 24,
-              backgroundImage:
-                "linear-gradient(135deg, #7a7a82 0%, #9a9aa0 40%, #b4b4b8 100%)",
-              boxShadow: "#78788240 0px 4px 16px, #78788226 0px 1px 4px",
+              backgroundImage: "var(--theme-home-create-gradient)",
+              boxShadow: "var(--theme-home-create-shadow)",
             }}
           >
             {/* Plus icon circle */}
@@ -360,9 +271,8 @@ export const HomeScreen = ({
             style={{
               borderRadius: 20,
               padding: 24,
-              backgroundImage:
-                "linear-gradient(135deg, #8a5a30 0%, #a06a3a 50%, #b87a44 100%)",
-              boxShadow: "#A0622D40 0px 4px 16px, #A0622D26 0px 1px 4px",
+              backgroundImage: "var(--theme-home-near-gradient)",
+              boxShadow: "var(--theme-home-near-shadow)",
             }}
           >
             <h2
@@ -551,9 +461,8 @@ export const HomeScreen = ({
             style={{
               borderRadius: 20,
               padding: 24,
-              backgroundImage:
-                "linear-gradient(135deg, #1e4a48 0%, #266058 40%, #2e7a6e 100%)",
-              boxShadow: "#1E5C5A40 0px 4px 16px, #1E5C5A26 0px 1px 4px",
+              backgroundImage: "var(--theme-home-badge-gradient)",
+              boxShadow: "var(--theme-home-badge-shadow)",
             }}
           >
             <h2
@@ -575,12 +484,6 @@ export const HomeScreen = ({
                     border: "1px solid #F5F0E833",
                   }}
                 >
-                  <div
-                    className="flex shrink-0 items-center justify-center rounded-full"
-                    style={{ width: 36, height: 36, background: "#F5F0E833" }}
-                  >
-                    <BadgeIcon kind={badge.kind} />
-                  </div>
                   <div className="flex-1">
                     <div
                       style={{
@@ -607,8 +510,7 @@ export const HomeScreen = ({
       <div
         className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[375px] -translate-x-1/2 flex-col items-center"
         style={{
-          backgroundImage:
-            "linear-gradient(0deg, rgba(237,233,225,0.95) 0%, rgba(237,233,225,0.85) 60%, rgba(237,233,225,0) 100%)",
+          backgroundImage: "var(--theme-nav-gradient)",
           paddingBottom: 24,
           paddingTop: 20,
         }}
@@ -625,7 +527,7 @@ export const HomeScreen = ({
               style={{
                 width: 48,
                 height: 48,
-                background: "#1E5C5A",
+                background: "var(--theme-accent)",
                 boxShadow: "#1E5C5A4D 0px 4px 12px",
               }}
             >
@@ -634,7 +536,7 @@ export const HomeScreen = ({
             <span
               style={{
                 fontSize: 11,
-                color: "#1E5C5A",
+                color: "var(--theme-accent)",
                 minHeight: 16,
                 lineHeight: "16px",
                 visibility: "hidden",
@@ -650,12 +552,12 @@ export const HomeScreen = ({
             onClick={onGoMap}
           >
             <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-              <MapIcon color="#1E5C5A" />
+              <MapIcon color="var(--theme-accent)" />
             </div>
             <span
               style={{
                 fontSize: 11,
-                color: "#1E5C5A",
+                color: "var(--theme-accent)",
                 minHeight: 16,
                 lineHeight: "16px",
               }}
@@ -670,12 +572,12 @@ export const HomeScreen = ({
             onClick={onGoProfile}
           >
             <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-              <ProfileIcon color="#1E5C5A" />
+              <ProfileIcon color="var(--theme-accent)" />
             </div>
             <span
               style={{
                 fontSize: 11,
-                color: "#1E5C5A",
+                color: "var(--theme-accent)",
                 minHeight: 16,
                 lineHeight: "16px",
               }}
