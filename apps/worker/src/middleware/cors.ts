@@ -1,4 +1,5 @@
 import { cors } from "hono/cors";
+import { isProductionRequest } from "../lib/runtimeEnv";
 
 const normalizeOrigin = (origin: string): string => {
   return origin.trim().toLowerCase().replace(/\/+$/, "");
@@ -19,7 +20,7 @@ export const corsMiddleware = cors({
   origin: (origin, c) => {
     const allowedOrigins = parseAllowedOrigins(c.env.CORS_ALLOWED_ORIGINS);
     if (allowedOrigins.length === 0) {
-      return "*";
+      return isProductionRequest(c) ? "" : "*";
     }
 
     if (!origin) {

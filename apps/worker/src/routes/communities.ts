@@ -6,6 +6,7 @@ import {
   getSeedLeadersByCity,
   getSeedLocationByCity,
 } from "../services/seedData";
+import { resolveOptionalTelegramIdentity } from "../lib/telegramIdentity";
 
 export const communitiesRoute = new Hono<{ Bindings: Bindings }>();
 
@@ -244,13 +245,23 @@ communitiesRoute.get("/nearby", async (c) => {
     return c.json({ ok: false, error: "invalid_query" }, 400);
   }
 
+  const identity = await resolveOptionalTelegramIdentity(
+    c,
+    parsed.data.telegramId,
+  );
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  const effectiveTelegramId = identity.telegramId;
+
   if (hasD1(c.env.DB)) {
     try {
       const communities = await getNearestCommunitiesFromDb(
         c.env.DB,
         parsed.data.latitude,
         parsed.data.longitude,
-        parsed.data.telegramId,
+        effectiveTelegramId,
       );
 
       if (communities.length > 0) {
@@ -271,7 +282,7 @@ communitiesRoute.get("/nearby", async (c) => {
     parsed.data.longitude,
   );
   const communities =
-    typeof parsed.data.telegramId === "number"
+    typeof effectiveTelegramId === "number"
       ? nearest.communities.map((community) => ({
           ...community,
           memberState: "not_member" as const,

@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { locationSaveSchema } from "@qahal/shared";
 import type { Bindings } from "../types/env";
+import { requireTelegramIdentity } from "../lib/telegramIdentity";
 
 const hasD1 = (db: unknown): db is { prepare: (query: string) => { bind: (...args: unknown[]) => { run: () => Promise<unknown> } } } => {
   return typeof db === "object" && db !== null && "prepare" in db;
@@ -21,6 +22,12 @@ locationRoute.post("/save", async (c) => {
   }
 
   const { telegramId, city, state, country, latitude, longitude } = parsed.data;
+  const identity = await requireTelegramIdentity(c, telegramId);
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  const effectiveTelegramId = identity.telegramId;
 
   try {
     // Ensure FK target exists when city is selected before onboarding submit creates user row.
@@ -29,14 +36,14 @@ locationRoute.post("/save", async (c) => {
        VALUES (?1)
        ON CONFLICT(telegram_id) DO NOTHING`
     )
-      .bind(telegramId)
+      .bind(effectiveTelegramId)
       .run();
 
     await c.env.DB.prepare(
       `INSERT INTO user_locations (telegram_id, city, state, country, latitude, longitude)
        VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
     )
-      .bind(telegramId, city, state, country, latitude, longitude)
+      .bind(effectiveTelegramId, city, state, country, latitude, longitude)
       .run();
   } catch (error) {
     try {
@@ -45,10 +52,14 @@ locationRoute.post("/save", async (c) => {
         `INSERT INTO user_locations (telegram_id, latitude, longitude)
          VALUES (?1, ?2, ?3)`
       )
-        .bind(telegramId, latitude, longitude)
+        .bind(effectiveTelegramId, latitude, longitude)
         .run();
     } catch (fallbackError) {
-      console.error("location save failed", { error, fallbackError, telegramId });
+      console.error("location save failed", {
+        error,
+        fallbackError,
+        telegramId: effectiveTelegramId,
+      });
       // Keep onboarding flow unblocked even when DB schema is behind.
       return c.json({ ok: true, persisted: false });
     }

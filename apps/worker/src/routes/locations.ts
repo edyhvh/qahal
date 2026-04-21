@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { locationUpsertSchema } from "@qahal/shared";
 import type { Bindings } from "../types/env";
+import { requireTelegramIdentity } from "../lib/telegramIdentity";
 
 const hasD1 = (db: unknown): db is { prepare: (query: string) => { bind: (...args: unknown[]) => { run: () => Promise<unknown> } } } => {
   return typeof db === "object" && db !== null && "prepare" in db;
@@ -21,12 +22,18 @@ locationsRoute.post("/", async (c) => {
   }
 
   const { telegramId, latitude, longitude, accuracy } = parsed.data;
+  const identity = await requireTelegramIdentity(c, telegramId);
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  const effectiveTelegramId = identity.telegramId;
 
   await c.env.DB.prepare(
     `INSERT INTO user_locations (telegram_id, latitude, longitude, accuracy)
      VALUES (?1, ?2, ?3, ?4)`
   )
-    .bind(telegramId, latitude, longitude, accuracy ?? null)
+    .bind(effectiveTelegramId, latitude, longitude, accuracy ?? null)
     .run();
 
   return c.json({ ok: true });

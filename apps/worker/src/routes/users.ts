@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { onboardingSubmitSchema } from "@qahal/shared";
 import type { Bindings } from "../types/env";
+import { requireTelegramIdentity } from "../lib/telegramIdentity";
 
 type D1Like = {
   prepare: (query: string) => {
@@ -313,6 +314,12 @@ usersRoute.post("/onboarding", async (c) => {
   }
 
   const { telegramId, firstName, city, languageCode, answers } = parsed.data;
+  const identity = await requireTelegramIdentity(c, telegramId);
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  const effectiveTelegramId = identity.telegramId;
   const grantEmunah = shouldGrantEmunahBadge(answers);
   const normalizedCity =
     typeof city === "string" && city.trim().length > 0 ? city.trim() : null;
@@ -321,7 +328,7 @@ usersRoute.post("/onboarding", async (c) => {
     return c.json({
       ok: true,
       user: {
-        telegramId,
+        telegramId: effectiveTelegramId,
         firstName,
         city: normalizedCity ?? undefined,
         languageCode,
@@ -342,11 +349,11 @@ usersRoute.post("/onboarding", async (c) => {
          onboarding_completed=1,
          updated_at=CURRENT_TIMESTAMP`,
     )
-      .bind(telegramId, firstName, normalizedCity, languageCode)
+      .bind(effectiveTelegramId, firstName, normalizedCity, languageCode)
       .run();
 
-    await upsertOnboardingAnswers(c.env.DB, telegramId, answers);
-    await syncEmunahBadge(c.env.DB, telegramId, grantEmunah);
+    await upsertOnboardingAnswers(c.env.DB, effectiveTelegramId, answers);
+    await syncEmunahBadge(c.env.DB, effectiveTelegramId, grantEmunah);
   } catch {
     try {
       // Backward compatibility for D1 instances without city/onboarding_completed columns.
@@ -358,17 +365,20 @@ usersRoute.post("/onboarding", async (c) => {
            language_code=excluded.language_code,
            updated_at=CURRENT_TIMESTAMP`,
       )
-        .bind(telegramId, firstName, languageCode)
+        .bind(effectiveTelegramId, firstName, languageCode)
         .run();
 
-      await upsertOnboardingAnswers(c.env.DB, telegramId, answers);
-      await syncEmunahBadge(c.env.DB, telegramId, grantEmunah);
+      await upsertOnboardingAnswers(c.env.DB, effectiveTelegramId, answers);
+      await syncEmunahBadge(c.env.DB, effectiveTelegramId, grantEmunah);
     } catch (error) {
-      console.error("onboarding save failed", { error, telegramId });
+      console.error("onboarding save failed", {
+        error,
+        telegramId: effectiveTelegramId,
+      });
       return c.json({
         ok: true,
         user: {
-          telegramId,
+          telegramId: effectiveTelegramId,
           firstName,
           city: normalizedCity ?? undefined,
           languageCode,
@@ -380,31 +390,45 @@ usersRoute.post("/onboarding", async (c) => {
     }
   }
 
-  const user = await selectUser(c.env.DB, telegramId);
+  const user = await selectUser(c.env.DB, effectiveTelegramId);
 
   return c.json({ ok: true, user });
 });
 
 usersRoute.get("/:telegramId", async (c) => {
-  const telegramId = Number(c.req.param("telegramId"));
-  if (!Number.isFinite(telegramId)) {
+  const requestedTelegramId = Number(c.req.param("telegramId"));
+  if (!Number.isFinite(requestedTelegramId)) {
     return c.json({ ok: false, error: "invalid_telegram_id" }, 400);
   }
+
+  const identity = await requireTelegramIdentity(c, requestedTelegramId);
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  const effectiveTelegramId = identity.telegramId;
 
   if (!hasD1(c.env.DB)) {
     return c.json({ ok: true, user: null });
   }
 
-  const user = await selectUser(c.env.DB, telegramId);
+  const user = await selectUser(c.env.DB, effectiveTelegramId);
 
   return c.json({ ok: true, user });
 });
 
 usersRoute.put("/:telegramId/profile", async (c) => {
-  const telegramId = Number(c.req.param("telegramId"));
-  if (!Number.isFinite(telegramId)) {
+  const requestedTelegramId = Number(c.req.param("telegramId"));
+  if (!Number.isFinite(requestedTelegramId)) {
     return c.json({ ok: false, error: "invalid_telegram_id" }, 400);
   }
+
+  const identity = await requireTelegramIdentity(c, requestedTelegramId);
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  const effectiveTelegramId = identity.telegramId;
 
   const payload = (await c.req.json().catch(() => ({}))) as {
     firstName?: string;
@@ -433,7 +457,7 @@ usersRoute.put("/:telegramId/profile", async (c) => {
            birth_date=COALESCE(?3, users.birth_date),
            updated_at=CURRENT_TIMESTAMP`,
     )
-      .bind(telegramId, safeFirstName, safeBirthDate)
+      .bind(effectiveTelegramId, safeFirstName, safeBirthDate)
       .run();
   } catch {
     await c.env.DB.prepare(
@@ -443,19 +467,26 @@ usersRoute.put("/:telegramId/profile", async (c) => {
            first_name=COALESCE(?2, users.first_name),
            updated_at=CURRENT_TIMESTAMP`,
     )
-      .bind(telegramId, safeFirstName)
+      .bind(effectiveTelegramId, safeFirstName)
       .run();
   }
 
-  const user = await selectUser(c.env.DB, telegramId);
+  const user = await selectUser(c.env.DB, effectiveTelegramId);
   return c.json({ ok: true, user });
 });
 
 usersRoute.delete("/:telegramId/local-reset", async (c) => {
-  const telegramId = Number(c.req.param("telegramId"));
-  if (!Number.isFinite(telegramId)) {
+  const requestedTelegramId = Number(c.req.param("telegramId"));
+  if (!Number.isFinite(requestedTelegramId)) {
     return c.json({ ok: false, error: "invalid_telegram_id" }, 400);
   }
+
+  const identity = await requireTelegramIdentity(c, requestedTelegramId);
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  const effectiveTelegramId = identity.telegramId;
 
   const requestHost = new URL(c.req.url).hostname.toLowerCase();
   const isLocalHost =
@@ -481,7 +512,7 @@ usersRoute.delete("/:telegramId/local-reset", async (c) => {
 
   for (const query of deleteStatements) {
     try {
-      await c.env.DB.prepare(query).bind(telegramId).run();
+      await c.env.DB.prepare(query).bind(effectiveTelegramId).run();
     } catch {
       // Ignore missing tables to keep local reset resilient across migrations.
     }

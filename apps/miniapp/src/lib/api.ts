@@ -5,6 +5,7 @@ import type {
   OnboardingSubmit,
 } from "@qahal/shared";
 import { env } from "./env";
+import { getTelegramWebApp } from "./telegram";
 
 export interface CommunityPerson {
   id: number;
@@ -30,8 +31,24 @@ const buildUrl = (path: string): string => {
   return `${baseUrl}${path}`;
 };
 
+const getTelegramAuthHeaders = (): Record<string, string> => {
+  const initData = getTelegramWebApp()?.initData?.trim();
+  if (!initData) {
+    return {};
+  }
+
+  return {
+    "X-Telegram-Init-Data": initData,
+  };
+};
+
 const getJson = async <T>(path: string, signal?: AbortSignal): Promise<T> => {
-  const response = await fetch(buildUrl(path), { signal });
+  const response = await fetch(buildUrl(path), {
+    signal,
+    headers: {
+      ...getTelegramAuthHeaders(),
+    },
+  });
   if (!response.ok) {
     throw new Error(`GET ${path} failed with status ${response.status}`);
   }
@@ -44,6 +61,7 @@ const postJson = async <T>(path: string, payload: unknown): Promise<T> => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getTelegramAuthHeaders(),
     },
     body: JSON.stringify(payload),
   });
@@ -60,6 +78,7 @@ const putJson = async <T>(path: string, payload: unknown): Promise<T> => {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      ...getTelegramAuthHeaders(),
     },
     body: JSON.stringify(payload),
   });
@@ -74,6 +93,9 @@ const putJson = async <T>(path: string, payload: unknown): Promise<T> => {
 const deleteJson = async <T>(path: string): Promise<T> => {
   const response = await fetch(buildUrl(path), {
     method: "DELETE",
+    headers: {
+      ...getTelegramAuthHeaders(),
+    },
   });
 
   if (!response.ok) {
