@@ -115,7 +115,7 @@ export const MapPersonSheet = ({
         transform: `translateY(${dragOffsetY}px)`,
         transition: isDragging ? "none" : "transform 180ms ease-out",
         touchAction: "pan-x",
-        background: "#F5F0E8",
+        background: "var(--theme-card-bg)",
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         borderBottomLeftRadius: 44,

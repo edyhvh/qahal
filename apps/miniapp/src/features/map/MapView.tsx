@@ -1,9 +1,11 @@
 import { useEffect, useMemo } from "react";
 import { CircleMarker, MapContainer, TileLayer, useMap } from "react-leaflet";
+import type { ThemeMode } from "../../app/theme";
 
 export type LatLngTuple = [number, number];
 
 interface MapViewProps {
+  themeMode: ThemeMode;
   initialCenter?: LatLngTuple;
   selectedCityCenter?: LatLngTuple;
   targetZoom?: number;
@@ -55,6 +57,7 @@ const MapCenterSync = ({
 };
 
 export const MapView = ({
+  themeMode,
   initialCenter,
   selectedCityCenter,
   targetZoom = 12,
@@ -68,6 +71,11 @@ export const MapView = ({
     [selectedCityCenter, center],
   );
 
+  const tileUrl =
+    themeMode === "dark"
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
   return (
     <div className={`relative h-full w-full ${className ?? ""}`}>
       <MapContainer
@@ -75,7 +83,7 @@ export const MapView = ({
         zoom={targetZoom}
         zoomControl
         className="h-full w-full"
-        style={{ background: "#e6e6e6" }}
+        style={{ background: "var(--theme-map-canvas)" }}
       >
         <MapSizeInvalidator />
         <MapCenterSync
@@ -84,7 +92,7 @@ export const MapView = ({
           recenterKey={recenterKey}
         />
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          url={tileUrl}
           attribution="&copy; OpenStreetMap contributors &copy; CARTO"
           maxZoom={20}
         />

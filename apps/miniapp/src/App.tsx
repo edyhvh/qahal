@@ -7,8 +7,14 @@ import { ProfileScreen } from "./features/profile/ProfileScreen";
 import { useAppFlow } from "./app/useAppFlow";
 import { resolvePaperScreenKey } from "./app/paperMapping";
 import { I18nProvider } from "./app/i18n";
+import { getNextThemeMode, type ThemeMode } from "./app/theme";
 
-export default function App() {
+interface AppProps {
+  themeMode: ThemeMode;
+  onThemeChange: (mode: ThemeMode) => void;
+}
+
+export default function App({ themeMode, onThemeChange }: AppProps) {
   const {
     runtimeTarget,
     profileTestingEnabled,
@@ -50,7 +56,41 @@ export default function App() {
         className="relative mx-auto min-h-[100dvh] max-w-[375px]"
         data-paper-screen={paperScreenKey}
         data-runtime={runtimeTarget}
+        data-theme-mode={themeMode}
       >
+        <button
+          type="button"
+          onClick={() => onThemeChange(getNextThemeMode(themeMode))}
+          className="absolute right-3 top-3 z-[85] flex h-10 w-10 items-center justify-center rounded-full border"
+          style={{
+            borderColor: "var(--theme-toggle-border)",
+            background: "var(--theme-toggle-bg)",
+            color: "var(--theme-toggle-icon)",
+            boxShadow: "var(--theme-toggle-shadow)",
+            backdropFilter: "blur(8px)",
+          }}
+          aria-label={
+            themeMode === "light" ? "Switch to dark mode" : "Switch to light mode"
+          }
+          title={themeMode === "light" ? "Dark mode" : "Light mode"}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M9 14.5H15M9.5 17.5H14.5M12 3C8.96 3 6.5 5.46 6.5 8.5C6.5 10.37 7.43 12.02 8.86 13V14.5C8.86 15.33 9.53 16 10.36 16H13.64C14.47 16 15.14 15.33 15.14 14.5V13C16.57 12.02 17.5 10.37 17.5 8.5C17.5 5.46 15.04 3 12 3Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+
         {profileTestingEnabled ? (
           <div className="pointer-events-none absolute left-1/2 top-3 z-[70] -translate-x-1/2">
             <label
@@ -117,6 +157,7 @@ export default function App() {
 
         {state.screen === "map" ? (
           <MapScreen
+            themeMode={themeMode}
             variant={state.mapVariant}
             communities={communities}
             onVariantChange={setMapVariant}

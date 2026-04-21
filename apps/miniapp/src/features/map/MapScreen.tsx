@@ -10,8 +10,10 @@ import { MapNoPermissionOverlay } from "./components/MapNoPermissionOverlay";
 import { MapBottomNav } from "./components/MapBottomNav";
 import { MapCitySwitcher } from "./components/MapCitySwitcher";
 import { useI18n } from "../../app/i18n";
+import type { ThemeMode } from "../../app/theme";
 
 interface MapScreenProps {
+  themeMode: ThemeMode;
   variant: MapVariant;
   communities: CommunityCard[];
   onVariantChange: (variant: MapVariant) => void;
@@ -27,6 +29,7 @@ interface MapScreenProps {
 }
 
 export const MapScreen = ({
+  themeMode,
   variant,
   onVariantChange,
   onGoHome,
@@ -129,10 +132,14 @@ export const MapScreen = ({
   const peoplePanelVisible = variant === "allowed" && peopleOpen;
 
   return (
-    <section className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#e8e0d2]">
+    <section
+      className="relative flex min-h-[100dvh] flex-col overflow-hidden"
+      style={{ background: "var(--theme-bg-solid)" }}
+    >
       {/* Map fills the whole screen area under overlays */}
       <div className="absolute inset-0 z-0">
         <MapView
+          themeMode={themeMode}
           initialCenter={initialCenter}
           selectedCityCenter={mapCenter}
           targetZoom={mapZoom}

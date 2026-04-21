@@ -24,9 +24,9 @@ export const MapNoPermissionOverlay = ({ visible, onEnable }: MapNoPermissionOve
       <div
         className="flex w-[280px] flex-col items-center gap-[20px] text-center"
         style={{
-          background: "#F5F0E8F2",
+          background: "var(--theme-card-bg)",
           borderRadius: 20,
-          border: "1px solid #C9A46F4D",
+          border: "1px solid var(--theme-card-border)",
           boxShadow: "#1C252526 0px 12px 40px, #1C25260F 0px 4px 12px",
           padding: "32px 24px",
         }}
@@ -34,10 +34,13 @@ export const MapNoPermissionOverlay = ({ visible, onEnable }: MapNoPermissionOve
         <div className="flex items-center justify-center rounded-full" style={{ width: 56, height: 56, background: "#1E5C5A1A" }}>
           <LocationIcon />
         </div>
-        <h3 className="qahal-display" style={{ fontSize: 22, fontWeight: 600, color: "#1C2526" }}>
+        <h3
+          className="qahal-display"
+          style={{ fontSize: 22, fontWeight: 600, color: "var(--theme-text-primary)" }}
+        >
           {t.map.noPermissionTitle}
         </h3>
-        <p style={{ fontSize: 15, lineHeight: "22px", color: "#5A5A52" }}>
+        <p style={{ fontSize: 15, lineHeight: "22px", color: "var(--theme-text-secondary)" }}>
           {t.map.noPermissionBody}
         </p>
         <button

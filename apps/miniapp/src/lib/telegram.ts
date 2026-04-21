@@ -14,7 +14,14 @@ declare global {
   }
 }
 
+export type TelegramColorScheme = "light" | "dark";
+
 export const getTelegramWebApp = () => window.Telegram?.WebApp;
+
+export const getTelegramColorScheme = (): TelegramColorScheme | null => {
+  const colorScheme = getTelegramWebApp()?.colorScheme;
+  return colorScheme === "light" || colorScheme === "dark" ? colorScheme : null;
+};
 
 export const bootstrapTelegram = () => {
   const webApp = getTelegramWebApp();
@@ -26,12 +33,18 @@ export const bootstrapTelegram = () => {
   webApp.expand();
 };
 
-export const subscribeThemeChanged = (callback: () => void) => {
+export const subscribeThemeChanged = (
+  callback: (colorScheme: TelegramColorScheme | null) => void,
+) => {
   const webApp = getTelegramWebApp();
   if (!webApp?.onEvent || !webApp?.offEvent) {
     return () => {};
   }
 
-  webApp.onEvent("themeChanged", callback);
-  return () => webApp.offEvent?.("themeChanged", callback);
+  const onThemeChanged = () => {
+    callback(getTelegramColorScheme());
+  };
+
+  webApp.onEvent("themeChanged", onThemeChanged);
+  return () => webApp.offEvent?.("themeChanged", onThemeChanged);
 };

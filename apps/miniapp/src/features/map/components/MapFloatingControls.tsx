@@ -47,8 +47,11 @@ export const MapFloatingControls = ({
       <button
         type="button"
         onClick={onTogglePeople}
-        className="absolute right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#C9A46F] bg-[#1E5C5A] text-[16px] font-bold text-[#F5F0E8] shadow-[0_8px_20px_rgba(30,92,90,0.42),0_0_0_2px_rgba(245,240,232,0.22)]"
-        style={{ bottom: 178 }}
+        className="absolute right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#C9A46F] text-[16px] font-bold text-[#F5F0E8] shadow-[0_8px_20px_rgba(30,92,90,0.42),0_0_0_2px_rgba(245,240,232,0.22)]"
+        style={{
+          bottom: 178,
+          background: "var(--theme-accent)",
+        }}
         aria-label={t.map.showPeopleList}
         title={t.map.showPeopleList}
       >
@@ -59,8 +62,13 @@ export const MapFloatingControls = ({
         type="button"
         onClick={onLocate}
         disabled={locating}
-        className="absolute right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-[#d1c7b8] bg-white text-[#334155] shadow-md disabled:opacity-60"
-        style={{ bottom: 118 }}
+        className="absolute right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border shadow-md disabled:opacity-60"
+        style={{
+          bottom: 118,
+          borderColor: "var(--theme-map-chip-border)",
+          background: "var(--theme-map-chip-bg)",
+          color: "var(--theme-map-chip-text)",
+        }}
         aria-label={t.map.centerOnMyLocation}
         title={t.map.centerOnMyLocation}
       >
@@ -68,7 +76,14 @@ export const MapFloatingControls = ({
       </button>
 
       {locationError ? (
-        <div className="absolute left-3 right-3 top-3 z-30 rounded-xl border border-[#f59e0b66] bg-white/95 px-3 py-2 text-xs text-[#92400e] shadow-sm">
+        <div
+          className="absolute left-3 right-3 top-3 z-30 rounded-xl border px-3 py-2 text-xs shadow-sm"
+          style={{
+            borderColor: "var(--theme-map-chip-border)",
+            background: "var(--theme-map-chip-bg)",
+            color: "var(--theme-map-chip-text)",
+          }}
+        >
           {locationError}
         </div>
       ) : null}

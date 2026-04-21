@@ -66,18 +66,29 @@ export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelecte
   }
 
   return (
-    <div className="absolute right-4 top-4 z-30 flex w-[260px] flex-col items-end gap-2">
+    <div className="absolute right-4 top-[58px] z-30 flex w-[260px] flex-col items-end gap-2">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-10 max-w-full items-center gap-2 self-end rounded-full border border-[#d1c7b8] bg-white/95 px-3 text-sm font-semibold text-[#334155] shadow-md"
+        className="inline-flex h-10 max-w-full items-center gap-2 self-end rounded-full border px-3 text-sm font-semibold shadow-md"
+        style={{
+          borderColor: "var(--theme-map-chip-border)",
+          background: "var(--theme-map-chip-bg)",
+          color: "var(--theme-map-chip-text)",
+        }}
       >
         <span className="truncate">{cityName?.trim() || t.map.selectCity}</span>
         <span aria-hidden="true">{open ? "▲" : "▼"}</span>
       </button>
 
       {open ? (
-        <div className="rounded-2xl border border-[#d1c7b8] bg-white/95 p-2 shadow-lg backdrop-blur">
+        <div
+          className="rounded-2xl border p-2 shadow-lg backdrop-blur"
+          style={{
+            borderColor: "var(--theme-map-chip-border)",
+            background: "var(--theme-map-chip-bg)",
+          }}
+        >
           <Combobox
             value={selectedCity}
             onChange={(value) => {
@@ -91,7 +102,12 @@ export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelecte
           >
             <div className="relative">
               <ComboboxInput
-                className="h-10 w-full rounded-xl border border-[#d1c7b8] bg-white px-3 text-sm text-[#1f2937] outline-none placeholder:text-[#9ca3af]"
+                className="h-10 w-full rounded-xl border px-3 text-sm outline-none placeholder:text-[#9ca3af]"
+                style={{
+                  borderColor: "var(--theme-map-chip-border)",
+                  background: "var(--theme-card-bg)",
+                  color: "var(--theme-text-primary)",
+                }}
                 displayValue={(item: CitySuggestion | null) => item?.label ?? query}
                 onChange={(event) => {
                   setQuery(event.target.value);
@@ -102,21 +118,34 @@ export const MapCitySwitcher = ({ visible, cityName, userLocation, onCitySelecte
                 placeholder={t.common.searchCity}
                 autoFocus
               />
-              <ComboboxOptions className="mt-2 max-h-56 overflow-auto rounded-xl border border-[#e5e7eb] bg-white p-1">
-                {loading ? <div className="px-2 py-2 text-xs text-[#6b7280]">{t.common.searchingCities}</div> : null}
+              <ComboboxOptions
+                className="mt-2 max-h-56 overflow-auto rounded-xl border p-1"
+                style={{
+                  borderColor: "var(--theme-map-chip-border)",
+                  background: "var(--theme-card-bg)",
+                }}
+              >
+                {loading ? (
+                  <div className="px-2 py-2 text-xs" style={{ color: "var(--theme-text-secondary)" }}>
+                    {t.common.searchingCities}
+                  </div>
+                ) : null}
                 {!loading
                   ? suggestions.map((option) => (
                       <ComboboxOption
                         key={`${option.city}-${option.state}-${option.country}-${option.latitude}-${option.longitude}`}
                         value={option}
-                        className="cursor-pointer rounded-lg px-2 py-2 text-sm text-[#1f2937] data-[focus]:bg-[#1E5C5A14]"
+                        className="cursor-pointer rounded-lg px-2 py-2 text-sm data-[focus]:bg-[#1E5C5A14]"
+                        style={{ color: "var(--theme-text-primary)" }}
                       >
                         {option.label}
                       </ComboboxOption>
                     ))
                   : null}
                 {!loading && debouncedQuery.length >= 2 && suggestions.length === 0 ? (
-                  <div className="px-2 py-2 text-xs text-[#6b7280]">{t.common.noMatchingCities}</div>
+                  <div className="px-2 py-2 text-xs" style={{ color: "var(--theme-text-secondary)" }}>
+                    {t.common.noMatchingCities}
+                  </div>
                 ) : null}
               </ComboboxOptions>
             </div>

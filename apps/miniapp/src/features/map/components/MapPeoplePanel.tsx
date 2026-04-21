@@ -15,13 +15,27 @@ export const MapPeoplePanel = ({ visible, people, onSelectPerson }: MapPeoplePan
   }
 
   return (
-    <div className="absolute bottom-[246px] right-4 z-30 w-[250px] overflow-hidden rounded-2xl border border-[#d1c7b8] bg-white/95 shadow-lg">
-      <div className="border-b border-[#e5e0d8] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#6b7280]">
+    <div
+      className="absolute bottom-[246px] right-4 z-30 w-[250px] overflow-hidden rounded-2xl border shadow-lg"
+      style={{
+        borderColor: "var(--theme-map-chip-border)",
+        background: "var(--theme-map-chip-bg)",
+      }}
+    >
+      <div
+        className="border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide"
+        style={{
+          borderColor: "var(--theme-map-chip-border)",
+          color: "var(--theme-text-secondary)",
+        }}
+      >
         {t.map.peopleNearby}
       </div>
       <div className="max-h-[220px] overflow-y-auto px-2 py-2">
         {people.length === 0 ? (
-          <div className="px-2 py-2 text-xs text-[#6b7280]">{t.map.noPeopleNearby}</div>
+          <div className="px-2 py-2 text-xs" style={{ color: "var(--theme-text-secondary)" }}>
+            {t.map.noPeopleNearby}
+          </div>
         ) : (
           people.map((person) => {
             const isLeader = person.badges.some((badge) => badge.kind === "messenger");
@@ -29,6 +43,11 @@ export const MapPeoplePanel = ({ visible, people, onSelectPerson }: MapPeoplePan
               <div
                 key={person.id}
                 className="mb-2 cursor-pointer rounded-xl border border-[#ece7df] bg-white px-2 py-2 text-sm text-[#1f2937] last:mb-0"
+                style={{
+                  borderColor: "var(--theme-map-chip-border)",
+                  background: "var(--theme-card-bg)",
+                  color: "var(--theme-text-primary)",
+                }}
                 onClick={() => onSelectPerson(person)}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -39,7 +58,9 @@ export const MapPeoplePanel = ({ visible, people, onSelectPerson }: MapPeoplePan
                     </span>
                   ) : null}
                 </div>
-                <div className="mt-1 text-xs text-[#6b7280]">{person.city}</div>
+                <div className="mt-1 text-xs" style={{ color: "var(--theme-text-secondary)" }}>
+                  {person.city}
+                </div>
               </div>
             );
           })

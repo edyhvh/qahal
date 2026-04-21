@@ -66,8 +66,7 @@ export const MapBottomNav = ({
     <div
       className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center"
       style={{
-        backgroundImage:
-          "linear-gradient(0deg, rgba(237,233,225,0.95) 0%, rgba(237,233,225,0.85) 60%, rgba(237,233,225,0) 100%)",
+        backgroundImage: "var(--theme-nav-gradient)",
         paddingBottom: 24,
         paddingTop: 20,
       }}
@@ -79,12 +78,12 @@ export const MapBottomNav = ({
           onClick={onGoHome}
         >
           <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-            <HomeIcon color="#1E5C5A" />
+            <HomeIcon color="var(--theme-accent)" />
           </div>
           <span
             style={{
               fontSize: 11,
-              color: "#1E5C5A",
+              color: "var(--theme-text-primary)",
               minHeight: 16,
               lineHeight: "16px",
             }}
@@ -103,7 +102,7 @@ export const MapBottomNav = ({
             style={{
               width: 48,
               height: 48,
-              background: "#1E5C5A",
+              background: "var(--theme-accent)",
               boxShadow: "#1E5C5A4D 0px 4px 12px",
             }}
           >
@@ -112,7 +111,7 @@ export const MapBottomNav = ({
           <span
             style={{
               fontSize: 11,
-              color: "#1E5C5A",
+              color: "var(--theme-text-primary)",
               minHeight: 16,
               lineHeight: "16px",
               visibility: "hidden",
@@ -128,12 +127,12 @@ export const MapBottomNav = ({
           onClick={onGoProfile}
         >
           <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-            <ProfileIcon color="#1E5C5A" />
+            <ProfileIcon color="var(--theme-accent)" />
           </div>
           <span
             style={{
               fontSize: 11,
-              color: "#1E5C5A",
+              color: "var(--theme-text-primary)",
               minHeight: 16,
               lineHeight: "16px",
             }}
