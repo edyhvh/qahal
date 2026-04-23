@@ -2,6 +2,47 @@
 
 This guide gets Qahal live with separate testing and production environments for Telegram Mini App usage.
 
+## 0. Fast Start (Step-by-Step Commands)
+
+Run from repository root (`/Users/jhonny/qahal`) unless stated otherwise.
+
+```bash
+# 1) Install dependencies
+bun install
+
+# 2) Validate codebase
+bun run check
+bun run build
+
+# 3) Authenticate Cloudflare CLI
+bun run cf:login
+bun run cf:whoami
+
+# 4) Create D1 databases (one-time)
+bun run cf:d1:create:test
+bun run cf:d1:create:prod
+
+# 5) Update apps/worker/wrangler.toml with the two returned database IDs
+#    - REPLACE_WITH_D1_DATABASE_ID_TEST
+#    - REPLACE_WITH_D1_DATABASE_ID_PROD
+
+# 6) Apply migrations
+bun run cf:d1:migrate:test
+bun run cf:d1:migrate:prod
+
+# 7) Set worker secrets
+bun run cf:secret:bot:test
+bun run cf:secret:bot:prod
+bun run cf:secret:initdata:test
+bun run cf:secret:initdata:prod
+
+# 8) Deploy worker APIs
+bun run cf:deploy:test
+bun run cf:deploy:prod
+```
+
+After this, configure Cloudflare Pages + domains + BotFather URLs (sections 10-12), then run Telegram smoke tests (section 13).
+
 ## 1. Target Architecture
 
 Use two isolated environments:
@@ -43,7 +84,7 @@ bun run check
 bun run build
 ```
 
-From worker folder:
+Optional (worker-only dry run) from worker folder:
 
 ```bash
 cd apps/worker
@@ -65,8 +106,10 @@ Copy both `database_id` values.
 
 Update `apps/worker/wrangler.toml`:
 
-- Replace `database_id = "REPLACE_WITH_D1_DATABASE_ID"` with the target environment ID.
-- Keep test and prod IDs separate.
+- Replace test placeholder:
+  - `database_id = "REPLACE_WITH_D1_DATABASE_ID_TEST"`
+- Replace production placeholder:
+  - `database_id = "REPLACE_WITH_D1_DATABASE_ID_PROD"`
 
 If you deploy both environments from one codebase, maintain environment-specific Wrangler config values per target.
 
@@ -79,6 +122,13 @@ bunx wrangler d1 migrations apply qahal-db-test --remote --config wrangler.toml
 bunx wrangler d1 migrations apply qahal-db-prod --remote --config wrangler.toml
 ```
 
+From repository root (shortcut scripts):
+
+```bash
+bun run cf:d1:migrate:test
+bun run cf:d1:migrate:prod
+```
+
 ## 8. Configure Worker Secrets and Vars
 
 From `apps/worker` set bot token and optional max age:
@@ -86,6 +136,15 @@ From `apps/worker` set bot token and optional max age:
 ```bash
 bunx wrangler secret put TELEGRAM_BOT_TOKEN
 bunx wrangler secret put INITDATA_MAX_AGE_SECONDS
+```
+
+From repository root (shortcut scripts):
+
+```bash
+bun run cf:secret:bot:test
+bun run cf:secret:bot:prod
+bun run cf:secret:initdata:test
+bun run cf:secret:initdata:prod
 ```
 
 Set per environment:
@@ -103,6 +162,13 @@ From `apps/worker`:
 
 ```bash
 bun run deploy
+```
+
+From repository root (shortcut scripts):
+
+```bash
+bun run cf:deploy:test
+bun run cf:deploy:prod
 ```
 
 Verify:
@@ -206,3 +272,26 @@ Before going live:
 - `apps/worker/src/middleware/cors.ts`
 - `apps/worker/src/types/env.ts`
 - `apps/worker/wrangler.toml`
+
+## 18. Added Bun Scripts For Future Deployments
+
+These commands are now available at repository root:
+
+```bash
+bun run cf:login
+bun run cf:whoami
+bun run cf:d1:create:test
+bun run cf:d1:create:prod
+bun run cf:d1:migrate:test
+bun run cf:d1:migrate:prod
+bun run cf:secret:bot:test
+bun run cf:secret:bot:prod
+bun run cf:secret:initdata:test
+bun run cf:secret:initdata:prod
+bun run cf:deploy:test
+bun run cf:deploy:prod
+bun run cf:tail:test
+bun run cf:tail:prod
+```
+
+Equivalent worker-level commands also exist in `apps/worker/package.json` under the same script names.
