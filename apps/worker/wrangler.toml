@@ -8,7 +8,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "qahal-db-test"
-database_id = "REPLACE_WITH_D1_DATABASE_ID_TEST"
+database_id = "81652040-b23b-4841-bd48-a129b3d34d5a"
 migrations_dir = "migrations"
 
 [vars]
@@ -26,5 +26,5 @@ name = "qahal-worker-production"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "qahal-db-prod"
-database_id = "REPLACE_WITH_D1_DATABASE_ID_PROD"
+database_id = "bc3c7a13-6714-4396-af65-728eda27aa7c"
 migrations_dir = "migrations"
