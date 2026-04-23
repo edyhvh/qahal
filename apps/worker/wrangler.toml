@@ -1,6 +1,8 @@
 name = "qahal-worker"
 main = "src/index.ts"
 compatibility_date = "2026-04-19"
+workers_dev = true
+preview_urls = true
 
 [observability]
 enabled = true
@@ -17,11 +19,24 @@ migrations_dir = "migrations"
 CORS_ALLOWED_ORIGINS = "https://development.qahal.xyz,https://app.qahal.xyz"
 APP_ENV = "development"
 
+[[routes]]
+pattern = "api-development.qahal.xyz"
+zone_name = "qahal.xyz"
+custom_domain = true
+
 [env.production.vars]
 APP_ENV = "production"
+CORS_ALLOWED_ORIGINS = "https://development.qahal.xyz,https://app.qahal.xyz"
 
 [env.production]
 name = "qahal-worker-production"
+workers_dev = true
+preview_urls = true
+
+[[env.production.routes]]
+pattern = "api.qahal.xyz"
+zone_name = "qahal.xyz"
+custom_domain = true
 
 [[env.production.d1_databases]]
 binding = "DB"
