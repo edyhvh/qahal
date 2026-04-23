@@ -185,9 +185,9 @@ citiesRoute.get("/search", async (c) => {
       .map((entry) => entry.suggestion);
   }
 
-  suggestions = dedupeSuggestions(suggestions)
+  const result = dedupeSuggestions(suggestions)
     .map(({ placePriority: _, ...suggestion }) => suggestion)
     .slice(0, 7);
 
-  return c.json({ ok: true, suggestions });
+  return c.json({ ok: true, suggestions: result });
 });

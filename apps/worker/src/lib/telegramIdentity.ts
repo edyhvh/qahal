@@ -16,7 +16,7 @@ type RequiredIdentityResult =
     }
   | {
       ok: false;
-      status: number;
+      status: 401 | 403;
       error: string;
     };
 
@@ -27,7 +27,7 @@ type OptionalIdentityResult =
     }
   | {
       ok: false;
-      status: number;
+      status: 401 | 403;
       error: string;
     };
 

@@ -19,6 +19,14 @@ export interface VerifyInitDataResult {
 
 const encoder = new TextEncoder();
 
+const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
+  const { buffer, byteOffset, byteLength } = bytes;
+  if (buffer instanceof ArrayBuffer && byteOffset === 0 && byteLength === buffer.byteLength) {
+    return buffer;
+  }
+  return bytes.slice().buffer;
+};
+
 const toHex = (bytes: Uint8Array): string => {
   return Array.from(bytes)
     .map((value) => value.toString(16).padStart(2, "0"))
@@ -41,7 +49,7 @@ const timingSafeEqual = (a: string, b: string): boolean => {
 const hmacSha256 = async (keyBytes: Uint8Array, message: string): Promise<Uint8Array> => {
   const key = await crypto.subtle.importKey(
     "raw",
-    keyBytes,
+    toArrayBuffer(keyBytes),
     {
       name: "HMAC",
       hash: "SHA-256"

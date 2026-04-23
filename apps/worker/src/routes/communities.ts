@@ -391,6 +391,7 @@ communitiesRoute.post("/", async (c) => {
        FROM communities
        WHERE id = last_insert_rowid()`,
     )
+    .bind()
     .first<CreatedCommunityRow>();
 
   if (!createdCommunity) {

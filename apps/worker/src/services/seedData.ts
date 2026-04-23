@@ -407,7 +407,11 @@ export const getSeedLeadersByCity = (city: string) => {
 };
 
 export const getNearestSeedLocation = (latitude: number, longitude: number): SeedLocation => {
-  let nearest = seedLocations[0];
+  if (seedLocations.length === 0) {
+    throw new Error("seed locations are not configured");
+  }
+
+  let nearest = seedLocations[0]!;
   let nearestDistance = Number.POSITIVE_INFINITY;
 
   for (const location of seedLocations) {
