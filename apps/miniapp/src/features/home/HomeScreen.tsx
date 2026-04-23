@@ -12,6 +12,7 @@ interface HomeScreenProps {
   onVariantChange: (variant: HomeVariant) => void;
   onGoMap: () => void;
   onGoProfile: () => void;
+  onGoManageQahal: () => void;
   profileTestingEnabled: boolean;
   effectiveProfile: EffectiveProfileSnapshot;
 }
@@ -67,6 +68,22 @@ const PlusIcon = () => (
     />
   </svg>
 );
+const SettingsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z"
+      stroke="#F5F0E8"
+      strokeWidth="1.8"
+    />
+    <path
+      d="M19.4 15A1.65 1.65 0 0 0 19.73 16.82L19.79 16.88A2 2 0 1 1 16.96 19.71L16.9 19.65A1.65 1.65 0 0 0 15.08 19.32A1.65 1.65 0 0 0 14 20.83V21A2 2 0 1 1 10 21V20.91A1.65 1.65 0 0 0 8.92 19.4A1.65 1.65 0 0 0 7.1 19.73L7.04 19.79A2 2 0 1 1 4.21 16.96L4.27 16.9A1.65 1.65 0 0 0 4.6 15.08A1.65 1.65 0 0 0 3.09 14H3A2 2 0 1 1 3 10H3.09A1.65 1.65 0 0 0 4.6 8.92A1.65 1.65 0 0 0 4.27 7.1L4.21 7.04A2 2 0 1 1 7.04 4.21L7.1 4.27A1.65 1.65 0 0 0 8.92 4.6H9A1.65 1.65 0 0 0 10 3.09V3A2 2 0 1 1 14 3V3.09A1.65 1.65 0 0 0 15.08 4.6A1.65 1.65 0 0 0 16.9 4.27L16.96 4.21A2 2 0 1 1 19.79 7.04L19.73 7.1A1.65 1.65 0 0 0 19.4 8.92V9A1.65 1.65 0 0 0 20.91 10H21A2 2 0 1 1 21 14H20.91A1.65 1.65 0 0 0 19.4 15Z"
+      stroke="#F5F0E8"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 export const HomeScreen = ({
   variant,
@@ -74,6 +91,7 @@ export const HomeScreen = ({
   onVariantChange,
   onGoMap,
   onGoProfile,
+  onGoManageQahal,
   profileTestingEnabled,
   effectiveProfile,
 }: HomeScreenProps) => {
@@ -183,6 +201,9 @@ export const HomeScreen = ({
     return set;
   }, [effectiveProfile.badges]);
 
+  const showManageCard = effectiveProfile.canManageQahal;
+  const showCreateCard = !showManageCard && effectiveProfile.canCreateQahal;
+
   return (
     <section className="relative flex h-[100dvh] flex-col overflow-hidden">
       {/* Paper 4RR-0: light parchment gradient background */}
@@ -223,47 +244,94 @@ export const HomeScreen = ({
 
         {/* Cards */}
         <div className="flex flex-col gap-[16px] px-[24px]">
-          {/* Create Qahal Card — Paper 4SB-0 */}
-          <div
-            className="flex flex-col gap-[12px]"
-            style={{
-              borderRadius: 20,
-              padding: 24,
-              backgroundImage: "var(--theme-home-create-gradient)",
-              boxShadow: "var(--theme-home-create-shadow)",
-            }}
-          >
-            {/* Plus icon circle */}
+          {/* Create / Manage Qahal Card */}
+          {showCreateCard ? (
             <div
-              className="flex h-[44px] w-[44px] items-center justify-center rounded-full"
-              style={{ background: "#FFFFFF26" }}
-            >
-              <PlusIcon />
-            </div>
-            <h2
-              className="qahal-display"
-              style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
-            >
-              {t.home.createQahalTitle}
-            </h2>
-            <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>{t.home.createQahalBody}</p>
-            <button
-              type="button"
-              onClick={() => onVariantChange("qahal-exists")}
-              className="flex items-center justify-center"
+              className="flex flex-col gap-[12px]"
               style={{
-                height: 44,
-                borderRadius: 14,
-                background: "#F5F0E826",
-                border: "1px solid #F5F0E84D",
-                fontSize: 15,
-                fontWeight: 600,
-                color: "#F5F0E8",
+                borderRadius: 20,
+                padding: 24,
+                backgroundImage: "var(--theme-home-create-gradient)",
+                boxShadow: "var(--theme-home-create-shadow)",
               }}
             >
-              {t.home.createQahalCta}
-            </button>
-          </div>
+              <div
+                className="flex h-[44px] w-[44px] items-center justify-center rounded-full"
+                style={{ background: "#FFFFFF26" }}
+              >
+                <PlusIcon />
+              </div>
+              <h2
+                className="qahal-display"
+                style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+              >
+                {t.home.createQahalTitle}
+              </h2>
+              <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
+                {t.home.createQahalBody}
+              </p>
+              <button
+                type="button"
+                onClick={() => onVariantChange("qahal-exists")}
+                className="flex items-center justify-center"
+                style={{
+                  height: 44,
+                  borderRadius: 14,
+                  background: "#F5F0E826",
+                  border: "1px solid #F5F0E84D",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: "#F5F0E8",
+                }}
+              >
+                {t.home.createQahalCta}
+              </button>
+            </div>
+          ) : null}
+
+          {showManageCard ? (
+            <div
+              className="flex flex-col gap-[12px]"
+              style={{
+                borderRadius: 20,
+                padding: 24,
+                backgroundImage: "var(--theme-home-create-gradient)",
+                boxShadow: "var(--theme-home-create-shadow)",
+              }}
+            >
+              <div
+                className="flex h-[44px] w-[44px] items-center justify-center rounded-full"
+                style={{ background: "#FFFFFF26" }}
+              >
+                <SettingsIcon />
+              </div>
+              <h2
+                className="qahal-display"
+                style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+              >
+                {t.home.manageQahalTitle}
+              </h2>
+              <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
+                {t.home.manageQahalBody}
+              </p>
+              <button
+                type="button"
+                onClick={onGoManageQahal}
+                className="flex items-center justify-center"
+                style={{
+                  height: 44,
+                  borderRadius: 14,
+                  background: "#F5F0E826",
+                  border: "1px solid #F5F0E84D",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: "#F5F0E8",
+                }}
+              >
+                {t.home.manageQahalCta}
+              </button>
+            </div>
+          ) : null}
 
           {/* Near You Card — Paper 4SL-0 */}
           <div

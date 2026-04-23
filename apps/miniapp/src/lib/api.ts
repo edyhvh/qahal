@@ -1,6 +1,8 @@
 import type {
+  CommunityManageResponse,
   CitySearchResponse,
   LocationSave,
+  MeetingSlotsUpsert,
   NearbyResponse,
   OnboardingSubmit,
 } from "@qahal/shared";
@@ -90,6 +92,23 @@ const putJson = async <T>(path: string, payload: unknown): Promise<T> => {
   return (await response.json()) as T;
 };
 
+const patchJson = async <T>(path: string, payload: unknown): Promise<T> => {
+  const response = await fetch(buildUrl(path), {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getTelegramAuthHeaders(),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`PATCH ${path} failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+};
+
 const deleteJson = async <T>(path: string): Promise<T> => {
   const response = await fetch(buildUrl(path), {
     method: "DELETE",
@@ -114,8 +133,29 @@ export interface UserApiProfile {
   birthDate?: string;
   badges?: string[];
   qahalName?: string;
+  managedCommunityId?: number;
+  canManageQahal?: boolean;
+  canCreateQahal?: boolean;
   latestLatitude?: number;
   latestLongitude?: number;
+}
+
+export interface ManagedCommunity {
+  communityId: number;
+  communityName: string;
+  city: string;
+  canManage: boolean;
+  canCreateQahal: boolean;
+  meetingSlots: Array<{
+    id: number;
+    weekday: number;
+    timeMinutes: number;
+  }>;
+  members: Array<{
+    telegramId: number;
+    firstName: string | null;
+    username: string | null;
+  }>;
 }
 
 export interface TelegramVerifiedUser {
@@ -204,6 +244,60 @@ export const api = {
     return getJson<{ ok: boolean; people: CommunityPerson[] }>(
       `/communities/people?${search.toString()}`,
     );
+  },
+
+  createCommunity: (payload: {
+    telegramId: number;
+    name: string;
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+  }) => {
+    return postJson<{
+      ok: boolean;
+      community: {
+        id: number;
+        name: string;
+        city: string;
+        canManage: boolean;
+        canCreateQahal: boolean;
+      };
+    }>("/communities", payload);
+  },
+
+  getManagedCommunity: async (telegramId: number): Promise<ManagedCommunity> => {
+    const params = new URLSearchParams({ telegramId: String(telegramId) });
+    const response = await getJson<CommunityManageResponse>(
+      `/communities/manage?${params.toString()}`,
+    );
+
+    return response.community;
+  },
+
+  renameCommunity: (communityId: number, payload: { telegramId: number; name: string }) => {
+    return patchJson<{ ok: boolean }>(`/communities/${communityId}`, payload);
+  },
+
+  upsertMeetingSlots: (communityId: number, payload: MeetingSlotsUpsert) => {
+    return putJson<{ ok: boolean }>(
+      `/communities/${communityId}/meeting-slots`,
+      payload,
+    );
+  },
+
+  addCommunityMemberByUsername: (
+    communityId: number,
+    payload: { telegramId: number; username: string },
+  ) => {
+    return postJson<{
+      ok: boolean;
+      member: {
+        telegramId: number;
+        firstName: string | null;
+        username: string | null;
+      };
+    }>(`/communities/${communityId}/members/by-username`, payload);
   },
 
   searchCities: (

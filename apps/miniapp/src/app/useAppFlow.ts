@@ -8,7 +8,7 @@ import type {
   LocalProfileRole,
   MapVariant,
 } from "./types";
-import { api } from "../lib/api";
+import { api, type ManagedCommunity } from "../lib/api";
 import { getTelegramWebApp } from "../lib/telegram";
 import {
   clearWebGuestId,
@@ -134,6 +134,17 @@ export const useAppFlow = () => {
   const [persistedQahalName, setPersistedQahalName] = useState<string | null>(
     null,
   );
+  const [persistedCanCreateQahal, setPersistedCanCreateQahal] = useState<
+    boolean | null
+  >(null);
+  const [persistedCanManageQahal, setPersistedCanManageQahal] = useState<
+    boolean | null
+  >(null);
+  const [persistedManagedCommunityId, setPersistedManagedCommunityId] =
+    useState<number | null>(null);
+  const [managedCommunity, setManagedCommunity] = useState<ManagedCommunity | null>(
+    null,
+  );
   const localDataResetEnabled = profileTestingEnabled;
 
   useEffect(() => {
@@ -224,6 +235,21 @@ export const useAppFlow = () => {
             ? user.qahalName
             : null,
         );
+        setPersistedManagedCommunityId(
+          typeof user.managedCommunityId === "number"
+            ? user.managedCommunityId
+            : null,
+        );
+        setPersistedCanManageQahal(
+          typeof user.canManageQahal === "boolean"
+            ? user.canManageQahal
+            : null,
+        );
+        setPersistedCanCreateQahal(
+          typeof user.canCreateQahal === "boolean"
+            ? user.canCreateQahal
+            : null,
+        );
 
         if (typeof user.birthDate === "string" && user.birthDate) {
           setConfirmedBirthDate(user.birthDate);
@@ -280,6 +306,19 @@ export const useAppFlow = () => {
             setCommunities(nearby.communities);
           }
         }
+
+        if (user.canManageQahal) {
+          try {
+            const managed = await api.getManagedCommunity(state.telegramId);
+            if (!cancelled) {
+              setManagedCommunity(managed);
+            }
+          } catch {
+            if (!cancelled) {
+              setManagedCommunity(null);
+            }
+          }
+        }
       } catch {
         // Keep UI operational when local worker is not running.
       }
@@ -308,21 +347,41 @@ export const useAppFlow = () => {
           qahalName: noCongregation.qahalName,
           badges: mergeUniqueBadges(persistedBadges),
           hasCongregation: false,
+          canCreateQahal: true,
+          canManageQahal: false,
+          managedCommunityId: null,
         };
       }
 
       const selectedRole = getLocalProfileRoleOption(localProfileRole);
+      const canManageQahal = localProfileRole === "leader";
+      const managedCommunityId =
+        canManageQahal && typeof persistedManagedCommunityId === "number"
+          ? persistedManagedCommunityId
+          : null;
       return {
         displayName,
         qahalName: selectedRole.qahalName,
         badges: mergeUniqueBadges(persistedBadges, selectedRole.badges),
         hasCongregation: true,
+        canCreateQahal: false,
+        canManageQahal,
+        managedCommunityId,
       };
     }
 
     const memberCommunity = communities.find(
       (community) => community.memberState === "member",
     );
+    const canManageQahal =
+      persistedCanManageQahal === true ||
+      (typeof persistedManagedCommunityId === "number" &&
+        persistedManagedCommunityId > 0);
+    const canCreateQahal =
+      typeof persistedCanCreateQahal === "boolean"
+        ? persistedCanCreateQahal
+        : !memberCommunity && !canManageQahal;
+
     if (memberCommunity) {
       return {
         displayName,
@@ -332,6 +391,9 @@ export const useAppFlow = () => {
             ? persistedBadges
             : getLocalProfileRoleOption("member").badges,
         hasCongregation: true,
+        canCreateQahal,
+        canManageQahal,
+        managedCommunityId: persistedManagedCommunityId,
       };
     }
 
@@ -342,12 +404,18 @@ export const useAppFlow = () => {
       badges:
         persistedBadges.length > 0 ? persistedBadges : noCongregation.badges,
       hasCongregation: false,
+      canCreateQahal,
+      canManageQahal,
+      managedCommunityId: persistedManagedCommunityId,
     };
   }, [
     communities,
     localProfileName,
     localProfileRole,
     persistedBadges,
+    persistedCanCreateQahal,
+    persistedCanManageQahal,
+    persistedManagedCommunityId,
     persistedQahalName,
     profileTestingEnabled,
     state.answers.firstName,
@@ -614,6 +682,10 @@ export const useAppFlow = () => {
     setState((prev) => ({ ...prev, screen: "profile" }));
   };
 
+  const goToManageQahal = () => {
+    setState((prev) => ({ ...prev, screen: "manage-qahal" }));
+  };
+
   const setMapCity = (
     city: string,
     cityCoordinates: { latitude: number; longitude: number },
@@ -663,6 +735,7 @@ export const useAppFlow = () => {
     goToHome,
     goToMap,
     goToProfile,
+    goToManageQahal,
     setLocalProfileRole,
     setLocalProfileName: updateLocalProfileName,
     setConfirmedBirthDate: updateConfirmedBirthDate,
@@ -670,5 +743,6 @@ export const useAppFlow = () => {
     localDataResetEnabled,
     setMapCity,
     setLanguageCode,
+    managedCommunity,
   };
 };

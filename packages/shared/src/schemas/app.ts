@@ -67,11 +67,76 @@ export const communityCardSchema = z.object({
   city: z.string().min(1),
   distanceKm: z.number().nonnegative(),
   memberState: z.enum(["not_member", "requested", "member"]),
+  canManage: z.boolean().optional(),
+  canCreateQahal: z.boolean().optional(),
 });
 
 export const nearbyResponseSchema = z.object({
   ok: z.literal(true),
   communities: z.array(communityCardSchema),
+});
+
+export const communityMeetingSlotSchema = z.object({
+  id: z.number().int().positive(),
+  weekday: z.number().int().min(0).max(6),
+  timeMinutes: z.number().int().min(0).max(1439),
+});
+
+export const communityMemberSummarySchema = z.object({
+  telegramId: z.number().int().positive(),
+  firstName: z.string().nullable(),
+  username: z.string().nullable(),
+});
+
+export const communityManagePayloadSchema = z.object({
+  communityId: z.number().int().positive(),
+  communityName: z.string().min(1),
+  city: z.string().min(1),
+  canManage: z.boolean(),
+  canCreateQahal: z.boolean(),
+  meetingSlots: z.array(communityMeetingSlotSchema),
+  members: z.array(communityMemberSummarySchema),
+});
+
+export const communityManageResponseSchema = z.object({
+  ok: z.literal(true),
+  community: communityManagePayloadSchema,
+});
+
+export const createCommunitySchema = z.object({
+  telegramId: z.number().int().positive(),
+  name: z.string().trim().min(2).max(120),
+  city: z.string().trim().min(1).max(120),
+  country: z.string().trim().min(1).max(120),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+
+export const renameCommunitySchema = z.object({
+  telegramId: z.number().int().positive(),
+  name: z.string().trim().min(2).max(120),
+});
+
+export const meetingSlotsUpsertSchema = z.object({
+  telegramId: z.number().int().positive(),
+  slots: z
+    .array(
+      z.object({
+        weekday: z.number().int().min(0).max(6),
+        timeMinutes: z.number().int().min(0).max(1439),
+      }),
+    )
+    .max(24),
+});
+
+export const addCommunityMemberByUsernameSchema = z.object({
+  telegramId: z.number().int().positive(),
+  username: z
+    .string()
+    .trim()
+    .min(2)
+    .max(64)
+    .regex(/^[a-zA-Z0-9_]+$/),
 });
 
 export type OnboardingSubmit = z.infer<typeof onboardingSubmitSchema>;
@@ -83,3 +148,13 @@ export type LocationSave = z.infer<typeof locationSaveSchema>;
 export type NearbyQuery = z.infer<typeof nearbyQuerySchema>;
 export type NearbyResponse = z.infer<typeof nearbyResponseSchema>;
 export type CommunityCard = z.infer<typeof communityCardSchema>;
+export type CommunityMeetingSlot = z.infer<typeof communityMeetingSlotSchema>;
+export type CommunityMemberSummary = z.infer<typeof communityMemberSummarySchema>;
+export type CommunityManagePayload = z.infer<typeof communityManagePayloadSchema>;
+export type CommunityManageResponse = z.infer<typeof communityManageResponseSchema>;
+export type CreateCommunity = z.infer<typeof createCommunitySchema>;
+export type RenameCommunity = z.infer<typeof renameCommunitySchema>;
+export type MeetingSlotsUpsert = z.infer<typeof meetingSlotsUpsertSchema>;
+export type AddCommunityMemberByUsername = z.infer<
+  typeof addCommunityMemberByUsernameSchema
+>;

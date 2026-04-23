@@ -5,6 +5,7 @@ export const PAPER_ARTBOARDS = {
   onboardingQuestions: { id: "3BY-0", name: "Onboarding Questions" },
   onboardingData: { id: "3QZ-0", name: "Onboarding Data" },
   map: { id: "3U5-0", name: "Map Screen" },
+  manageQahal: { id: "4RP-0", name: "Manage Qahal Screen" },
   home: { id: "4RP-0", name: "Home Screen" }
 } as const;
 
@@ -27,6 +28,10 @@ export const resolvePaperScreenKey = (state: AppFlowState): string => {
 
   if (state.screen === "profile") {
     return `${PAPER_ARTBOARDS.home.id}:profile`;
+  }
+
+  if (state.screen === "manage-qahal") {
+    return `${PAPER_ARTBOARDS.manageQahal.id}:manage`;
   }
 
   return `${PAPER_ARTBOARDS.home.id}:${state.homeVariant}`;

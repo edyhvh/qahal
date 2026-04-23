@@ -3,6 +3,7 @@ import { OnboardingQuestionsScreen } from "./features/onboarding/OnboardingQuest
 import { OnboardingDataScreen } from "./features/onboarding/OnboardingDataScreen";
 import { MapScreen } from "./features/map/MapScreen";
 import { HomeScreen } from "./features/home/HomeScreen";
+import { ManageQahalScreen } from "./features/manage";
 import { ProfileScreen } from "./features/profile/ProfileScreen";
 import { useAppFlow } from "./app/useAppFlow";
 import { resolvePaperScreenKey } from "./app/paperMapping";
@@ -37,6 +38,7 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
     goToHome,
     goToMap,
     goToProfile,
+    goToManageQahal,
     setLocalProfileRole,
     setLocalProfileName,
     setConfirmedBirthDate,
@@ -44,6 +46,7 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
     localDataResetEnabled,
     setMapCity,
     setLanguageCode,
+    managedCommunity,
   } = useAppFlow();
   const paperScreenKey = resolvePaperScreenKey(state);
 
@@ -183,8 +186,22 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
             onVariantChange={setHomeVariant}
             onGoMap={goToMap}
             onGoProfile={goToProfile}
+            onGoManageQahal={goToManageQahal}
             profileTestingEnabled={profileTestingEnabled}
             effectiveProfile={effectiveProfile}
+          />
+        ) : null}
+
+        {state.screen === "manage-qahal" ? (
+          <ManageQahalScreen
+            telegramId={state.telegramId}
+            managedCommunity={managedCommunity}
+            managedCommunityId={effectiveProfile.managedCommunityId}
+            profileTestingEnabled={profileTestingEnabled}
+            canManageQahal={effectiveProfile.canManageQahal}
+            onGoHome={goToHome}
+            onGoMap={goToMap}
+            onGoProfile={goToProfile}
           />
         ) : null}
 

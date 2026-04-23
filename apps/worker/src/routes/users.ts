@@ -163,6 +163,60 @@ const selectUserQahalName = async (
   }
 };
 
+const selectUserCommunityCapabilities = async (
+  db: D1Like,
+  telegramId: number,
+): Promise<{
+  managedCommunityId: number | null;
+  canManageQahal: boolean;
+  canCreateQahal: boolean;
+}> => {
+  type CountRow = { count: number };
+  type ManagedRow = { communityId: number };
+
+  let memberCount: CountRow | null = null;
+  let managedCommunity: ManagedRow | null = null;
+
+  try {
+    [memberCount, managedCommunity] = await Promise.all([
+      db
+        .prepare(
+          `SELECT COUNT(*) as count
+           FROM user_community_memberships
+           WHERE telegram_id = ?1
+             AND status = 'member'`,
+        )
+        .bind(telegramId)
+        .first<CountRow>(),
+      db
+        .prepare(
+          `SELECT id as communityId
+           FROM communities
+           WHERE owner_telegram_id = ?1
+           ORDER BY id ASC
+           LIMIT 1`,
+        )
+        .bind(telegramId)
+        .first<ManagedRow>(),
+    ]);
+  } catch {
+    return {
+      managedCommunityId: null,
+      canManageQahal: false,
+      canCreateQahal: true,
+    };
+  }
+
+  const canManageQahal = Boolean(managedCommunity);
+  const hasMemberCommunity = Number(memberCount?.count ?? 0) > 0;
+
+  return {
+    managedCommunityId: managedCommunity?.communityId ?? null,
+    canManageQahal,
+    canCreateQahal: !hasMemberCommunity && !canManageQahal,
+  };
+};
+
 const selectLatestLocation = async (
   db: D1Like,
   telegramId: number,
@@ -215,10 +269,11 @@ const selectUser = async (
     await syncEmunahBadge(db, telegramId, shouldGrantFromStored);
   }
 
-  const [baseBadges, qahalName, latestLocation] = await Promise.all([
+  const [baseBadges, qahalName, latestLocation, capabilities] = await Promise.all([
     selectUserBadges(db, telegramId),
     selectUserQahalName(db, telegramId),
     selectLatestLocation(db, telegramId),
+    selectUserCommunityCapabilities(db, telegramId),
   ]);
 
   const badgesSet = new Set<string>(baseBadges);
@@ -248,6 +303,9 @@ const selectUser = async (
     ...base,
     badges: Array.from(badgesSet),
     qahalName,
+    managedCommunityId: capabilities.managedCommunityId,
+    canManageQahal: capabilities.canManageQahal,
+    canCreateQahal: capabilities.canCreateQahal,
     ...latestLocation,
   };
 };
