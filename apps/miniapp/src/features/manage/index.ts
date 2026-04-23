@@ -1,0 +1,1 @@
+export { ManageQahalScreen } from "./ManageQahalScreen";

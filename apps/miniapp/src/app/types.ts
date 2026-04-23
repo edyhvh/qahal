@@ -4,6 +4,7 @@ export type RootScreen =
   | "onboarding-data"
   | "map"
   | "home"
+  | "manage-qahal"
   | "profile";
 
 export type MapVariant = "allowed" | "selected" | "no-permission";
@@ -45,6 +46,9 @@ export interface EffectiveProfileSnapshot {
   qahalName: string;
   badges: string[];
   hasCongregation: boolean;
+  canCreateQahal: boolean;
+  canManageQahal: boolean;
+  managedCommunityId: number | null;
 }
 
 export const BADGE_DEFINITIONS: Record<string, BadgeDefinition> = {

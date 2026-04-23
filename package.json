@@ -18,6 +18,20 @@
     "check": "bun run check:shared && bun run check:miniapp && bun run check:worker",
     "check:shared": "bun run --filter @qahal/shared typecheck",
     "check:miniapp": "bun run --filter @qahal/miniapp typecheck",
-    "check:worker": "bun run --filter @qahal/worker typecheck"
+    "check:worker": "bun run --filter @qahal/worker typecheck",
+    "cf:login": "bun run --filter @qahal/worker cf:login",
+    "cf:whoami": "bun run --filter @qahal/worker cf:whoami",
+    "cf:d1:create:test": "bun run --filter @qahal/worker cf:d1:create:test",
+    "cf:d1:create:prod": "bun run --filter @qahal/worker cf:d1:create:prod",
+    "cf:d1:migrate:test": "bun run --filter @qahal/worker cf:d1:migrate:test",
+    "cf:d1:migrate:prod": "bun run --filter @qahal/worker cf:d1:migrate:prod",
+    "cf:secret:bot:test": "bun run --filter @qahal/worker cf:secret:bot:test",
+    "cf:secret:bot:prod": "bun run --filter @qahal/worker cf:secret:bot:prod",
+    "cf:secret:initdata:test": "bun run --filter @qahal/worker cf:secret:initdata:test",
+    "cf:secret:initdata:prod": "bun run --filter @qahal/worker cf:secret:initdata:prod",
+    "cf:deploy:test": "bun run --filter @qahal/worker cf:deploy:test",
+    "cf:deploy:prod": "bun run --filter @qahal/worker cf:deploy:prod",
+    "cf:tail:test": "bun run --filter @qahal/worker cf:tail:test",
+    "cf:tail:prod": "bun run --filter @qahal/worker cf:tail:prod"
   }
 }

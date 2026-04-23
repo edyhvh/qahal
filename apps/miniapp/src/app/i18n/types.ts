@@ -68,6 +68,9 @@ export interface Messages {
     createQahalTitle: string;
     createQahalBody: string;
     createQahalCta: string;
+    manageQahalTitle: string;
+    manageQahalBody: string;
+    manageQahalCta: string;
     nearYouTitle: string;
     nearYouEmpty: string;
     member: string;
@@ -87,6 +90,29 @@ export interface Messages {
     popupAlreadyMemberBody: string;
     popupUnderstood: string;
     joinRequestToast: string;
+  };
+  manageQahal: {
+    title: string;
+    subtitle: string;
+    communityNameLabel: string;
+    communityNamePlaceholder: string;
+    saveName: string;
+    meetingTimesTitle: string;
+    dayLabel: string;
+    timeLabel: string;
+    addSlot: string;
+    noSlots: string;
+    saveSlots: string;
+    membersTitle: string;
+    usernamePlaceholder: string;
+    addMember: string;
+    noMembers: string;
+    unknownMember: string;
+    invalidTimeFormat: string;
+    refresh: string;
+    localFallbackHint: string;
+    notLeader: string;
+    loadFailed: string;
   };
   map: {
     selectCity: string;
