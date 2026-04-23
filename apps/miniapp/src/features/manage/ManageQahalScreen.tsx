@@ -221,7 +221,7 @@ export const ManageQahalScreen = ({
     const normalizedTime = formatMinutes(timeMinutes);
     const validPattern = /^\d{2}:\d{2}$/;
     if (!validPattern.test(value.trim()) || normalizedTime !== value.trim()) {
-      setStatusMessage("Invalid time. Use HH:MM, for example 19:30.");
+      setStatusMessage(t.manageQahal.invalidTimeFormat);
       return;
     }
 
@@ -568,7 +568,7 @@ export const ManageQahalScreen = ({
               <div className="flex flex-col gap-[6px]">
                 {members.length === 0 ? (
                   <p style={{ fontSize: 13, color: "var(--theme-text-secondary)" }}>
-                    Not set
+                    {t.manageQahal.noMembers}
                   </p>
                 ) : (
                   members.map((member) => (
@@ -583,7 +583,7 @@ export const ManageQahalScreen = ({
                           color: "var(--theme-text-primary)",
                         }}
                       >
-                        {member.firstName || member.username || "Member"}
+                        {member.firstName || member.username || t.manageQahal.unknownMember}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--theme-text-secondary)" }}>
                         {member.username ? `@${member.username}` : "-"}

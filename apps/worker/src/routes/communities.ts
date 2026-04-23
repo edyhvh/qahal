@@ -389,11 +389,8 @@ communitiesRoute.post("/", async (c) => {
     .prepare(
       `SELECT id, name, city
        FROM communities
-       WHERE owner_telegram_id = ?1
-       ORDER BY id DESC
-       LIMIT 1`,
+       WHERE id = last_insert_rowid()`,
     )
-    .bind(effectiveTelegramId)
     .first<CreatedCommunityRow>();
 
   if (!createdCommunity) {

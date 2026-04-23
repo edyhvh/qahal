@@ -106,6 +106,9 @@ export interface Messages {
     membersTitle: string;
     usernamePlaceholder: string;
     addMember: string;
+    noMembers: string;
+    unknownMember: string;
+    invalidTimeFormat: string;
     refresh: string;
     localFallbackHint: string;
     notLeader: string;

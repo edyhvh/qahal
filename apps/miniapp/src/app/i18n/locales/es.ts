@@ -135,6 +135,9 @@ export const esMessages: Messages = {
     membersTitle: "Miembros",
     usernamePlaceholder: "Usuario de Telegram",
     addMember: "Agregar Miembro",
+    noMembers: "Aún no hay miembros.",
+    unknownMember: "Miembro",
+    invalidTimeFormat: "Hora inválida. Usa HH:MM, por ejemplo 19:30.",
     refresh: "Actualizar",
     localFallbackHint:
       "Modo local de prueba sin una comunidad gestionada en el backend.",

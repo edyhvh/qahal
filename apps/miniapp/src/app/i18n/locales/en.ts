@@ -134,6 +134,9 @@ export const enMessages: Messages = {
     membersTitle: "Members",
     usernamePlaceholder: "Telegram username",
     addMember: "Add Member",
+    noMembers: "No members yet.",
+    unknownMember: "Member",
+    invalidTimeFormat: "Invalid time. Use HH:MM, for example 19:30.",
     refresh: "Refresh",
     localFallbackHint:
       "Local testing mode without a managed community in backend.",
