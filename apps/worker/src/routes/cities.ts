@@ -33,19 +33,29 @@ const normalizeText = (value: string): string => {
 
 const toRadians = (value: number): number => value * (Math.PI / 180);
 
-const distanceKm = (fromLat: number, fromLng: number, toLat: number, toLng: number): number => {
+const distanceKm = (
+  fromLat: number,
+  fromLng: number,
+  toLat: number,
+  toLng: number,
+): number => {
   const earthRadiusKm = 6371;
   const dLat = toRadians(toLat - fromLat);
   const dLng = toRadians(toLng - fromLng);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(fromLat)) * Math.cos(toRadians(toLat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    Math.cos(toRadians(fromLat)) *
+      Math.cos(toRadians(toLat)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return earthRadiusKm * c;
 };
 
 const cityKey = (suggestion: CitySuggestion): string => {
-  return `${suggestion.city}|${suggestion.state}|${suggestion.country}`.trim().toLowerCase();
+  return `${suggestion.city}|${suggestion.state}|${suggestion.country}`
+    .trim()
+    .toLowerCase();
 };
 
 const dedupeSuggestions = <T extends CitySuggestion>(items: T[]): T[] => {
@@ -95,7 +105,9 @@ const similarityScore = (query: string, suggestion: CitySuggestion): number => {
   return 0.2;
 };
 
-const normalizeSuggestion = (feature: PhotonFeature): EnrichedSuggestion | null => {
+const normalizeSuggestion = (
+  feature: PhotonFeature,
+): EnrichedSuggestion | null => {
   const coordinates = feature.geometry?.coordinates;
   if (!coordinates || coordinates.length < 2) {
     return null;
@@ -107,7 +119,11 @@ const normalizeSuggestion = (feature: PhotonFeature): EnrichedSuggestion | null 
   }
 
   const city = feature.properties?.city ?? feature.properties?.name;
-  const state = feature.properties?.state ?? feature.properties?.county ?? feature.properties?.region ?? feature.properties?.country;
+  const state =
+    feature.properties?.state ??
+    feature.properties?.county ??
+    feature.properties?.region ??
+    feature.properties?.country;
   const country = feature.properties?.country;
 
   if (!city || !state || !country) {
@@ -121,7 +137,7 @@ const normalizeSuggestion = (feature: PhotonFeature): EnrichedSuggestion | null 
     latitude,
     longitude,
     label: `${city}, ${state}, ${country}`,
-    placePriority: placePriority(feature.properties?.osm_value)
+    placePriority: placePriority(feature.properties?.osm_value),
   };
 };
 
@@ -135,10 +151,12 @@ citiesRoute.get("/search", async (c) => {
 
   const params = new URLSearchParams({
     q: parsed.data.q,
-    limit: "50"
+    limit: "50",
   });
 
-  const response = await fetch(`https://photon.komoot.io/api/?${params.toString()}`);
+  const response = await fetch(
+    `https://photon.komoot.io/api/?${params.toString()}`,
+  );
   if (!response.ok) {
     return c.json({ ok: false, error: "city_provider_unavailable" }, 502);
   }
@@ -148,7 +166,10 @@ citiesRoute.get("/search", async (c) => {
     .map(normalizeSuggestion)
     .filter((entry): entry is EnrichedSuggestion => entry !== null);
 
-  if (typeof parsed.data.userLat === "number" && typeof parsed.data.userLng === "number") {
+  if (
+    typeof parsed.data.userLat === "number" &&
+    typeof parsed.data.userLng === "number"
+  ) {
     const userLat = parsed.data.userLat;
     const userLng = parsed.data.userLng;
 
@@ -157,7 +178,12 @@ citiesRoute.get("/search", async (c) => {
         suggestion,
         similarity: similarityScore(parsed.data.q, suggestion),
         place: suggestion.placePriority,
-        distance: distanceKm(userLat, userLng, suggestion.latitude, suggestion.longitude)
+        distance: distanceKm(
+          userLat,
+          userLng,
+          suggestion.latitude,
+          suggestion.longitude,
+        ),
       }))
       .sort((a, b) => {
         if (b.similarity !== a.similarity) {
@@ -174,7 +200,7 @@ citiesRoute.get("/search", async (c) => {
       .map((suggestion) => ({
         suggestion,
         similarity: similarityScore(parsed.data.q, suggestion),
-        place: suggestion.placePriority
+        place: suggestion.placePriority,
       }))
       .sort((a, b) => {
         if (b.similarity !== a.similarity) {

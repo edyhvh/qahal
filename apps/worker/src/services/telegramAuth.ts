@@ -21,7 +21,11 @@ const encoder = new TextEncoder();
 
 const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
   const { buffer, byteOffset, byteLength } = bytes;
-  if (buffer instanceof ArrayBuffer && byteOffset === 0 && byteLength === buffer.byteLength) {
+  if (
+    buffer instanceof ArrayBuffer &&
+    byteOffset === 0 &&
+    byteLength === buffer.byteLength
+  ) {
     return buffer;
   }
   return bytes.slice().buffer;
@@ -46,23 +50,32 @@ const timingSafeEqual = (a: string, b: string): boolean => {
   return mismatch === 0;
 };
 
-const hmacSha256 = async (keyBytes: Uint8Array, message: string): Promise<Uint8Array> => {
+const hmacSha256 = async (
+  keyBytes: Uint8Array,
+  message: string,
+): Promise<Uint8Array> => {
   const key = await crypto.subtle.importKey(
     "raw",
     toArrayBuffer(keyBytes),
     {
       name: "HMAC",
-      hash: "SHA-256"
+      hash: "SHA-256",
     },
     false,
-    ["sign"]
+    ["sign"],
   );
 
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(message),
+  );
   return new Uint8Array(signature);
 };
 
-const parseTelegramUser = (params: URLSearchParams): VerifyInitDataResult["user"] => {
+const parseTelegramUser = (
+  params: URLSearchParams,
+): VerifyInitDataResult["user"] => {
   const rawUser = params.get("user");
   if (!rawUser) {
     return undefined;
@@ -76,11 +89,18 @@ const parseTelegramUser = (params: URLSearchParams): VerifyInitDataResult["user"
 
     return {
       id: parsed.id,
-      username: typeof parsed.username === "string" ? parsed.username : undefined,
-      first_name: typeof parsed.first_name === "string" ? parsed.first_name : undefined,
-      last_name: typeof parsed.last_name === "string" ? parsed.last_name : undefined,
-      photo_url: typeof parsed.photo_url === "string" ? parsed.photo_url : undefined,
-      language_code: typeof parsed.language_code === "string" ? parsed.language_code : undefined
+      username:
+        typeof parsed.username === "string" ? parsed.username : undefined,
+      first_name:
+        typeof parsed.first_name === "string" ? parsed.first_name : undefined,
+      last_name:
+        typeof parsed.last_name === "string" ? parsed.last_name : undefined,
+      photo_url:
+        typeof parsed.photo_url === "string" ? parsed.photo_url : undefined,
+      language_code:
+        typeof parsed.language_code === "string"
+          ? parsed.language_code
+          : undefined,
     };
   } catch {
     return undefined;
@@ -105,7 +125,7 @@ const extractAuthDate = (initData: string): number | null => {
 export const verifyTelegramInitData = async ({
   initData,
   botToken,
-  maxAgeSeconds
+  maxAgeSeconds,
 }: VerifyInitDataInput): Promise<VerifyInitDataResult> => {
   if (!initData) {
     return { valid: false, reason: "missing_init_data" };
@@ -150,6 +170,6 @@ export const verifyTelegramInitData = async ({
 
   return {
     valid: true,
-    user: parseTelegramUser(params)
+    user: parseTelegramUser(params),
   };
 };

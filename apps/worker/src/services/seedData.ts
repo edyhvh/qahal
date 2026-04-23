@@ -28,13 +28,21 @@ export interface SeedPerson {
 
 const toRadians = (value: number): number => value * (Math.PI / 180);
 
-const distanceKm = (fromLat: number, fromLng: number, toLat: number, toLng: number): number => {
+const distanceKm = (
+  fromLat: number,
+  fromLng: number,
+  toLat: number,
+  toLng: number,
+): number => {
   const earthRadiusKm = 6371;
   const dLat = toRadians(toLat - fromLat);
   const dLng = toRadians(toLng - fromLng);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(fromLat)) * Math.cos(toRadians(toLat)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    Math.cos(toRadians(fromLat)) *
+      Math.cos(toRadians(toLat)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return earthRadiusKm * c;
 };
@@ -47,9 +55,27 @@ export const seedLocations: SeedLocation[] = [
     latitude: -34.6037,
     longitude: -58.3816,
     communities: [
-      { id: 1, name: "Emet", city: "Buenos Aires", distanceKm: 0.5, memberState: "not_member" },
-      { id: 2, name: "Emunah", city: "Buenos Aires", distanceKm: 1.5, memberState: "requested" },
-      { id: 3, name: "Beitlejem", city: "Buenos Aires", distanceKm: 10, memberState: "member" }
+      {
+        id: 1,
+        name: "Emet",
+        city: "Buenos Aires",
+        distanceKm: 0.5,
+        memberState: "not_member",
+      },
+      {
+        id: 2,
+        name: "Emunah",
+        city: "Buenos Aires",
+        distanceKm: 1.5,
+        memberState: "requested",
+      },
+      {
+        id: 3,
+        name: "Beitlejem",
+        city: "Buenos Aires",
+        distanceKm: 10,
+        memberState: "member",
+      },
     ],
     people: [
       {
@@ -60,8 +86,8 @@ export const seedLocations: SeedLocation[] = [
         badges: [
           { kind: "emunah", label: "Emunah" },
           { kind: "years", label: "Years in Emunah", years: 2 },
-          { kind: "hebrew-student", label: "Hebrew Student" }
-        ]
+          { kind: "hebrew-student", label: "Hebrew Student" },
+        ],
       },
       {
         id: 102,
@@ -71,8 +97,8 @@ export const seedLocations: SeedLocation[] = [
         badges: [
           { kind: "emunah", label: "Emunah" },
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "messenger", label: "Messenger" }
-        ]
+          { kind: "messenger", label: "Messenger" },
+        ],
       },
       {
         id: 103,
@@ -81,8 +107,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "buenos-aires",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "hebrew-teacher", label: "Hebrew Teacher" }
-        ]
+          { kind: "hebrew-teacher", label: "Hebrew Teacher" },
+        ],
       },
       {
         id: 104,
@@ -91,10 +117,10 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "buenos-aires",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "years", label: "Years in Emunah", years: 3 }
-        ]
-      }
-    ]
+          { kind: "years", label: "Years in Emunah", years: 3 },
+        ],
+      },
+    ],
   },
   {
     key: "mar-de-ajo",
@@ -103,9 +129,27 @@ export const seedLocations: SeedLocation[] = [
     latitude: -36.721,
     longitude: -56.684,
     communities: [
-      { id: 4, name: "Qahal Shalom", city: "Mar de Ajo", distanceKm: 0.6, memberState: "not_member" },
-      { id: 5, name: "Miqra Fellowship", city: "Mar de Ajo", distanceKm: 2.1, memberState: "requested" },
-      { id: 6, name: "Derekh Emet", city: "Mar de Ajo", distanceKm: 4.8, memberState: "member" }
+      {
+        id: 4,
+        name: "Qahal Shalom",
+        city: "Mar de Ajo",
+        distanceKm: 0.6,
+        memberState: "not_member",
+      },
+      {
+        id: 5,
+        name: "Miqra Fellowship",
+        city: "Mar de Ajo",
+        distanceKm: 2.1,
+        memberState: "requested",
+      },
+      {
+        id: 6,
+        name: "Derekh Emet",
+        city: "Mar de Ajo",
+        distanceKm: 4.8,
+        memberState: "member",
+      },
     ],
     people: [
       {
@@ -115,8 +159,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "mar-de-ajo",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "years", label: "Years in Emunah", years: 5 }
-        ]
+          { kind: "years", label: "Years in Emunah", years: 5 },
+        ],
       },
       {
         id: 202,
@@ -125,8 +169,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "mar-de-ajo",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "hebrew-teacher", label: "Hebrew Teacher" }
-        ]
+          { kind: "hebrew-teacher", label: "Hebrew Teacher" },
+        ],
       },
       {
         id: 203,
@@ -135,8 +179,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "mar-de-ajo",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "hebrew-student", label: "Hebrew Student" }
-        ]
+          { kind: "hebrew-student", label: "Hebrew Student" },
+        ],
       },
       {
         id: 204,
@@ -145,10 +189,10 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "mar-de-ajo",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "messenger", label: "Messenger" }
-        ]
-      }
-    ]
+          { kind: "messenger", label: "Messenger" },
+        ],
+      },
+    ],
   },
   {
     key: "lima",
@@ -157,9 +201,27 @@ export const seedLocations: SeedLocation[] = [
     latitude: -12.0464,
     longitude: -77.0428,
     communities: [
-      { id: 7, name: "Kefa House", city: "Lima", distanceKm: 0.9, memberState: "not_member" },
-      { id: 8, name: "Miryam Circle", city: "Lima", distanceKm: 2.6, memberState: "requested" },
-      { id: 9, name: "Shaliach Lima", city: "Lima", distanceKm: 6.3, memberState: "member" }
+      {
+        id: 7,
+        name: "Kefa House",
+        city: "Lima",
+        distanceKm: 0.9,
+        memberState: "not_member",
+      },
+      {
+        id: 8,
+        name: "Miryam Circle",
+        city: "Lima",
+        distanceKm: 2.6,
+        memberState: "requested",
+      },
+      {
+        id: 9,
+        name: "Shaliach Lima",
+        city: "Lima",
+        distanceKm: 6.3,
+        memberState: "member",
+      },
     ],
     people: [
       {
@@ -170,8 +232,8 @@ export const seedLocations: SeedLocation[] = [
         badges: [
           { kind: "emunah", label: "Emunah" },
           { kind: "messenger", label: "Messenger" },
-          { kind: "years", label: "Years in Emunah", years: 8 }
-        ]
+          { kind: "years", label: "Years in Emunah", years: 8 },
+        ],
       },
       {
         id: 302,
@@ -180,8 +242,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "lima",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "years", label: "Years in Emunah", years: 4 }
-        ]
+          { kind: "years", label: "Years in Emunah", years: 4 },
+        ],
       },
       {
         id: 303,
@@ -190,8 +252,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "lima",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "hebrew-student", label: "Hebrew Student" }
-        ]
+          { kind: "hebrew-student", label: "Hebrew Student" },
+        ],
       },
       {
         id: 304,
@@ -200,10 +262,10 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "lima",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "hebrew-teacher", label: "Hebrew Teacher" }
-        ]
-      }
-    ]
+          { kind: "hebrew-teacher", label: "Hebrew Teacher" },
+        ],
+      },
+    ],
   },
   {
     key: "madrid",
@@ -212,9 +274,27 @@ export const seedLocations: SeedLocation[] = [
     latitude: 40.4168,
     longitude: -3.7038,
     communities: [
-      { id: 10, name: "Bnei Yisrael Madrid", city: "Madrid", distanceKm: 0.7, memberState: "not_member" },
-      { id: 11, name: "House of Judah", city: "Madrid", distanceKm: 1.8, memberState: "requested" },
-      { id: 12, name: "Daughters of Zion", city: "Madrid", distanceKm: 5.2, memberState: "member" }
+      {
+        id: 10,
+        name: "Bnei Yisrael Madrid",
+        city: "Madrid",
+        distanceKm: 0.7,
+        memberState: "not_member",
+      },
+      {
+        id: 11,
+        name: "House of Judah",
+        city: "Madrid",
+        distanceKm: 1.8,
+        memberState: "requested",
+      },
+      {
+        id: 12,
+        name: "Daughters of Zion",
+        city: "Madrid",
+        distanceKm: 5.2,
+        memberState: "member",
+      },
     ],
     people: [
       {
@@ -224,8 +304,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "madrid",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "kehilah", label: "Kehilah" }
-        ]
+          { kind: "kehilah", label: "Kehilah" },
+        ],
       },
       {
         id: 402,
@@ -234,8 +314,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "madrid",
         badges: [
           { kind: "messenger", label: "Messenger" },
-          { kind: "years", label: "Years in Emunah", years: 6 }
-        ]
+          { kind: "years", label: "Years in Emunah", years: 6 },
+        ],
       },
       {
         id: 403,
@@ -244,8 +324,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "madrid",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "hebrew-teacher", label: "Hebrew Teacher" }
-        ]
+          { kind: "hebrew-teacher", label: "Hebrew Teacher" },
+        ],
       },
       {
         id: 404,
@@ -254,10 +334,10 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "madrid",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "hebrew-student", label: "Hebrew Student" }
-        ]
-      }
-    ]
+          { kind: "hebrew-student", label: "Hebrew Student" },
+        ],
+      },
+    ],
   },
   {
     key: "ciudad-de-mexico",
@@ -266,9 +346,27 @@ export const seedLocations: SeedLocation[] = [
     latitude: 19.4326,
     longitude: -99.1332,
     communities: [
-      { id: 13, name: "Exile Return House", city: "Ciudad de Mexico", distanceKm: 1.2, memberState: "not_member" },
-      { id: 14, name: "Nehemiah Builders", city: "Ciudad de Mexico", distanceKm: 3.4, memberState: "requested" },
-      { id: 15, name: "Esther Assembly", city: "Ciudad de Mexico", distanceKm: 7.9, memberState: "member" }
+      {
+        id: 13,
+        name: "Exile Return House",
+        city: "Ciudad de Mexico",
+        distanceKm: 1.2,
+        memberState: "not_member",
+      },
+      {
+        id: 14,
+        name: "Nehemiah Builders",
+        city: "Ciudad de Mexico",
+        distanceKm: 3.4,
+        memberState: "requested",
+      },
+      {
+        id: 15,
+        name: "Esther Assembly",
+        city: "Ciudad de Mexico",
+        distanceKm: 7.9,
+        memberState: "member",
+      },
     ],
     people: [
       {
@@ -278,8 +376,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "ciudad-de-mexico",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "years", label: "Years in Emunah", years: 9 }
-        ]
+          { kind: "years", label: "Years in Emunah", years: 9 },
+        ],
       },
       {
         id: 502,
@@ -288,8 +386,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "ciudad-de-mexico",
         badges: [
           { kind: "messenger", label: "Messenger" },
-          { kind: "kehilah", label: "Kehilah" }
-        ]
+          { kind: "kehilah", label: "Kehilah" },
+        ],
       },
       {
         id: 503,
@@ -298,8 +396,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "ciudad-de-mexico",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "hebrew-student", label: "Hebrew Student" }
-        ]
+          { kind: "hebrew-student", label: "Hebrew Student" },
+        ],
       },
       {
         id: 504,
@@ -308,10 +406,10 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "ciudad-de-mexico",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "hebrew-teacher", label: "Hebrew Teacher" }
-        ]
-      }
-    ]
+          { kind: "hebrew-teacher", label: "Hebrew Teacher" },
+        ],
+      },
+    ],
   },
   {
     key: "jacksonville",
@@ -320,9 +418,27 @@ export const seedLocations: SeedLocation[] = [
     latitude: 30.3322,
     longitude: -81.6557,
     communities: [
-      { id: 16, name: "Prophets Gate", city: "Jacksonville", distanceKm: 0.8, memberState: "not_member" },
-      { id: 17, name: "Deborah Circle", city: "Jacksonville", distanceKm: 2.3, memberState: "requested" },
-      { id: 18, name: "Isaiah Fellowship", city: "Jacksonville", distanceKm: 6.1, memberState: "member" }
+      {
+        id: 16,
+        name: "Prophets Gate",
+        city: "Jacksonville",
+        distanceKm: 0.8,
+        memberState: "not_member",
+      },
+      {
+        id: 17,
+        name: "Deborah Circle",
+        city: "Jacksonville",
+        distanceKm: 2.3,
+        memberState: "requested",
+      },
+      {
+        id: 18,
+        name: "Isaiah Fellowship",
+        city: "Jacksonville",
+        distanceKm: 6.1,
+        memberState: "member",
+      },
     ],
     people: [
       {
@@ -332,8 +448,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "jacksonville",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "years", label: "Years in Emunah", years: 7 }
-        ]
+          { kind: "years", label: "Years in Emunah", years: 7 },
+        ],
       },
       {
         id: 602,
@@ -342,8 +458,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "jacksonville",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "messenger", label: "Messenger" }
-        ]
+          { kind: "messenger", label: "Messenger" },
+        ],
       },
       {
         id: 603,
@@ -352,8 +468,8 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "jacksonville",
         badges: [
           { kind: "emunah", label: "Emunah" },
-          { kind: "hebrew-teacher", label: "Hebrew Teacher" }
-        ]
+          { kind: "hebrew-teacher", label: "Hebrew Teacher" },
+        ],
       },
       {
         id: 604,
@@ -362,11 +478,11 @@ export const seedLocations: SeedLocation[] = [
         locationKey: "jacksonville",
         badges: [
           { kind: "kehilah", label: "Kehilah" },
-          { kind: "hebrew-student", label: "Hebrew Student" }
-        ]
-      }
-    ]
-  }
+          { kind: "hebrew-student", label: "Hebrew Student" },
+        ],
+      },
+    ],
+  },
 ];
 
 export interface SeedCongregationLeader {
@@ -380,7 +496,7 @@ export const seedCongregationLeaders: SeedCongregationLeader[] = [
   { communityId: 7, personId: 301 },
   { communityId: 10, personId: 402 },
   { communityId: 13, personId: 502 },
-  { communityId: 16, personId: 602 }
+  { communityId: 16, personId: 602 },
 ];
 
 export const getSeedLeadersByCity = (city: string) => {
@@ -389,11 +505,18 @@ export const getSeedLeadersByCity = (city: string) => {
     return [];
   }
 
-  const peopleById = new Map(location.people.map((person) => [person.id, person]));
-  const communityById = new Map(location.communities.map((community) => [community.id, community]));
+  const peopleById = new Map(
+    location.people.map((person) => [person.id, person]),
+  );
+  const communityById = new Map(
+    location.communities.map((community) => [community.id, community]),
+  );
 
   return seedCongregationLeaders
-    .filter((entry) => communityById.has(entry.communityId) && peopleById.has(entry.personId))
+    .filter(
+      (entry) =>
+        communityById.has(entry.communityId) && peopleById.has(entry.personId),
+    )
     .map((entry) => {
       const person = peopleById.get(entry.personId);
       const community = communityById.get(entry.communityId);
@@ -401,12 +524,15 @@ export const getSeedLeadersByCity = (city: string) => {
         communityId: entry.communityId,
         communityName: community?.name ?? "",
         personId: entry.personId,
-        leaderName: person?.name ?? ""
+        leaderName: person?.name ?? "",
       };
     });
 };
 
-export const getNearestSeedLocation = (latitude: number, longitude: number): SeedLocation => {
+export const getNearestSeedLocation = (
+  latitude: number,
+  longitude: number,
+): SeedLocation => {
   if (seedLocations.length === 0) {
     throw new Error("seed locations are not configured");
   }
@@ -415,7 +541,12 @@ export const getNearestSeedLocation = (latitude: number, longitude: number): See
   let nearestDistance = Number.POSITIVE_INFINITY;
 
   for (const location of seedLocations) {
-    const d = distanceKm(latitude, longitude, location.latitude, location.longitude);
+    const d = distanceKm(
+      latitude,
+      longitude,
+      location.latitude,
+      location.longitude,
+    );
     if (d < nearestDistance) {
       nearestDistance = d;
       nearest = location;
@@ -425,7 +556,11 @@ export const getNearestSeedLocation = (latitude: number, longitude: number): See
   return nearest;
 };
 
-export const getSeedLocationByCity = (city: string): SeedLocation | undefined => {
+export const getSeedLocationByCity = (
+  city: string,
+): SeedLocation | undefined => {
   const normalized = city.trim().toLowerCase();
-  return seedLocations.find((location) => location.city.toLowerCase() === normalized);
+  return seedLocations.find(
+    (location) => location.city.toLowerCase() === normalized,
+  );
 };

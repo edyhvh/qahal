@@ -381,16 +381,22 @@ communitiesRoute.post("/", async (c) => {
       owner_telegram_id
     ) VALUES (?1, ?2, ?3, ?4, ?5, 'not_member', ?6)`,
   )
-    .bind(name.trim(), city.trim(), country.trim(), latitude, longitude, effectiveTelegramId)
+    .bind(
+      name.trim(),
+      city.trim(),
+      country.trim(),
+      latitude,
+      longitude,
+      effectiveTelegramId,
+    )
     .run();
 
   type CreatedCommunityRow = { id: number; name: string; city: string };
-  const createdCommunity = await c.env.DB
-    .prepare(
-      `SELECT id, name, city
+  const createdCommunity = await c.env.DB.prepare(
+    `SELECT id, name, city
        FROM communities
        WHERE id = last_insert_rowid()`,
-    )
+  )
     .bind()
     .first<CreatedCommunityRow>();
 
@@ -455,29 +461,26 @@ communitiesRoute.get("/manage", async (c) => {
   };
 
   const [community, slots, members] = await Promise.all([
-    c.env.DB
-      .prepare(
-        `SELECT id, name, city
+    c.env.DB.prepare(
+      `SELECT id, name, city
          FROM communities
          WHERE id = ?1
          LIMIT 1`,
-      )
+    )
       .bind(managedCommunityId)
       .first<CommunityRow>(),
-    c.env.DB
-      .prepare(
-        `SELECT id,
+    c.env.DB.prepare(
+      `SELECT id,
                 weekday,
                 time_minutes as timeMinutes
          FROM community_meeting_slots
          WHERE community_id = ?1
          ORDER BY weekday ASC, time_minutes ASC`,
-      )
+    )
       .bind(managedCommunityId)
       .all<SlotRow>(),
-    c.env.DB
-      .prepare(
-        `SELECT u.telegram_id as telegramId,
+    c.env.DB.prepare(
+      `SELECT u.telegram_id as telegramId,
                 u.first_name as firstName,
                 u.username as username
          FROM user_community_memberships m
@@ -485,7 +488,7 @@ communitiesRoute.get("/manage", async (c) => {
          WHERE m.community_id = ?1
            AND m.status = 'member'
          ORDER BY lower(COALESCE(u.first_name, u.username, '')) ASC`,
-      )
+    )
       .bind(managedCommunityId)
       .all<MemberRow>(),
   ]);
@@ -580,11 +583,10 @@ communitiesRoute.put("/:communityId/meeting-slots", async (c) => {
     return c.json({ ok: false, error: "forbidden" }, 403);
   }
 
-  await c.env.DB
-    .prepare(
-      `DELETE FROM community_meeting_slots
+  await c.env.DB.prepare(
+    `DELETE FROM community_meeting_slots
        WHERE community_id = ?1`,
-    )
+  )
     .bind(communityId)
     .run();
 
@@ -596,11 +598,10 @@ communitiesRoute.put("/:communityId/meeting-slots", async (c) => {
     }
     dedupe.add(key);
 
-    await c.env.DB
-      .prepare(
-        `INSERT INTO community_meeting_slots (community_id, weekday, time_minutes)
+    await c.env.DB.prepare(
+      `INSERT INTO community_meeting_slots (community_id, weekday, time_minutes)
          VALUES (?1, ?2, ?3)`,
-      )
+    )
       .bind(communityId, slot.weekday, slot.timeMinutes)
       .run();
   }
@@ -640,16 +641,19 @@ communitiesRoute.post("/:communityId/members/by-username", async (c) => {
 
   const normalizedUsername = normalizeUsername(parsed.data.username);
 
-  type UserRow = { telegramId: number; username: string | null; firstName: string | null };
-  const targetUser = await c.env.DB
-    .prepare(
-      `SELECT telegram_id as telegramId,
+  type UserRow = {
+    telegramId: number;
+    username: string | null;
+    firstName: string | null;
+  };
+  const targetUser = await c.env.DB.prepare(
+    `SELECT telegram_id as telegramId,
               username,
               first_name as firstName
        FROM users
        WHERE lower(username) = lower(?1)
        LIMIT 1`,
-    )
+  )
     .bind(normalizedUsername)
     .first<UserRow>();
 
@@ -658,14 +662,13 @@ communitiesRoute.post("/:communityId/members/by-username", async (c) => {
   }
 
   type ExistingMemberRow = { count: number };
-  const memberElsewhere = await c.env.DB
-    .prepare(
-      `SELECT COUNT(*) as count
+  const memberElsewhere = await c.env.DB.prepare(
+    `SELECT COUNT(*) as count
        FROM user_community_memberships
        WHERE telegram_id = ?1
          AND status = 'member'
          AND community_id != ?2`,
-    )
+  )
     .bind(targetUser.telegramId, communityId)
     .first<ExistingMemberRow>();
 
@@ -673,14 +676,13 @@ communitiesRoute.post("/:communityId/members/by-username", async (c) => {
     return c.json({ ok: false, error: "already_member_elsewhere" }, 409);
   }
 
-  await c.env.DB
-    .prepare(
-      `INSERT INTO user_community_memberships (telegram_id, community_id, status)
+  await c.env.DB.prepare(
+    `INSERT INTO user_community_memberships (telegram_id, community_id, status)
        VALUES (?1, ?2, 'member')
        ON CONFLICT(telegram_id, community_id) DO UPDATE SET
          status='member',
          updated_at=CURRENT_TIMESTAMP`,
-    )
+  )
     .bind(targetUser.telegramId, communityId)
     .run();
 
