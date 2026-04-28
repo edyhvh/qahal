@@ -1,4 +1,4 @@
-name = "qahal-worker"
+name = "qahal-dev"
 main = "src/index.ts"
 compatibility_date = "2026-04-19"
 workers_dev = true
@@ -29,7 +29,7 @@ APP_ENV = "production"
 CORS_ALLOWED_ORIGINS = "https://development.qahal.xyz,https://app.qahal.xyz"
 
 [env.production]
-name = "qahal-worker-production"
+name = "qahal"
 workers_dev = true
 preview_urls = true
 
