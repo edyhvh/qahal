@@ -19,6 +19,8 @@
     "check:shared": "bun run --filter @qahal/shared typecheck",
     "check:miniapp": "bun run --filter @qahal/miniapp typecheck",
     "check:worker": "bun run --filter @qahal/worker typecheck",
+    "format": "prettier --write .",
+    "prepare": "husky",
     "cf:login": "bun --env-file=.env run --filter @qahal/worker cf:login",
     "cf:whoami": "bun --env-file=.env run --filter @qahal/worker cf:whoami",
     "cf:d1:create:test": "bun --env-file=.env run --filter @qahal/worker cf:d1:create:test",
@@ -33,5 +35,10 @@
     "cf:deploy:prod": "bun --env-file=.env run --filter @qahal/worker cf:deploy:prod",
     "cf:tail:test": "bun --env-file=.env run --filter @qahal/worker cf:tail:test",
     "cf:tail:prod": "bun --env-file=.env run --filter @qahal/worker cf:tail:prod"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.5.0"
   }
 }
