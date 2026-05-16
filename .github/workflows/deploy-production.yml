@@ -54,21 +54,19 @@ jobs:
             core.setOutput('deployment_id', String(data.id));
 
       - name: Deploy Worker (Production)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/worker
-          command: deploy --env production --config wrangler.toml
+        working-directory: apps/worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bunx wrangler@4.10.0 deploy --env production --config wrangler.toml
 
       - name: Deploy Pages (Production)
         id: deploy_pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/miniapp
-          command: pages deploy dist --project-name qahal --branch main
+        working-directory: apps/miniapp
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bunx wrangler@4.10.0 pages deploy dist --project-name qahal --branch main
 
       - name: Finalize production deployment status
         uses: actions/github-script@v7
