@@ -1,7 +1,13 @@
-import { Hono } from "hono";
-import { onboardingSubmitSchema } from "@qahal/shared";
-import type { Bindings } from "../types/env";
-import { requireTelegramIdentity } from "../lib/telegramIdentity";
+import { Hono } from 'hono';
+import { demoScenarioApplySchema, onboardingSubmitSchema } from '@qahal/shared';
+import type { Bindings } from '../types/env';
+import { requireTelegramIdentity } from '../lib/telegramIdentity';
+import { isProductionRequest } from '../lib/runtimeEnv';
+import {
+  applyDemoScenario,
+  clearDemoUserState,
+  getDemoScenarioDefinitions,
+} from '../services/demoScenarios';
 
 type D1Like = {
   prepare: (query: string) => {
@@ -14,33 +20,33 @@ type D1Like = {
 };
 
 const hasD1 = (db: unknown): db is D1Like => {
-  return typeof db === "object" && db !== null && "prepare" in db;
+  return typeof db === 'object' && db !== null && 'prepare' in db;
 };
 
-const EMUNAH_BADGE = { key: "emunah", label: "Emunah" };
+const EMUNAH_BADGE = { key: 'emunah', label: 'Emunah' };
 
 const normalizeEmunahState = (
   value: unknown,
-): "leader" | "experienced" | "starting" | undefined => {
-  return value === "leader" || value === "experienced" || value === "starting"
-    ? value
-    : undefined;
+): 'leader' | 'experienced' | 'starting' | undefined => {
+  return value === 'leader' || value === 'experienced' || value === 'starting' ? value : undefined;
 };
 
 const normalizeApprovalFlag = (value: unknown): boolean => {
-  return value === true || value === 1 || value === "1";
+  return value === true || value === 1 || value === '1';
 };
 
-const shouldGrantEmunahBadge = (
-  answers: Record<string, string> | undefined,
-): boolean => {
+const shouldGrantEmunahBadge = (answers: Record<string, string> | undefined): boolean => {
   if (!answers) {
     return false;
   }
 
-  const doctrinalSteps = ["1", "2", "3", "4", "5", "6", "7"];
+  const doctrinalSteps = ['1', '2', '3', '4', '5', '6', '7'];
   return doctrinalSteps.every((stepKey) => {
-    return String(answers[stepKey] ?? "").trim().toLowerCase() === "yes";
+    return (
+      String(answers[stepKey] ?? '')
+        .trim()
+        .toLowerCase() === 'yes'
+    );
   });
 };
 
@@ -66,11 +72,12 @@ const shouldGrantEmunahBadgeFromStoredAnswers = async (
       answersByStep.set(row.questionKey, row.answerValue);
     }
 
-    const doctrinalSteps = ["1", "2", "3", "4", "5", "6", "7"];
+    const doctrinalSteps = ['1', '2', '3', '4', '5', '6', '7'];
     return doctrinalSteps.every((stepKey) => {
       return (
-        String(answersByStep.get(stepKey) ?? "").trim().toLowerCase() ===
-        "yes"
+        String(answersByStep.get(stepKey) ?? '')
+          .trim()
+          .toLowerCase() === 'yes'
       );
     });
   } catch {
@@ -133,10 +140,7 @@ const selectUserBase = async (
   }
 };
 
-const selectUserBadges = async (
-  db: D1Like,
-  telegramId: number,
-): Promise<string[]> => {
+const selectUserBadges = async (db: D1Like, telegramId: number): Promise<string[]> => {
   try {
     type BadgeRow = { badgeLabel: string };
     const result = await db
@@ -155,10 +159,7 @@ const selectUserBadges = async (
   }
 };
 
-const selectUserQahalName = async (
-  db: D1Like,
-  telegramId: number,
-): Promise<string | null> => {
+const selectUserQahalName = async (db: D1Like, telegramId: number): Promise<string | null> => {
   try {
     type QahalRow = { qahalName: string };
     const memberCommunity = await db
@@ -277,11 +278,8 @@ const selectUser = async (
     return null;
   }
 
-  const shouldGrantFromStored = await shouldGrantEmunahBadgeFromStoredAnswers(
-    db,
-    telegramId,
-  );
-  if (typeof shouldGrantFromStored === "boolean") {
+  const shouldGrantFromStored = await shouldGrantEmunahBadgeFromStoredAnswers(db, telegramId);
+  if (typeof shouldGrantFromStored === 'boolean') {
     await syncEmunahBadge(db, telegramId, shouldGrantFromStored);
   }
 
@@ -293,26 +291,23 @@ const selectUser = async (
   ]);
   const emunahState = normalizeEmunahState(base.emunahState);
   const emunahLevelApproved =
-    emunahState === "leader"
-      ? normalizeApprovalFlag(base.emunahLevelApproved)
-      : true;
+    emunahState === 'leader' ? normalizeApprovalFlag(base.emunahLevelApproved) : true;
 
   const badgesSet = new Set<string>(baseBadges);
 
   if (qahalName) {
-    badgesSet.add("Kehilah");
+    badgesSet.add('Kehilah');
   }
 
   const createdAtValue = base.createdAt;
-  if (typeof createdAtValue === "string" && createdAtValue.length > 0) {
+  if (typeof createdAtValue === 'string' && createdAtValue.length > 0) {
     const createdAt = new Date(createdAtValue);
     if (!Number.isNaN(createdAt.getTime())) {
       const now = new Date();
       let years = now.getFullYear() - createdAt.getFullYear();
       const anniversaryPending =
         now.getMonth() < createdAt.getMonth() ||
-        (now.getMonth() === createdAt.getMonth() &&
-          now.getDate() < createdAt.getDate());
+        (now.getMonth() === createdAt.getMonth() && now.getDate() < createdAt.getDate());
       if (anniversaryPending) {
         years -= 1;
       }
@@ -329,7 +324,7 @@ const selectUser = async (
     managedCommunityId: capabilities.managedCommunityId,
     canManageQahal: capabilities.canManageQahal,
     canCreateQahal:
-      capabilities.canCreateQahal && !(emunahState === "leader" && !emunahLevelApproved),
+      capabilities.canCreateQahal && !(emunahState === 'leader' && !emunahLevelApproved),
     ...latestLocation,
   };
 };
@@ -357,11 +352,7 @@ const upsertOnboardingAnswers = async (
   }
 };
 
-const syncEmunahBadge = async (
-  db: D1Like,
-  telegramId: number,
-  grant: boolean,
-) => {
+const syncEmunahBadge = async (db: D1Like, telegramId: number, grant: boolean) => {
   if (grant) {
     await db
       .prepare(
@@ -387,12 +378,57 @@ const syncEmunahBadge = async (
 
 export const usersRoute = new Hono<{ Bindings: Bindings }>();
 
-usersRoute.post("/onboarding", async (c) => {
+usersRoute.get('/demo-scenarios', async (c) => {
+  if (isProductionRequest(c)) {
+    return c.json({ ok: false, error: 'dev_only' }, 403);
+  }
+
+  return c.json({
+    ok: true,
+    scenarios: getDemoScenarioDefinitions(),
+  });
+});
+
+usersRoute.post('/demo-scenarios/apply', async (c) => {
+  if (isProductionRequest(c)) {
+    return c.json({ ok: false, error: 'dev_only' }, 403);
+  }
+
+  const payload = await c.req.json().catch(() => null);
+  const parsed = demoScenarioApplySchema.safeParse(payload);
+  if (!parsed.success) {
+    return c.json({ ok: false, error: 'invalid_payload' }, 400);
+  }
+
+  const identity = await requireTelegramIdentity(c, parsed.data.telegramId);
+  if (!identity.ok) {
+    return c.json({ ok: false, error: identity.error }, identity.status);
+  }
+
+  if (!hasD1(c.env.DB)) {
+    return c.json({ ok: false, error: 'database_unavailable' }, 503);
+  }
+
+  try {
+    const scenario = await applyDemoScenario(c.env.DB, identity.telegramId, parsed.data.scenarioId);
+
+    return c.json({ ok: true, scenario });
+  } catch (error) {
+    console.error('demo scenario apply failed', {
+      error,
+      telegramId: identity.telegramId,
+      scenarioId: parsed.data.scenarioId,
+    });
+    return c.json({ ok: false, error: 'scenario_apply_failed' }, 500);
+  }
+});
+
+usersRoute.post('/onboarding', async (c) => {
   const payload = await c.req.json().catch(() => null);
   const parsed = onboardingSubmitSchema.safeParse(payload);
 
   if (!parsed.success) {
-    return c.json({ ok: false, error: "invalid_payload" }, 400);
+    return c.json({ ok: false, error: 'invalid_payload' }, 400);
   }
 
   const { telegramId, firstName, city, languageCode, emunahState, answers } = parsed.data;
@@ -403,9 +439,8 @@ usersRoute.post("/onboarding", async (c) => {
 
   const effectiveTelegramId = identity.telegramId;
   const grantEmunah = shouldGrantEmunahBadge(answers);
-  const initialApproval = emunahState === "leader" ? 0 : 1;
-  const normalizedCity =
-    typeof city === "string" && city.trim().length > 0 ? city.trim() : null;
+  const initialApproval = emunahState === 'leader' ? 0 : 1;
+  const normalizedCity = typeof city === 'string' && city.trim().length > 0 ? city.trim() : null;
 
   if (!hasD1(c.env.DB)) {
     return c.json({
@@ -479,7 +514,7 @@ usersRoute.post("/onboarding", async (c) => {
       await upsertOnboardingAnswers(c.env.DB, effectiveTelegramId, answers);
       await syncEmunahBadge(c.env.DB, effectiveTelegramId, grantEmunah);
     } catch (error) {
-      console.error("onboarding save failed", {
+      console.error('onboarding save failed', {
         error,
         telegramId: effectiveTelegramId,
       });
@@ -505,10 +540,10 @@ usersRoute.post("/onboarding", async (c) => {
   return c.json({ ok: true, user });
 });
 
-usersRoute.get("/:telegramId", async (c) => {
-  const requestedTelegramId = Number(c.req.param("telegramId"));
+usersRoute.get('/:telegramId', async (c) => {
+  const requestedTelegramId = Number(c.req.param('telegramId'));
   if (!Number.isFinite(requestedTelegramId)) {
-    return c.json({ ok: false, error: "invalid_telegram_id" }, 400);
+    return c.json({ ok: false, error: 'invalid_telegram_id' }, 400);
   }
 
   const identity = await requireTelegramIdentity(c, requestedTelegramId);
@@ -527,10 +562,10 @@ usersRoute.get("/:telegramId", async (c) => {
   return c.json({ ok: true, user });
 });
 
-usersRoute.put("/:telegramId/profile", async (c) => {
-  const requestedTelegramId = Number(c.req.param("telegramId"));
+usersRoute.put('/:telegramId/profile', async (c) => {
+  const requestedTelegramId = Number(c.req.param('telegramId'));
   if (!Number.isFinite(requestedTelegramId)) {
-    return c.json({ ok: false, error: "invalid_telegram_id" }, 400);
+    return c.json({ ok: false, error: 'invalid_telegram_id' }, 400);
   }
 
   const identity = await requireTelegramIdentity(c, requestedTelegramId);
@@ -550,11 +585,11 @@ usersRoute.put("/:telegramId/profile", async (c) => {
   }
 
   const safeFirstName =
-    typeof payload.firstName === "string" && payload.firstName.trim().length > 0
+    typeof payload.firstName === 'string' && payload.firstName.trim().length > 0
       ? payload.firstName.trim().slice(0, 80)
       : null;
   const safeBirthDate =
-    typeof payload.birthDate === "string" && payload.birthDate.trim().length > 0
+    typeof payload.birthDate === 'string' && payload.birthDate.trim().length > 0
       ? payload.birthDate.trim()
       : null;
 
@@ -585,10 +620,10 @@ usersRoute.put("/:telegramId/profile", async (c) => {
   return c.json({ ok: true, user });
 });
 
-usersRoute.delete("/:telegramId/local-reset", async (c) => {
-  const requestedTelegramId = Number(c.req.param("telegramId"));
+usersRoute.delete('/:telegramId/local-reset', async (c) => {
+  const requestedTelegramId = Number(c.req.param('telegramId'));
   if (!Number.isFinite(requestedTelegramId)) {
-    return c.json({ ok: false, error: "invalid_telegram_id" }, 400);
+    return c.json({ ok: false, error: 'invalid_telegram_id' }, 400);
   }
 
   const identity = await requireTelegramIdentity(c, requestedTelegramId);
@@ -600,32 +635,20 @@ usersRoute.delete("/:telegramId/local-reset", async (c) => {
 
   const requestHost = new URL(c.req.url).hostname.toLowerCase();
   const isLocalHost =
-    requestHost === "localhost" ||
-    requestHost === "127.0.0.1" ||
-    requestHost === "::1";
+    requestHost === 'localhost' || requestHost === '127.0.0.1' || requestHost === '::1';
 
   if (!isLocalHost) {
-    return c.json({ ok: false, error: "local_only" }, 403);
+    return c.json({ ok: false, error: 'local_only' }, 403);
   }
 
   if (!hasD1(c.env.DB)) {
     return c.json({ ok: true, reset: false });
   }
 
-  const deleteStatements = [
-    "DELETE FROM user_badges WHERE telegram_id = ?1",
-    "DELETE FROM user_onboarding_answers WHERE telegram_id = ?1",
-    "DELETE FROM user_community_memberships WHERE telegram_id = ?1",
-    "DELETE FROM user_locations WHERE telegram_id = ?1",
-    "DELETE FROM users WHERE telegram_id = ?1",
-  ];
-
-  for (const query of deleteStatements) {
-    try {
-      await c.env.DB.prepare(query).bind(effectiveTelegramId).run();
-    } catch {
-      // Ignore missing tables to keep local reset resilient across migrations.
-    }
+  try {
+    await clearDemoUserState(c.env.DB, effectiveTelegramId, { deleteUser: true });
+  } catch {
+    // Ignore missing tables to keep local reset resilient across migrations.
   }
 
   return c.json({ ok: true, reset: true });

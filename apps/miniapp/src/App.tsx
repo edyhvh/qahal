@@ -1,15 +1,15 @@
-import { OnboardingCarouselScreen } from "./features/onboarding/OnboardingCarouselScreen";
-import { OnboardingStateScreen } from "./features/onboarding/OnboardingStateScreen";
-import { OnboardingQuestionsScreen } from "./features/onboarding/OnboardingQuestionsScreen";
-import { OnboardingDataScreen } from "./features/onboarding/OnboardingDataScreen";
-import { MapScreen } from "./features/map/MapScreen";
-import { HomeScreen } from "./features/home/HomeScreen";
-import { ManageQahalScreen } from "./features/manage";
-import { ProfileScreen } from "./features/profile/ProfileScreen";
-import { useAppFlow } from "./app/useAppFlow";
-import { resolvePaperScreenKey } from "./app/paperMapping";
-import { I18nProvider } from "./app/i18n";
-import { getNextThemeMode, type ThemeMode } from "./app/theme";
+import { OnboardingCarouselScreen } from './features/onboarding/OnboardingCarouselScreen';
+import { OnboardingStateScreen } from './features/onboarding/OnboardingStateScreen';
+import { OnboardingQuestionsScreen } from './features/onboarding/OnboardingQuestionsScreen';
+import { OnboardingDataScreen } from './features/onboarding/OnboardingDataScreen';
+import { MapScreen } from './features/map/MapScreen';
+import { HomeScreen } from './features/home/HomeScreen';
+import { ManageQahalScreen } from './features/manage';
+import { ProfileScreen } from './features/profile/ProfileScreen';
+import { useAppFlow } from './app/useAppFlow';
+import { resolvePaperScreenKey } from './app/paperMapping';
+import { I18nProvider } from './app/i18n';
+import { getNextThemeMode, type ThemeMode } from './app/theme';
 
 interface AppProps {
   themeMode: ThemeMode;
@@ -49,22 +49,20 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
     setMapCity,
     setLanguageCode,
     managedCommunity,
+    refreshPersistedProfile,
   } = useAppFlow();
   const paperScreenKey = resolvePaperScreenKey(state);
 
   return (
-    <I18nProvider
-      languageCode={state.answers.languageCode}
-      onLanguageCodeChange={setLanguageCode}
-    >
+    <I18nProvider languageCode={state.answers.languageCode} onLanguageCodeChange={setLanguageCode}>
       <div
         className="relative mx-auto min-h-[100dvh] w-full max-w-[375px] overflow-hidden font-body"
         data-paper-screen={paperScreenKey}
         data-runtime={runtimeTarget}
         data-theme-mode={themeMode}
         style={{
-          background: "var(--theme-bg-solid)",
-          color: "var(--theme-text-primary)",
+          background: 'var(--theme-bg-solid)',
+          color: 'var(--theme-text-primary)',
         }}
       >
         <button
@@ -72,24 +70,16 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           onClick={() => onThemeChange(getNextThemeMode(themeMode))}
           className="absolute right-3 z-[85] flex h-10 w-10 items-center justify-center rounded-full border"
           style={{
-            top: "calc(var(--safe-area-top) + 12px)",
-            borderColor: "var(--theme-toggle-border)",
-            background: "var(--theme-toggle-bg)",
-            color: "var(--theme-toggle-icon)",
-            boxShadow: "var(--theme-toggle-shadow)",
+            top: 'calc(var(--safe-area-top) + 12px)',
+            borderColor: 'var(--theme-toggle-border)',
+            background: 'var(--theme-toggle-bg)',
+            color: 'var(--theme-toggle-icon)',
+            boxShadow: 'var(--theme-toggle-shadow)',
           }}
-          aria-label={
-            themeMode === "light" ? "Switch to dark mode" : "Switch to light mode"
-          }
-          title={themeMode === "light" ? "Dark mode" : "Light mode"}
+          aria-label={themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          title={themeMode === 'light' ? 'Dark mode' : 'Light mode'}
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M9 14.5H15M9.5 17.5H14.5M12 3C8.96 3 6.5 5.46 6.5 8.5C6.5 10.37 7.43 12.02 8.86 13V14.5C8.86 15.33 9.53 16 10.36 16H13.64C14.47 16 15.14 15.33 15.14 14.5V13C16.57 12.02 17.5 10.37 17.5 8.5C17.5 5.46 15.04 3 12 3Z"
               stroke="currentColor"
@@ -103,15 +93,15 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
         {profileTestingEnabled ? (
           <div
             className="pointer-events-none absolute left-1/2 z-[70] -translate-x-1/2"
-            style={{ top: "calc(var(--safe-area-top) + 12px)" }}
+            style={{ top: 'calc(var(--safe-area-top) + 12px)' }}
           >
             <label
               className="pointer-events-auto inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs"
               style={{
-                borderColor: "var(--theme-card-border)",
-                background: "var(--theme-card-bg)",
-                color: "var(--theme-text-primary)",
-                boxShadow: "var(--theme-card-shadow)",
+                borderColor: 'var(--theme-card-border)',
+                background: 'var(--theme-card-bg)',
+                color: 'var(--theme-text-primary)',
+                boxShadow: 'var(--theme-card-shadow)',
               }}
               htmlFor="debug-language-switcher"
             >
@@ -119,14 +109,12 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
               <select
                 id="debug-language-switcher"
                 value={state.answers.languageCode}
-                onChange={(event) =>
-                  setLanguageCode(event.target.value as "en" | "es" | "he")
-                }
+                onChange={(event) => setLanguageCode(event.target.value as 'en' | 'es' | 'he')}
                 className="rounded-md border px-2 py-1 text-xs outline-none"
                 style={{
-                  borderColor: "var(--theme-card-border)",
-                  background: "var(--theme-surface-warm-muted)",
-                  color: "var(--theme-text-primary)",
+                  borderColor: 'var(--theme-card-border)',
+                  background: 'var(--theme-surface-warm-muted)',
+                  color: 'var(--theme-text-primary)',
                 }}
               >
                 <option value="en">English</option>
@@ -137,11 +125,11 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           </div>
         ) : null}
 
-        {state.screen === "onboarding-carousel" ? (
+        {state.screen === 'onboarding-carousel' ? (
           <OnboardingCarouselScreen onStart={startQuestions} />
         ) : null}
 
-        {state.screen === "onboarding-state" ? (
+        {state.screen === 'onboarding-state' ? (
           <OnboardingStateScreen
             onSelect={(emunahState) => {
               selectEmunahState(emunahState);
@@ -150,7 +138,7 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           />
         ) : null}
 
-        {state.screen === "onboarding-questions" ? (
+        {state.screen === 'onboarding-questions' ? (
           <OnboardingQuestionsScreen
             step={state.questionStep}
             progressLabel={questionProgress}
@@ -163,19 +151,14 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           />
         ) : null}
 
-        {state.screen === "onboarding-data" ? (
+        {state.screen === 'onboarding-data' ? (
           <OnboardingDataScreen
             telegramId={state.telegramId}
             initialFirstName={state.answers.firstName}
             initialCity={state.answers.city}
             initialLanguageCode={state.answers.languageCode}
             busy={busy}
-            onSubmit={async (
-              firstName,
-              city,
-              languageCode,
-              cityCoordinates,
-            ) => {
+            onSubmit={async (firstName, city, languageCode, cityCoordinates) => {
               setLanguageCode(languageCode);
               updateProfile(firstName, city, languageCode, cityCoordinates);
               await finishOnboarding({
@@ -188,7 +171,7 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           />
         ) : null}
 
-        {state.screen === "map" ? (
+        {state.screen === 'map' ? (
           <MapScreen
             themeMode={themeMode}
             variant={state.mapVariant}
@@ -202,15 +185,15 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
               setMapCity(name, { latitude, longitude });
             }}
             initialCenter={
-              typeof state.answers.cityLatitude === "number" &&
-              typeof state.answers.cityLongitude === "number"
+              typeof state.answers.cityLatitude === 'number' &&
+              typeof state.answers.cityLongitude === 'number'
                 ? [state.answers.cityLatitude, state.answers.cityLongitude]
                 : undefined
             }
           />
         ) : null}
 
-        {state.screen === "home" ? (
+        {state.screen === 'home' ? (
           <HomeScreen
             variant={state.homeVariant}
             communities={communities}
@@ -223,7 +206,7 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           />
         ) : null}
 
-        {state.screen === "manage-qahal" ? (
+        {state.screen === 'manage-qahal' ? (
           <ManageQahalScreen
             telegramId={state.telegramId}
             managedCommunity={managedCommunity}
@@ -236,8 +219,9 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           />
         ) : null}
 
-        {state.screen === "profile" ? (
+        {state.screen === 'profile' ? (
           <ProfileScreen
+            telegramId={state.telegramId}
             profileTestingEnabled={profileTestingEnabled}
             localProfileRole={localProfileRole}
             onRoleChange={setLocalProfileRole}
@@ -247,6 +231,7 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
             onProfileNameChange={setLocalProfileName}
             confirmedBirthDate={confirmedBirthDate}
             onConfirmBirthDate={setConfirmedBirthDate}
+            onDemoScenarioApplied={refreshPersistedProfile}
             canResetLocalData={localDataResetEnabled}
             onResetLocalData={resetLocalData}
             onGoHome={goToHome}

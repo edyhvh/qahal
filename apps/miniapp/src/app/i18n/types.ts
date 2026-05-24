@@ -1,5 +1,5 @@
-export type LanguageCode = "en" | "es" | "he";
-export type AppLocale = "en" | "es";
+export type LanguageCode = 'en' | 'es' | 'he';
+export type AppLocale = 'en' | 'es';
 
 export interface Messages {
   common: {
@@ -152,6 +152,15 @@ export interface Messages {
     roleNoneDesc: string;
     roleMemberDesc: string;
     roleLeaderDesc: string;
+    demoScenariosTitle: string;
+    demoScenariosBody: string;
+    demoScenariosPlaceholder: string;
+    demoScenariosLoading: string;
+    demoScenariosApply: string;
+    demoScenariosApplying: string;
+    demoScenariosLoadFailed: string;
+    demoScenariosApplyFailed: string;
+    demoScenariosApplied: string;
     localDataTitle: string;
     localDataBody: string;
     localDataDelete: string;

@@ -1,9 +1,12 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { DemoScenarioDefinition, DemoScenarioId } from '@qahal/shared';
 import { LOCAL_PROFILE_ROLE_OPTIONS, getLocalProfileRoleOption } from '../../app/types';
 import type { LocalProfileRole } from '../../app/types';
 import { getBadgeLocalized, useI18n } from '../../app/i18n';
+import { api } from '../../lib/api';
 
 interface ProfileScreenProps {
+  telegramId: number;
   profileTestingEnabled: boolean;
   localProfileRole: LocalProfileRole;
   onRoleChange: (role: LocalProfileRole) => void;
@@ -13,6 +16,7 @@ interface ProfileScreenProps {
   onProfileNameChange: (name: string) => void;
   confirmedBirthDate: string | null;
   onConfirmBirthDate: (birthDate: string | null) => void;
+  onDemoScenarioApplied: () => void;
   canResetLocalData: boolean;
   onResetLocalData: () => void;
   onGoHome: () => void;
@@ -88,6 +92,7 @@ const ProfileIcon = ({ color }: { color: string }) => (
 );
 
 export const ProfileScreen = ({
+  telegramId,
   profileTestingEnabled,
   localProfileRole,
   onRoleChange,
@@ -97,6 +102,7 @@ export const ProfileScreen = ({
   onProfileNameChange,
   confirmedBirthDate,
   onConfirmBirthDate,
+  onDemoScenarioApplied,
   canResetLocalData,
   onResetLocalData,
   onGoHome,
@@ -108,6 +114,11 @@ export const ProfileScreen = ({
     return parsed === null ? '' : String(parsed);
   });
   const [showAgeConfirmation, setShowAgeConfirmation] = useState(false);
+  const [demoScenarios, setDemoScenarios] = useState<DemoScenarioDefinition[]>([]);
+  const [selectedDemoScenarioId, setSelectedDemoScenarioId] = useState<DemoScenarioId | ''>('');
+  const [demoScenarioLoading, setDemoScenarioLoading] = useState(false);
+  const [demoScenarioApplying, setDemoScenarioApplying] = useState(false);
+  const [demoScenarioStatus, setDemoScenarioStatus] = useState<string | null>(null);
   const birthDateInputRef = useRef<HTMLSelectElement | null>(null);
 
   const roleOption = useMemo(() => getLocalProfileRoleOption(localProfileRole), [localProfileRole]);
@@ -131,6 +142,9 @@ export const ProfileScreen = ({
     }
     return profileQahalName;
   }, [profileQahalName, t]);
+  const selectedDemoScenario = useMemo(() => {
+    return demoScenarios.find((scenario) => scenario.id === selectedDemoScenarioId) ?? null;
+  }, [demoScenarios, selectedDemoScenarioId]);
   const canEditAge = confirmedBirthDate === null;
   const compactCardStyle = {
     borderRadius: 18,
@@ -159,6 +173,52 @@ export const ProfileScreen = ({
     fontWeight: 600,
   };
 
+  useEffect(() => {
+    if (!profileTestingEnabled) {
+      setDemoScenarios([]);
+      setSelectedDemoScenarioId('');
+      setDemoScenarioStatus(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadDemoScenarios = async () => {
+      setDemoScenarioLoading(true);
+      try {
+        const scenarios = await api.listDemoScenarios();
+        if (cancelled) {
+          return;
+        }
+
+        setDemoScenarios(scenarios);
+        setSelectedDemoScenarioId((prev) => {
+          if (prev && scenarios.some((scenario) => scenario.id === prev)) {
+            return prev;
+          }
+          return scenarios[0]?.id ?? '';
+        });
+        setDemoScenarioStatus(null);
+      } catch {
+        if (!cancelled) {
+          setDemoScenarios([]);
+          setSelectedDemoScenarioId('');
+          setDemoScenarioStatus(t.profile.demoScenariosLoadFailed);
+        }
+      } finally {
+        if (!cancelled) {
+          setDemoScenarioLoading(false);
+        }
+      }
+    };
+
+    void loadDemoScenarios();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profileTestingEnabled, t]);
+
   const openAgeConfirmation = () => {
     if (!birthDateDraft) {
       return;
@@ -175,6 +235,27 @@ export const ProfileScreen = ({
   const triggerBirthDatePicker = () => {
     birthDateInputRef.current?.focus();
     birthDateInputRef.current?.click();
+  };
+
+  const applyDemoScenario = async () => {
+    if (!selectedDemoScenarioId) {
+      return;
+    }
+
+    setDemoScenarioApplying(true);
+    setDemoScenarioStatus(null);
+    try {
+      await api.applyDemoScenario({
+        telegramId,
+        scenarioId: selectedDemoScenarioId,
+      });
+      onDemoScenarioApplied();
+      setDemoScenarioStatus(t.profile.demoScenariosApplied);
+    } catch {
+      setDemoScenarioStatus(t.profile.demoScenariosApplyFailed);
+    } finally {
+      setDemoScenarioApplying(false);
+    }
   };
 
   return (
@@ -362,47 +443,131 @@ export const ProfileScreen = ({
           </div>
 
           {profileTestingEnabled ? (
-            <div className="flex flex-col gap-3" style={accentCardStyle}>
-              <div
-                className="qahal-display"
-                style={{ fontSize: 16, color: 'var(--theme-text-primary)', fontWeight: 600 }}
-              >
-                {t.profile.testingRoleTitle}
+            <>
+              <div className="flex flex-col gap-3" style={accentCardStyle}>
+                <div
+                  className="qahal-display"
+                  style={{ fontSize: 16, color: 'var(--theme-text-primary)', fontWeight: 600 }}
+                >
+                  {t.profile.testingRoleTitle}
+                </div>
+                <p style={{ fontSize: 13, color: 'var(--theme-text-secondary)' }}>
+                  {t.profile.testingRoleBody}
+                </p>
+                <div style={innerSurfaceStyle}>
+                  <select
+                    value={localProfileRole}
+                    onChange={(event) => onRoleChange(event.target.value as LocalProfileRole)}
+                    className="w-full"
+                    style={{
+                      height: 38,
+                      border: 'none',
+                      background: 'transparent',
+                      padding: 0,
+                      fontSize: 14,
+                      color: 'var(--theme-text-primary)',
+                      fontWeight: 600,
+                      outline: 'none',
+                    }}
+                  >
+                    {LOCAL_PROFILE_ROLE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.value === 'none'
+                          ? t.profile.roleNone
+                          : option.value === 'member'
+                            ? t.profile.roleMember
+                            : t.profile.roleLeader}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--theme-text-secondary)' }}>
+                  {roleDescriptions[roleOption.value]}
+                </p>
               </div>
-              <p style={{ fontSize: 13, color: 'var(--theme-text-secondary)' }}>
-                {t.profile.testingRoleBody}
-              </p>
-              <div style={innerSurfaceStyle}>
-                <select
-                  value={localProfileRole}
-                  onChange={(event) => onRoleChange(event.target.value as LocalProfileRole)}
-                  className="w-full"
+
+              <div className="flex flex-col gap-3" style={accentCardStyle}>
+                <div
+                  className="qahal-display"
+                  style={{ fontSize: 16, color: 'var(--theme-text-primary)', fontWeight: 600 }}
+                >
+                  {t.profile.demoScenariosTitle}
+                </div>
+                <p style={{ fontSize: 13, color: 'var(--theme-text-secondary)' }}>
+                  {t.profile.demoScenariosBody}
+                </p>
+                <div style={innerSurfaceStyle}>
+                  {demoScenarioLoading ? (
+                    <div
+                      style={{
+                        minHeight: 38,
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontSize: 14,
+                        color: 'var(--theme-text-secondary)',
+                      }}
+                    >
+                      {t.profile.demoScenariosLoading}
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedDemoScenarioId}
+                      onChange={(event) =>
+                        setSelectedDemoScenarioId(event.target.value as DemoScenarioId | '')
+                      }
+                      className="w-full"
+                      style={{
+                        height: 38,
+                        border: 'none',
+                        background: 'transparent',
+                        padding: 0,
+                        fontSize: 14,
+                        color: 'var(--theme-text-primary)',
+                        fontWeight: 600,
+                        outline: 'none',
+                      }}
+                    >
+                      <option value="">{t.profile.demoScenariosPlaceholder}</option>
+                      {demoScenarios.map((scenario) => (
+                        <option key={scenario.id} value={scenario.id}>
+                          {scenario.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                {selectedDemoScenario ? (
+                  <p style={{ fontSize: 12, color: 'var(--theme-text-secondary)' }}>
+                    {selectedDemoScenario.description}
+                  </p>
+                ) : null}
+                {demoScenarioStatus ? (
+                  <p style={{ fontSize: 12, color: 'var(--theme-text-secondary)' }}>
+                    {demoScenarioStatus}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={applyDemoScenario}
+                  disabled={demoScenarioLoading || demoScenarioApplying || !selectedDemoScenarioId}
+                  className="flex items-center justify-center"
                   style={{
-                    height: 38,
-                    border: 'none',
-                    background: 'transparent',
-                    padding: 0,
-                    fontSize: 14,
-                    color: 'var(--theme-text-primary)',
-                    fontWeight: 600,
-                    outline: 'none',
+                    ...neutralActionStyle,
+                    height: 40,
+                    color:
+                      demoScenarioLoading || demoScenarioApplying || !selectedDemoScenarioId
+                        ? 'var(--theme-text-secondary)'
+                        : 'var(--brand-accent)',
+                    border: '1px solid rgba(125, 90, 242, 0.14)',
+                    background: 'var(--theme-bg-main)',
                   }}
                 >
-                  {LOCAL_PROFILE_ROLE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.value === 'none'
-                        ? t.profile.roleNone
-                        : option.value === 'member'
-                          ? t.profile.roleMember
-                          : t.profile.roleLeader}
-                    </option>
-                  ))}
-                </select>
+                  {demoScenarioApplying
+                    ? t.profile.demoScenariosApplying
+                    : t.profile.demoScenariosApply}
+                </button>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--theme-text-secondary)' }}>
-                {roleDescriptions[roleOption.value]}
-              </p>
-            </div>
+            </>
           ) : null}
 
           {canResetLocalData ? (
