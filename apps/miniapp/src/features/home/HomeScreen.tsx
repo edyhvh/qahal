@@ -80,6 +80,82 @@ const SettingsIcon = () => (
   </svg>
 );
 
+const BadgeInfoModal = ({
+  badge,
+  closeLabel,
+  onClose,
+}: {
+  badge: { name: string; desc: string } | null;
+  closeLabel: string;
+  onClose: () => void;
+}) => {
+  if (!badge) {
+    return null;
+  }
+
+  return (
+    <div
+      className="absolute inset-0 z-40 flex items-center justify-center bg-black/30 px-[24px]"
+      onClick={onClose}
+    >
+      <div
+        className="flex w-[300px] flex-col items-center gap-[18px] text-center"
+        style={{
+          background: 'var(--theme-card-bg)',
+          borderRadius: 24,
+          border: '1px solid var(--theme-card-border)',
+          boxShadow: 'var(--theme-card-shadow)',
+          padding: '28px 24px 24px',
+        }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div
+          className="flex items-center justify-center rounded-full"
+          style={{
+            width: 52,
+            height: 52,
+            background: 'rgba(125, 90, 242, 0.08)',
+            border: '1px solid rgba(125, 90, 242, 0.14)',
+            color: 'var(--brand-accent)',
+            fontSize: 22,
+            fontWeight: 700,
+          }}
+        >
+          i
+        </div>
+
+        <h3
+          className="qahal-display"
+          style={{ fontSize: 22, fontWeight: 600, color: 'var(--theme-text-primary)' }}
+        >
+          {badge.name}
+        </h3>
+
+        <p style={{ fontSize: 14, lineHeight: '20px', color: 'var(--theme-text-secondary)' }}>
+          {badge.desc}
+        </p>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex w-full items-center justify-center"
+          style={{
+            height: 44,
+            borderRadius: 14,
+            background: 'transparent',
+            border: '1px solid var(--theme-surface-warm-border)',
+            fontSize: 14,
+            fontWeight: 600,
+            color: 'var(--theme-text-primary)',
+          }}
+        >
+          {closeLabel}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const HomeScreen = ({
   variant,
   communities,
@@ -95,6 +171,7 @@ export const HomeScreen = ({
   const [requestedCommunityIds, setRequestedCommunityIds] = useState<Set<number>>(new Set());
   const [memberCommunityIds, setMemberCommunityIds] = useState<Set<number>>(new Set());
   const [showToast, setShowToast] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<{ name: string; desc: string } | null>(null);
   useEffect(() => {
     if (hasRequestedLocationPermission.current) {
       return;
@@ -608,22 +685,44 @@ export const HomeScreen = ({
                     >
                       {badge.name}
                     </div>
-                    <div style={{ fontSize: 11.5, color: homeCardMutedColor, marginTop: 2 }}>
-                      {badge.desc}
-                    </div>
                   </div>
-                  {earned && (
-                    <div
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px]"
+
+                  <div className="flex shrink-0 items-center gap-2">
+                    {earned ? (
+                      <div
+                        className="flex items-center justify-center rounded-full px-[10px]"
+                        style={{
+                          height: 28,
+                          background: 'rgba(125, 90, 242, 0.08)',
+                          border: '1px solid rgba(125, 90, 242, 0.14)',
+                          color: 'var(--brand-accent)',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        {t.home.earnedSuffix}
+                      </div>
+                    ) : null}
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBadge({ name: badge.name, desc: badge.desc })}
+                      className="flex items-center justify-center rounded-full"
                       style={{
-                        background: 'rgba(125, 90, 242, 0.08)',
+                        width: 28,
+                        height: 28,
+                        background: 'var(--theme-bg-main)',
+                        border: '1px solid var(--theme-surface-warm-border)',
                         color: 'var(--brand-accent)',
+                        fontSize: 13,
                         fontWeight: 700,
                       }}
+                      aria-label={badge.name}
                     >
-                      ✓
-                    </div>
-                  )}
+                      i
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -726,6 +825,12 @@ export const HomeScreen = ({
       </div>
 
       <HomePopups variant={variant} onClose={() => onVariantChange('default')} />
+
+      <BadgeInfoModal
+        badge={selectedBadge}
+        closeLabel={t.common.close}
+        onClose={() => setSelectedBadge(null)}
+      />
 
       <JoinRequestToast visible={showToast} />
     </section>
