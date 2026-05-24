@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CommunityCard, OnboardingSubmit } from "@qahal/shared";
+import type {
+  CommunityCard,
+  EmunahState,
+  OnboardingSubmit,
+} from "@qahal/shared";
 import { getLocalProfileRoleOption } from "./types";
 import type {
   AppFlowState,
@@ -18,6 +22,7 @@ import {
 import { isProfileTestingEnabled } from "../lib/env";
 
 const TOTAL_QUESTION_STEPS = 9;
+const STARTING_QUESTION_STEPS = 4;
 const EMUNAH_BADGE_LABEL = "Emunah";
 
 const resolveLanguageCode = (value: unknown): "en" | "es" | "he" => {
@@ -25,6 +30,10 @@ const resolveLanguageCode = (value: unknown): "en" | "es" | "he" => {
     return value;
   }
   return "en";
+};
+
+const isEmunahState = (value: unknown): value is EmunahState => {
+  return value === "leader" || value === "experienced" || value === "starting";
 };
 
 const DEFAULT_ROLE_DISPLAY_NAMES = [
@@ -115,6 +124,7 @@ export const useAppFlow = () => {
       cityLatitude: undefined,
       cityLongitude: undefined,
       languageCode: getInitialLanguageCode(),
+      emunahState: undefined,
     },
     mapVariant: "allowed",
     homeVariant: "default",
@@ -140,6 +150,8 @@ export const useAppFlow = () => {
   const [persistedCanManageQahal, setPersistedCanManageQahal] = useState<
     boolean | null
   >(null);
+  const [persistedEmunahLevelApproved, setPersistedEmunahLevelApproved] =
+    useState(false);
   const [persistedManagedCommunityId, setPersistedManagedCommunityId] =
     useState<number | null>(null);
   const [managedCommunity, setManagedCommunity] = useState<ManagedCommunity | null>(
@@ -245,6 +257,11 @@ export const useAppFlow = () => {
             ? user.canManageQahal
             : null,
         );
+        setPersistedEmunahLevelApproved(
+          typeof user.emunahLevelApproved === "boolean"
+            ? user.emunahLevelApproved
+            : false,
+        );
         setPersistedCanCreateQahal(
           typeof user.canCreateQahal === "boolean"
             ? user.canCreateQahal
@@ -282,6 +299,9 @@ export const useAppFlow = () => {
               user.languageCode === "en"
                 ? user.languageCode
                 : prev.answers.languageCode,
+            emunahState: isEmunahState(user.emunahState)
+              ? user.emunahState
+              : prev.answers.emunahState,
             cityLatitude:
               typeof user.latestLatitude === "number"
                 ? user.latestLatitude
@@ -338,6 +358,11 @@ export const useAppFlow = () => {
       fallbackName ||
       onboardingName ||
       getLocalProfileRoleOption("none").defaultDisplayName;
+    const emunahState = state.answers.emunahState;
+    const emunahLevelApproved =
+      emunahState === "leader" ? persistedEmunahLevelApproved : true;
+    const leaderApprovalPending =
+      emunahState === "leader" && !emunahLevelApproved;
 
     if (profileTestingEnabled) {
       if (localProfileRole === "none") {
@@ -347,9 +372,11 @@ export const useAppFlow = () => {
           qahalName: noCongregation.qahalName,
           badges: mergeUniqueBadges(persistedBadges),
           hasCongregation: false,
-          canCreateQahal: true,
+          canCreateQahal: !leaderApprovalPending,
           canManageQahal: false,
           managedCommunityId: null,
+          emunahState,
+          emunahLevelApproved,
         };
       }
 
@@ -367,6 +394,8 @@ export const useAppFlow = () => {
         canCreateQahal: false,
         canManageQahal,
         managedCommunityId,
+        emunahState,
+        emunahLevelApproved,
       };
     }
 
@@ -377,10 +406,13 @@ export const useAppFlow = () => {
       persistedCanManageQahal === true ||
       (typeof persistedManagedCommunityId === "number" &&
         persistedManagedCommunityId > 0);
+
     const canCreateQahal =
       typeof persistedCanCreateQahal === "boolean"
-        ? persistedCanCreateQahal
-        : !memberCommunity && !canManageQahal;
+        ? persistedCanCreateQahal && !leaderApprovalPending
+        : !memberCommunity &&
+          !canManageQahal &&
+          !leaderApprovalPending;
 
     if (memberCommunity) {
       return {
@@ -394,6 +426,8 @@ export const useAppFlow = () => {
         canCreateQahal,
         canManageQahal,
         managedCommunityId: persistedManagedCommunityId,
+        emunahState,
+        emunahLevelApproved,
       };
     }
 
@@ -407,6 +441,8 @@ export const useAppFlow = () => {
       canCreateQahal,
       canManageQahal,
       managedCommunityId: persistedManagedCommunityId,
+      emunahState,
+      emunahLevelApproved,
     };
   }, [
     communities,
@@ -415,18 +451,32 @@ export const useAppFlow = () => {
     persistedBadges,
     persistedCanCreateQahal,
     persistedCanManageQahal,
+    persistedEmunahLevelApproved,
     persistedManagedCommunityId,
     persistedQahalName,
     profileTestingEnabled,
     state.answers.firstName,
+    state.answers.emunahState,
   ]);
 
+  const isStartingUser = state.answers.emunahState === "starting";
+  const currentTotalSteps = isStartingUser ? STARTING_QUESTION_STEPS : TOTAL_QUESTION_STEPS;
+
   const questionProgress = useMemo(() => {
-    return `${state.questionStep + 1}/${TOTAL_QUESTION_STEPS}`;
-  }, [state.questionStep]);
+    return `${state.questionStep + 1}/${currentTotalSteps}`;
+  }, [state.questionStep, currentTotalSteps]);
 
   const startQuestions = () => {
-    setState((prev) => ({ ...prev, screen: "onboarding-questions" }));
+    setState((prev) => ({ ...prev, screen: "onboarding-state" }));
+  };
+
+  const selectEmunahState = (emunahState: EmunahState) => {
+    setState((prev) => ({
+      ...prev,
+      answers: { ...prev.answers, emunahState },
+      screen: "onboarding-questions",
+      questionStep: 0,
+    }));
   };
 
   const answerQuestion = (value: string) => {
@@ -444,15 +494,17 @@ export const useAppFlow = () => {
 
   const nextQuestion = () => {
     setState((prev) => {
+      const isStarting = prev.answers.emunahState === "starting";
+      const maxSteps = isStarting ? STARTING_QUESTION_STEPS : TOTAL_QUESTION_STEPS;
       const currentAnswer = prev.answers.values[prev.questionStep];
 
       // Answered "no" → jump to disagreement screen (last step)
       if (currentAnswer === "no") {
-        return { ...prev, questionStep: TOTAL_QUESTION_STEPS - 1 };
+        return { ...prev, questionStep: maxSteps - 1 };
       }
 
       // Last real question answered "yes" → proceed to data screen
-      if (prev.questionStep >= TOTAL_QUESTION_STEPS - 2) {
+      if (prev.questionStep >= maxSteps - 2) {
         return { ...prev, screen: "onboarding-data" };
       }
 
@@ -526,6 +578,10 @@ export const useAppFlow = () => {
       ),
     };
 
+    if (state.answers.emunahState) {
+      payload.emunahState = state.answers.emunahState;
+    }
+
     if (finalCity) {
       payload.city = finalCity;
     }
@@ -548,6 +604,18 @@ export const useAppFlow = () => {
               ? mergeUniqueBadges(prev, userBadges, [EMUNAH_BADGE_LABEL])
               : mergeUniqueBadges(prev, userBadges),
           );
+        }
+        if (typeof onboarding.user?.emunahLevelApproved === "boolean") {
+          setPersistedEmunahLevelApproved(onboarding.user.emunahLevelApproved);
+        }
+        if (typeof onboarding.user?.canCreateQahal === "boolean") {
+          setPersistedCanCreateQahal(onboarding.user.canCreateQahal);
+        }
+        if (typeof onboarding.user?.canManageQahal === "boolean") {
+          setPersistedCanManageQahal(onboarding.user.canManageQahal);
+        }
+        if (typeof onboarding.user?.managedCommunityId === "number") {
+          setPersistedManagedCommunityId(onboarding.user.managedCommunityId);
         }
         if (typeof onboarding.user?.qahalName === "string") {
           setPersistedQahalName(onboarding.user.qahalName);
@@ -724,6 +792,7 @@ export const useAppFlow = () => {
     confirmedBirthDate,
     questionProgress,
     startQuestions,
+    selectEmunahState,
     answerQuestion,
     nextQuestion,
     previousQuestion,

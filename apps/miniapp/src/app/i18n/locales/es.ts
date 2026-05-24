@@ -91,6 +91,10 @@ export const esMessages: Messages = {
   },
   home: {
     title: "Inicio",
+    startingNotice:
+      "Un líder de tu país se pondrá en contacto contigo pronto.",
+    leaderApprovalNotice:
+      "Para liderar una congregación, primero debes reunirte con los líderes de las congregaciones de tu país. Un líder nacional se pondrá en contacto contigo.",
     createQahalTitle: "Crear un Qahal",
     createQahalBody: "Inicia una nueva congregación en tu zona",
     createQahalCta: "Iniciar Nueva Congregación",
@@ -102,6 +106,7 @@ export const esMessages: Messages = {
     member: "Miembro",
     contact: "Contactar",
     join: "Unirme",
+    joinBlocked: "Espera al líder",
     requested: "Solicitado",
     undoRequest: "Deshacer solicitud",
     badgesTitle: "Insignias",
@@ -161,6 +166,7 @@ export const esMessages: Messages = {
       "Comparte tu ubicación para ver quién camina en Emunah cerca de ti.",
     noPermissionCta: "Activar Ubicación",
     telegramMessage: "Enviar mensaje por Telegram",
+    contactBlocked: "Espera al líder",
     yearsInEmunahShort: (years) => `${years} años Emunah`,
   },
   profile: {

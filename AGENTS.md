@@ -104,19 +104,18 @@ This is **non-negotiable**. Read `docs/product/cloudflare-go-live.md` for deploy
 
 ---
 
-## 5. Design Language
+## 5. Design System
 
-- **Always** use the "vintage nautical parchment" design language.
-- **Never** use cold, modern, or corporate map styles.
-- Map experience must be beautiful, warm, and inviting.
-- Mobile-first layouts only.
-- Fast, clear, low-friction flows.
-- All code, comments, and documentation are written **in English**.
-- Prioritize safety, privacy, and respectful community moderation.
+**DESIGN.md is the single source of truth** for all visual, branding, typography, color, and component decisions.
+
+- When making any UI, styling, or branding changes, **always consult and follow DESIGN.md**.
+- The previous "vintage nautical parchment" language is superseded by the new brand defined in DESIGN.md (Hebrew Qof symbol, purple/navy/light palette, Playfair Display + Inter typography).
+- All new components and screens must use the tokens, spacing, and principles defined in DESIGN.md.
+- Dark mode and Hebrew typography support must follow the specifications in DESIGN.md.
 
 ---
 
-## 6. File Naming Conventions
+## 7. File Naming Conventions
 
 | Type               | Pattern                                     | Example             |
 | ------------------ | ------------------------------------------- | ------------------- |
@@ -128,7 +127,7 @@ This is **non-negotiable**. Read `docs/product/cloudflare-go-live.md` for deploy
 
 ---
 
-## 7. Performance Targets
+## 8. Performance Targets
 
 | Metric                    | Target                            |
 | ------------------------- | --------------------------------- |
@@ -139,7 +138,7 @@ This is **non-negotiable**. Read `docs/product/cloudflare-go-live.md` for deploy
 
 ---
 
-## 8. Quality Gate (before merge to `main`)
+## 9. Quality Gate (before merge to `main`)
 
 1. `bun install` passes.
 2. `bun run check` passes (TypeScript typecheck across workspaces).
@@ -149,7 +148,7 @@ This is **non-negotiable**. Read `docs/product/cloudflare-go-live.md` for deploy
 
 ---
 
-## 9. Paper-to-Code Workflow
+## 10. Paper-to-Code Workflow
 
 When implementing from paper designs, wireframes, or MCP paper output:
 
@@ -161,7 +160,7 @@ When implementing from paper designs, wireframes, or MCP paper output:
 
 ---
 
-## 10. Security & Privacy
+## 11. Security & Privacy
 
 - Treat user location and profile data as sensitive.
 - Minimize stored personal data.
@@ -171,7 +170,7 @@ When implementing from paper designs, wireframes, or MCP paper output:
 
 ---
 
-## 11. Useful Reference
+## 12. Useful Reference
 
 - Telegram Mini Apps docs: https://core.telegram.org/bots/webapps
 - TelegramUI docs: https://docs.ton.org/ecosystem/tma/telegram-ui/overview

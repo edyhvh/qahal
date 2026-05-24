@@ -33,6 +33,10 @@ const hasD1 = (db: unknown): db is D1Like => {
   return typeof db === "object" && db !== null && "prepare" in db;
 };
 
+const normalizeApprovalFlag = (value: unknown): boolean => {
+  return value === true || value === 1 || value === "1";
+};
+
 const distanceKm = (
   fromLat: number,
   fromLng: number,
@@ -86,11 +90,36 @@ const resolveUserCommunityCapabilities = async (
       .bind(telegramId)
       .first<ManagedRow>(),
   ]);
+  let leaderApprovalPending = false;
+
+  try {
+    type ApprovalRow = {
+      emunahState: string | null;
+      emunahLevelApproved: number | boolean | null;
+    };
+
+    const approvalState = await db
+      .prepare(
+        `SELECT emunah_state as emunahState,
+                emunah_level_approved as emunahLevelApproved
+         FROM users
+         WHERE telegram_id = ?1
+         LIMIT 1`,
+      )
+      .bind(telegramId)
+      .first<ApprovalRow>();
+
+    leaderApprovalPending =
+      approvalState?.emunahState === "leader" &&
+      !normalizeApprovalFlag(approvalState.emunahLevelApproved);
+  } catch {
+    leaderApprovalPending = false;
+  }
 
   const hasMemberCommunity = Number(memberRows?.count ?? 0) > 0;
 
   return {
-    canCreateQahal: !hasMemberCommunity && !managedCommunity,
+    canCreateQahal: !hasMemberCommunity && !managedCommunity && !leaderApprovalPending,
     managedCommunityId: managedCommunity?.communityId ?? null,
   };
 };

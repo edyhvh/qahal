@@ -19,6 +19,18 @@ const hasD1 = (db: unknown): db is D1Like => {
 
 const EMUNAH_BADGE = { key: "emunah", label: "Emunah" };
 
+const normalizeEmunahState = (
+  value: unknown,
+): "leader" | "experienced" | "starting" | undefined => {
+  return value === "leader" || value === "experienced" || value === "starting"
+    ? value
+    : undefined;
+};
+
+const normalizeApprovalFlag = (value: unknown): boolean => {
+  return value === true || value === 1 || value === "1";
+};
+
 const shouldGrantEmunahBadge = (
   answers: Record<string, string> | undefined,
 ): boolean => {
@@ -81,6 +93,8 @@ const selectUserBase = async (
               language_code as languageCode,
               city,
               birth_date as birthDate,
+            emunah_state as emunahState,
+            emunah_level_approved as emunahLevelApproved,
               created_at as createdAt,
               onboarding_completed as onboardingCompleted
        FROM users
@@ -112,6 +126,8 @@ const selectUserBase = async (
       ...legacyUser,
       city: null,
       birthDate: null,
+      emunahState: null,
+      emunahLevelApproved: null,
       onboardingCompleted: false,
     };
   }
@@ -275,6 +291,11 @@ const selectUser = async (
     selectLatestLocation(db, telegramId),
     selectUserCommunityCapabilities(db, telegramId),
   ]);
+  const emunahState = normalizeEmunahState(base.emunahState);
+  const emunahLevelApproved =
+    emunahState === "leader"
+      ? normalizeApprovalFlag(base.emunahLevelApproved)
+      : true;
 
   const badgesSet = new Set<string>(baseBadges);
 
@@ -301,11 +322,14 @@ const selectUser = async (
 
   return {
     ...base,
+    emunahState,
+    emunahLevelApproved,
     badges: Array.from(badgesSet),
     qahalName,
     managedCommunityId: capabilities.managedCommunityId,
     canManageQahal: capabilities.canManageQahal,
-    canCreateQahal: capabilities.canCreateQahal,
+    canCreateQahal:
+      capabilities.canCreateQahal && !(emunahState === "leader" && !emunahLevelApproved),
     ...latestLocation,
   };
 };
@@ -371,7 +395,7 @@ usersRoute.post("/onboarding", async (c) => {
     return c.json({ ok: false, error: "invalid_payload" }, 400);
   }
 
-  const { telegramId, firstName, city, languageCode, answers } = parsed.data;
+  const { telegramId, firstName, city, languageCode, emunahState, answers } = parsed.data;
   const identity = await requireTelegramIdentity(c, telegramId);
   if (!identity.ok) {
     return c.json({ ok: false, error: identity.error }, identity.status);
@@ -379,6 +403,7 @@ usersRoute.post("/onboarding", async (c) => {
 
   const effectiveTelegramId = identity.telegramId;
   const grantEmunah = shouldGrantEmunahBadge(answers);
+  const initialApproval = emunahState === "leader" ? 0 : 1;
   const normalizedCity =
     typeof city === "string" && city.trim().length > 0 ? city.trim() : null;
 
@@ -390,6 +415,8 @@ usersRoute.post("/onboarding", async (c) => {
         firstName,
         city: normalizedCity ?? undefined,
         languageCode,
+        emunahState,
+        emunahLevelApproved: initialApproval === 1,
         onboardingCompleted: true,
         badges: grantEmunah ? [EMUNAH_BADGE.label] : [],
       },
@@ -398,16 +425,39 @@ usersRoute.post("/onboarding", async (c) => {
 
   try {
     await c.env.DB.prepare(
-      `INSERT INTO users (telegram_id, first_name, city, language_code, onboarding_completed)
-       VALUES (?1, ?2, ?3, ?4, 1)
+      `INSERT INTO users (
+         telegram_id,
+         first_name,
+         city,
+         language_code,
+         emunah_state,
+         emunah_level_approved,
+         onboarding_completed
+       )
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, 1)
        ON CONFLICT(telegram_id) DO UPDATE SET
          first_name=excluded.first_name,
          city=excluded.city,
          language_code=excluded.language_code,
+         emunah_state=excluded.emunah_state,
+         emunah_level_approved=CASE
+           WHEN excluded.emunah_state = 'leader' AND users.emunah_state = 'leader'
+             THEN COALESCE(users.emunah_level_approved, 0)
+           WHEN excluded.emunah_state = 'leader'
+             THEN 0
+           ELSE 1
+         END,
          onboarding_completed=1,
          updated_at=CURRENT_TIMESTAMP`,
     )
-      .bind(effectiveTelegramId, firstName, normalizedCity, languageCode)
+      .bind(
+        effectiveTelegramId,
+        firstName,
+        normalizedCity,
+        languageCode,
+        emunahState ?? null,
+        initialApproval,
+      )
       .run();
 
     await upsertOnboardingAnswers(c.env.DB, effectiveTelegramId, answers);
@@ -440,6 +490,8 @@ usersRoute.post("/onboarding", async (c) => {
           firstName,
           city: normalizedCity ?? undefined,
           languageCode,
+          emunahState,
+          emunahLevelApproved: initialApproval === 1,
           onboardingCompleted: true,
           badges: grantEmunah ? [EMUNAH_BADGE.label] : [],
         },

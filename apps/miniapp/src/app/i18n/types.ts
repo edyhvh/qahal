@@ -65,6 +65,8 @@ export interface Messages {
   };
   home: {
     title: string;
+    startingNotice: string;
+    leaderApprovalNotice: string;
     createQahalTitle: string;
     createQahalBody: string;
     createQahalCta: string;
@@ -76,6 +78,7 @@ export interface Messages {
     member: string;
     contact: string;
     join: string;
+    joinBlocked: string;
     requested: string;
     undoRequest: string;
     badgesTitle: string;
@@ -128,6 +131,7 @@ export interface Messages {
     noPermissionBody: string;
     noPermissionCta: string;
     telegramMessage: string;
+    contactBlocked: string;
     yearsInEmunahShort: (years: number) => string;
   };
   profile: {

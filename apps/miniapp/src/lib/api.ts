@@ -1,6 +1,7 @@
 import type {
   CommunityManageResponse,
   CitySearchResponse,
+  EmunahState,
   LocationSave,
   MeetingSlotsUpsert,
   NearbyResponse,
@@ -131,6 +132,8 @@ export interface UserApiProfile {
   languageCode?: string;
   onboardingCompleted?: boolean;
   birthDate?: string;
+  emunahState?: EmunahState;
+  emunahLevelApproved?: boolean;
   badges?: string[];
   qahalName?: string;
   managedCommunityId?: number;

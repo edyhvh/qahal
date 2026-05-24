@@ -1,10 +1,13 @@
 import { z } from "zod";
 
+export const emunahStateSchema = z.enum(["leader", "experienced", "starting"]);
+
 export const onboardingSubmitSchema = z.object({
   telegramId: z.number().int().positive(),
   firstName: z.string().min(1).max(80),
   city: z.string().trim().min(1).max(120).optional(),
   languageCode: z.enum(["en", "es", "he"]).default("en"),
+  emunahState: emunahStateSchema.optional(),
   answers: z.record(z.string().min(1), z.string().min(1).max(16)).optional(),
 });
 
@@ -139,6 +142,7 @@ export const addCommunityMemberByUsernameSchema = z.object({
     .regex(/^[a-zA-Z0-9_]+$/),
 });
 
+  export type EmunahState = z.infer<typeof emunahStateSchema>;
 export type OnboardingSubmit = z.infer<typeof onboardingSubmitSchema>;
 export type LocationUpsert = z.infer<typeof locationUpsertSchema>;
 export type CitySearchQuery = z.infer<typeof citySearchQuerySchema>;

@@ -2,6 +2,7 @@ import "leaflet/dist/leaflet.css";
 import "@telegram-apps/telegram-ui/dist/styles.css";
 import "./styles/index.css";
 
+import { AppRoot } from "@telegram-apps/telegram-ui";
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
@@ -46,7 +47,11 @@ function Bootstrap() {
     writeStoredThemeMode(themeMode);
   }, [themeMode]);
 
-  return <App themeMode={themeMode} onThemeChange={setThemeMode} />;
+  return (
+    <AppRoot appearance={themeMode}>
+      <App themeMode={themeMode} onThemeChange={setThemeMode} />
+    </AppRoot>
+  );
 }
 
 const root = document.getElementById("root");

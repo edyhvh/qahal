@@ -90,6 +90,9 @@ export const enMessages: Messages = {
   },
   home: {
     title: "Home",
+    startingNotice: "A community leader from your country will contact you soon.",
+    leaderApprovalNotice:
+      "To lead a congregation, you must first meet with the leaders of the congregations in your country. A national leader will contact you.",
     createQahalTitle: "Create a Qahal",
     createQahalBody: "Start a new congregation in your area",
     createQahalCta: "Start New Congregation",
@@ -101,6 +104,7 @@ export const enMessages: Messages = {
     member: "Member",
     contact: "Contact",
     join: "Join",
+    joinBlocked: "Wait for Leader",
     requested: "Requested",
     undoRequest: "Undo Request",
     badgesTitle: "Badges",
@@ -159,6 +163,7 @@ export const enMessages: Messages = {
       "Share your location to see who walks in Emunah near you.",
     noPermissionCta: "Enable Location",
     telegramMessage: "Message on Telegram",
+    contactBlocked: "Wait for Leader",
     yearsInEmunahShort: (years) => `${years}y Emunah`,
   },
   profile: {
