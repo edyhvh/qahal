@@ -178,7 +178,7 @@ export const ProfileScreen = ({
   };
 
   return (
-    <section className="relative flex min-h-[100dvh] flex-col overflow-hidden">
+    <section className="relative flex h-[100dvh] flex-col overflow-hidden">
       {/* Solid warm background (pure, no radial overlays) */}
       <div
         className="absolute inset-0"
