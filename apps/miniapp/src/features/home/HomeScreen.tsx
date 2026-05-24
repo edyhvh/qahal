@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { CommunityCard } from "@qahal/shared";
-import { resolveBadgeDefinition } from "../../app/types";
-import type { EffectiveProfileSnapshot, HomeVariant } from "../../app/types";
-import { getBadgeLocalized, useI18n } from "../../app/i18n";
-import { HomePopups } from "./components/HomePopups";
-import { JoinRequestToast } from "./components/JoinRequestToast";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CommunityCard } from '@qahal/shared';
+import { resolveBadgeDefinition } from '../../app/types';
+import type { EffectiveProfileSnapshot, HomeVariant } from '../../app/types';
+import { getBadgeLocalized, useI18n } from '../../app/i18n';
+import { HomePopups } from './components/HomePopups';
+import { JoinRequestToast } from './components/JoinRequestToast';
 
 interface HomeScreenProps {
   variant: HomeVariant;
@@ -60,24 +60,19 @@ const ProfileIcon = ({ color }: { color: string }) => (
 );
 const PlusIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <path
-      d="M12 5V19M5 12H19"
-      stroke="#F5F0E8"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
+    <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
 const SettingsIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
     <path
       d="M12 15.5C13.933 15.5 15.5 13.933 15.5 12C15.5 10.067 13.933 8.5 12 8.5C10.067 8.5 8.5 10.067 8.5 12C8.5 13.933 10.067 15.5 12 15.5Z"
-      stroke="#F5F0E8"
+      stroke="currentColor"
       strokeWidth="1.8"
     />
     <path
       d="M19.4 15A1.65 1.65 0 0 0 19.73 16.82L19.79 16.88A2 2 0 1 1 16.96 19.71L16.9 19.65A1.65 1.65 0 0 0 15.08 19.32A1.65 1.65 0 0 0 14 20.83V21A2 2 0 1 1 10 21V20.91A1.65 1.65 0 0 0 8.92 19.4A1.65 1.65 0 0 0 7.1 19.73L7.04 19.79A2 2 0 1 1 4.21 16.96L4.27 16.9A1.65 1.65 0 0 0 4.6 15.08A1.65 1.65 0 0 0 3.09 14H3A2 2 0 1 1 3 10H3.09A1.65 1.65 0 0 0 4.6 8.92A1.65 1.65 0 0 0 4.27 7.1L4.21 7.04A2 2 0 1 1 7.04 4.21L7.1 4.27A1.65 1.65 0 0 0 8.92 4.6H9A1.65 1.65 0 0 0 10 3.09V3A2 2 0 1 1 14 3V3.09A1.65 1.65 0 0 0 15.08 4.6A1.65 1.65 0 0 0 16.9 4.27L16.96 4.21A2 2 0 1 1 19.79 7.04L19.73 7.1A1.65 1.65 0 0 0 19.4 8.92V9A1.65 1.65 0 0 0 20.91 10H21A2 2 0 1 1 21 14H20.91A1.65 1.65 0 0 0 19.4 15Z"
-      stroke="#F5F0E8"
+      stroke="currentColor"
       strokeWidth="1.4"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -97,12 +92,8 @@ export const HomeScreen = ({
 }: HomeScreenProps) => {
   const { t } = useI18n();
   const hasRequestedLocationPermission = useRef(false);
-  const [requestedCommunityIds, setRequestedCommunityIds] = useState<
-    Set<number>
-  >(new Set());
-  const [memberCommunityIds, setMemberCommunityIds] = useState<Set<number>>(
-    new Set(),
-  );
+  const [requestedCommunityIds, setRequestedCommunityIds] = useState<Set<number>>(new Set());
+  const [memberCommunityIds, setMemberCommunityIds] = useState<Set<number>>(new Set());
   const [showToast, setShowToast] = useState(false);
   useEffect(() => {
     if (hasRequestedLocationPermission.current) {
@@ -111,7 +102,7 @@ export const HomeScreen = ({
 
     hasRequestedLocationPermission.current = true;
 
-    if (!("geolocation" in navigator) || !window.isSecureContext) {
+    if (!('geolocation' in navigator) || !window.isSecureContext) {
       return;
     }
 
@@ -134,10 +125,10 @@ export const HomeScreen = ({
     const initiallyRequested = new Set<number>();
     const initiallyMember = new Set<number>();
     for (const community of communities) {
-      if (community.memberState === "requested") {
+      if (community.memberState === 'requested') {
         initiallyRequested.add(community.id);
       }
-      if (community.memberState === "member") {
+      if (community.memberState === 'member') {
         initiallyMember.add(community.id);
       }
     }
@@ -158,8 +149,8 @@ export const HomeScreen = ({
 
     const timeoutId = window.setTimeout(() => {
       setShowToast(false);
-      if (variant === "join-requested") {
-        onVariantChange("default");
+      if (variant === 'join-requested') {
+        onVariantChange('default');
       }
     }, 2200);
 
@@ -171,7 +162,7 @@ export const HomeScreen = ({
       if (memberCommunityIds.has(community.id)) {
         return {
           ...community,
-          memberState: "member" as const,
+          memberState: 'member' as const,
         };
       }
 
@@ -182,15 +173,20 @@ export const HomeScreen = ({
 
       return {
         ...community,
-        memberState: "requested" as const,
+        memberState: 'requested' as const,
       };
     });
   }, [communities, requestedCommunityIds, memberCommunityIds]);
 
   const badgeShowcase = useMemo(() => {
-    return ["Emunah", "Kehilah", "Years in Emunah (0)", "Messenger", "Hebrew Teacher", "Hebrew Student"].map(
-      (badgeName) => getBadgeLocalized(t, badgeName),
-    );
+    return [
+      'Emunah',
+      'Kehilah',
+      'Years in Emunah (0)',
+      'Messenger',
+      'Hebrew Teacher',
+      'Hebrew Student',
+    ].map((badgeName) => getBadgeLocalized(t, badgeName));
   }, [t]);
 
   const earnedBadgeKinds = useMemo(() => {
@@ -203,85 +199,142 @@ export const HomeScreen = ({
 
   const showManageCard = effectiveProfile.canManageQahal;
   const showCreateCard = !showManageCard && effectiveProfile.canCreateQahal;
+  const isStartingUser = effectiveProfile.emunahState === 'starting';
+  const leaderApprovalPending =
+    effectiveProfile.emunahState === 'leader' && !effectiveProfile.emunahLevelApproved;
+  const homeCardTextColor = 'var(--theme-text-primary)';
+  const homeCardMutedColor = 'var(--theme-text-secondary)';
+  const compactCardStyle = (borderColor: string, background = 'var(--theme-card-bg)') => ({
+    borderRadius: 18,
+    padding: '18px',
+    background,
+    border: `1px solid ${borderColor}`,
+    boxShadow: '0 4px 14px rgba(30, 24, 18, 0.04)',
+  });
+  const compactCreateCardStyle = compactCardStyle('rgba(125, 90, 242, 0.16)');
+  const compactNearCardStyle = compactCardStyle(
+    'rgba(9, 25, 77, 0.08)',
+    'var(--theme-surface-warm-muted)',
+  );
+  const compactBadgeCardStyle = compactCardStyle('rgba(92, 77, 217, 0.14)');
+  const homeCardPanelStyle = {
+    background: 'var(--theme-bg-main)',
+    border: '1px solid var(--theme-surface-warm-border)',
+  };
+  const homeCardPrimaryActionStyle = {
+    background: 'var(--theme-button-primary-bg)',
+    border: '1px solid var(--theme-button-primary-border)',
+    color: 'var(--theme-button-primary-text)',
+  };
+  const homeCardSecondaryActionStyle = {
+    background: 'transparent',
+    border: '1px solid var(--theme-surface-warm-border)',
+    color: 'var(--theme-text-primary)',
+  };
+  const homeCardTertiaryActionStyle = {
+    background: 'rgba(125, 90, 242, 0.08)',
+    border: '1px solid rgba(125, 90, 242, 0.14)',
+    color: 'var(--brand-accent)',
+  };
 
   return (
     <section className="relative flex h-[100dvh] flex-col overflow-hidden">
-      {/* Paper 4RR-0: light parchment gradient background */}
+      {/* Solid warm background (pure, no radial overlays) */}
       <div
         className="absolute inset-0"
         style={{
-          background: "var(--theme-bg-main)",
-        }}
-      />
-      {/* Paper 4RS-0: warm radial overlays */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "var(--theme-bg-overlay)",
+          background: 'var(--theme-bg-main)',
         }}
       />
 
       {/* Scrollable content */}
       <div className="relative z-10 flex flex-1 flex-col overflow-y-auto pb-[120px]">
         {/* Header — Paper 4S7-0 */}
-        <header
-          className="flex items-center"
-          style={{ padding: "64px 24px 16px 24px" }}
-        >
+
+        {/* Subtle neutral notices — minimal, calm, monocolor */}
+        {isStartingUser && (
+          <div
+            className="mx-5 mt-4 rounded-[18px] px-4 py-3 text-[13px] leading-snug"
+            style={{
+              background: 'var(--theme-card-bg)',
+              border: '1px solid rgba(125, 90, 242, 0.12)',
+              color: 'var(--theme-text-primary)',
+            }}
+          >
+            {t.home.startingNotice}
+          </div>
+        )}
+
+        {leaderApprovalPending && (
+          <div
+            className="mx-5 mt-4 rounded-[18px] px-4 py-3 text-[13px] leading-snug"
+            style={{
+              background: 'var(--theme-card-bg)',
+              border: '1px solid rgba(9, 25, 77, 0.09)',
+              color: 'var(--theme-text-primary)',
+            }}
+          >
+            {t.home.leaderApprovalNotice}
+          </div>
+        )}
+        <header className="flex items-center" style={{ padding: '64px 24px 16px 24px' }}>
           {/* Paper 4S8-0 */}
           <h1
             className="qahal-display"
             style={{
               fontSize: 32,
-              lineHeight: "38px",
+              lineHeight: '38px',
               fontWeight: 700,
-              color: "var(--theme-text-primary)",
+              color: 'var(--theme-text-primary)',
             }}
           >
             {t.common.home}
           </h1>
         </header>
 
-        {/* Cards */}
+        {/* Action cards — neutral surfaces with accent outlines */}
         <div className="flex flex-col gap-[16px] px-[24px]">
-          {/* Create / Manage Qahal Card */}
+          {/* Create Qahal */}
           {showCreateCard ? (
             <div
-              className="flex flex-col gap-[12px]"
+              className="flex flex-col gap-3"
               style={{
-                borderRadius: 20,
-                padding: 24,
-                backgroundImage: "var(--theme-home-create-gradient)",
-                boxShadow: "var(--theme-home-create-shadow)",
+                ...compactCreateCardStyle,
               }}
             >
               <div
-                className="flex h-[44px] w-[44px] items-center justify-center rounded-full"
-                style={{ background: "#FFFFFF26" }}
+                className="flex h-10 w-10 items-center justify-center rounded-full"
+                style={{
+                  background: 'rgba(125, 90, 242, 0.08)',
+                  color: 'var(--brand-accent)',
+                }}
               >
                 <PlusIcon />
               </div>
               <h2
                 className="qahal-display"
-                style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: homeCardTextColor,
+                  lineHeight: 1.1,
+                }}
               >
                 {t.home.createQahalTitle}
               </h2>
-              <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
+              <p style={{ fontSize: 13, lineHeight: 1.4, color: homeCardMutedColor }}>
                 {t.home.createQahalBody}
               </p>
               <button
                 type="button"
-                onClick={() => onVariantChange("qahal-exists")}
-                className="flex items-center justify-center"
+                onClick={() => onVariantChange('qahal-exists')}
+                className="mt-1 flex items-center justify-center"
                 style={{
-                  height: 44,
+                  height: 42,
                   borderRadius: 14,
-                  background: "#F5F0E826",
-                  border: "1px solid #F5F0E84D",
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: 600,
-                  color: "#F5F0E8",
+                  ...homeCardPrimaryActionStyle,
                 }}
               >
                 {t.home.createQahalCta}
@@ -289,43 +342,47 @@ export const HomeScreen = ({
             </div>
           ) : null}
 
+          {/* Manage Qahal */}
           {showManageCard ? (
             <div
-              className="flex flex-col gap-[12px]"
+              className="flex flex-col gap-3"
               style={{
-                borderRadius: 20,
-                padding: 24,
-                backgroundImage: "var(--theme-home-create-gradient)",
-                boxShadow: "var(--theme-home-create-shadow)",
+                ...compactCreateCardStyle,
               }}
             >
               <div
-                className="flex h-[44px] w-[44px] items-center justify-center rounded-full"
-                style={{ background: "#FFFFFF26" }}
+                className="flex h-10 w-10 items-center justify-center rounded-full"
+                style={{
+                  background: 'rgba(125, 90, 242, 0.08)',
+                  color: 'var(--brand-accent)',
+                }}
               >
                 <SettingsIcon />
               </div>
               <h2
                 className="qahal-display"
-                style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: homeCardTextColor,
+                  lineHeight: 1.1,
+                }}
               >
                 {t.home.manageQahalTitle}
               </h2>
-              <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>
+              <p style={{ fontSize: 13, lineHeight: 1.4, color: homeCardMutedColor }}>
                 {t.home.manageQahalBody}
               </p>
               <button
                 type="button"
                 onClick={onGoManageQahal}
-                className="flex items-center justify-center"
+                className="mt-1 flex items-center justify-center"
                 style={{
-                  height: 44,
+                  height: 42,
                   borderRadius: 14,
-                  background: "#F5F0E826",
-                  border: "1px solid #F5F0E84D",
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: 600,
-                  color: "#F5F0E8",
+                  ...homeCardPrimaryActionStyle,
                 }}
               >
                 {t.home.manageQahalCta}
@@ -333,47 +390,44 @@ export const HomeScreen = ({
             </div>
           ) : null}
 
-          {/* Near You Card — Paper 4SL-0 */}
+          {/* Near You */}
           <div
-            className="flex flex-col gap-[16px]"
+            className="flex flex-col gap-3"
             style={{
-              borderRadius: 20,
-              padding: 24,
-              backgroundImage: "var(--theme-home-near-gradient)",
-              boxShadow: "var(--theme-home-near-shadow)",
+              ...compactNearCardStyle,
             }}
           >
             <h2
               className="qahal-display"
-              style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+              style={{ fontSize: 20, fontWeight: 700, color: homeCardTextColor, lineHeight: 1.1 }}
             >
               {t.home.nearYouTitle}
             </h2>
-            <div className="flex flex-col gap-[8px]">
+            <div className="flex flex-col gap-2.5">
               {displayedCommunities.length === 0 ? (
-                <p style={{ fontSize: 13, color: "#F5F0E8BF" }}>{t.home.nearYouEmpty}</p>
+                <p style={{ fontSize: 13, color: homeCardMutedColor }}>{t.home.nearYouEmpty}</p>
               ) : (
                 displayedCommunities.map((c) => (
                   <div
                     key={c.id}
-                    className="flex flex-col gap-[10px]"
+                    className="flex flex-col gap-2.5"
                     style={{
                       borderRadius: 14,
-                      padding: "12px 14px",
-                      background: "#F5F0E81F",
-                      border: "1px solid #F5F0E833",
+                      padding: '12px 14px',
+                      ...homeCardPanelStyle,
                     }}
                   >
-                    <div className="flex items-center gap-[12px]">
-                      {/* Avatar */}
+                    <div className="flex items-center gap-3.5">
                       <div
-                        className="flex shrink-0 items-center justify-center rounded-[10px]"
+                        className="flex shrink-0 items-center justify-center rounded-xl"
                         style={{
-                          width: 36,
-                          height: 36,
-                          background: "#F5F0E833",
-                          fontSize: 16,
-                          color: "#F5F0E8",
+                          width: 34,
+                          height: 34,
+                          background: 'rgba(125, 90, 242, 0.08)',
+                          border: '1px solid rgba(125, 90, 242, 0.12)',
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: 'var(--brand-accent)',
                         }}
                       >
                         {c.name.charAt(0)}
@@ -382,52 +436,50 @@ export const HomeScreen = ({
                         <div
                           className="qahal-display overflow-hidden text-ellipsis whitespace-nowrap"
                           style={{
-                            fontSize: 17,
+                            fontSize: 15,
                             fontWeight: 600,
-                            color: "#F5F0E8",
+                            color: homeCardTextColor,
+                            letterSpacing: '-0.01em',
                           }}
                         >
                           {c.name}
                         </div>
-                        <div style={{ fontSize: 12, color: "#F5F0E8A6" }}>
+                        <div style={{ fontSize: 12, color: homeCardMutedColor, marginTop: 1 }}>
                           {c.city} · {c.distanceKm.toFixed(1)} km
                         </div>
                       </div>
                     </div>
 
-                    {c.memberState === "member" ? (
+                    {c.memberState === 'member' ? (
                       <button
                         type="button"
                         className="flex items-center justify-center"
                         style={{
-                          height: 38,
-                          width: "100%",
+                          height: 34,
+                          width: '100%',
                           borderRadius: 10,
-                          padding: "0 12px",
-                          background: "#F5F0E866",
+                          padding: '0 14px',
                           fontSize: 12,
                           fontWeight: 700,
-                          color: "#F5F0E8",
-                          letterSpacing: "0.04em",
+                          letterSpacing: '0.03em',
+                          ...homeCardTertiaryActionStyle,
                         }}
                       >
                         {t.home.member.toUpperCase()}
                       </button>
                     ) : (
-                      <div className="flex gap-[6px]">
+                      <div className="flex gap-2">
                         <button
                           type="button"
                           className="flex items-center justify-center"
                           style={{
-                            height: 38,
+                            height: 34,
                             flex: 1,
                             borderRadius: 10,
-                            padding: "0 12px",
-                            background: "#F5F0E826",
-                            border: "1px solid #F5F0E840",
+                            padding: '0 12px',
                             fontSize: 12,
                             fontWeight: 600,
-                            color: "#F5F0E8",
+                            ...homeCardSecondaryActionStyle,
                           }}
                         >
                           {t.home.contact}
@@ -435,47 +487,36 @@ export const HomeScreen = ({
                         <button
                           type="button"
                           onClick={() => {
-                            if (
-                              profileTestingEnabled &&
-                              c.memberState === "requested"
-                            ) {
+                            if (profileTestingEnabled && c.memberState === 'requested') {
                               setRequestedCommunityIds((prev) => {
                                 const next = new Set(prev);
                                 next.delete(c.id);
                                 return next;
                               });
-                              onVariantChange("default");
+                              onVariantChange('default');
                               return;
                             }
 
-                            if (c.memberState !== "not_member") {
+                            if (c.memberState !== 'not_member') {
                               onVariantChange(
-                                c.memberState === "member"
-                                  ? "already-member"
-                                  : "already-requested",
+                                c.memberState === 'member' ? 'already-member' : 'already-requested',
                               );
                               return;
                             }
 
-                            const hasActiveMembership =
-                              displayedCommunities.some(
-                                (community) =>
-                                  community.memberState === "member",
-                              );
-                            if (
-                              hasActiveMembership ||
-                              effectiveProfile.hasCongregation
-                            ) {
-                              onVariantChange("already-member");
+                            const hasActiveMembership = displayedCommunities.some(
+                              (community) => community.memberState === 'member',
+                            );
+                            if (hasActiveMembership || effectiveProfile.hasCongregation) {
+                              onVariantChange('already-member');
                               return;
                             }
 
                             const hasPendingRequest = displayedCommunities.some(
-                              (community) =>
-                                community.memberState === "requested",
+                              (community) => community.memberState === 'requested',
                             );
                             if (hasPendingRequest) {
-                              onVariantChange("already-requested");
+                              onVariantChange('already-requested');
                               return;
                             }
 
@@ -485,35 +526,44 @@ export const HomeScreen = ({
                               return next;
                             });
                             setShowToast(true);
-                            onVariantChange("join-requested");
+                            onVariantChange('join-requested');
                           }}
+                          disabled={isStartingUser && c.memberState === 'not_member'}
                           className="flex items-center justify-center"
                           style={{
-                            height: 38,
+                            height: 34,
                             flex: 1,
                             borderRadius: 10,
-                            padding: "0 12px",
-                            background:
-                              c.memberState === "not_member" ||
-                              (profileTestingEnabled &&
-                                c.memberState === "requested")
-                                ? "#F5F0E8"
-                                : "#F5F0E866",
+                            padding: '0 12px',
                             fontSize: 12,
                             fontWeight: 600,
+                            border:
+                              isStartingUser && c.memberState === 'not_member'
+                                ? '1px solid var(--theme-surface-warm-border)'
+                                : c.memberState === 'not_member'
+                                  ? '1px solid var(--theme-button-primary-border)'
+                                  : '1px solid rgba(125, 90, 242, 0.14)',
+                            background:
+                              isStartingUser && c.memberState === 'not_member'
+                                ? 'transparent'
+                                : c.memberState === 'not_member'
+                                  ? 'var(--theme-button-primary-bg)'
+                                  : 'rgba(125, 90, 242, 0.08)',
                             color:
-                              c.memberState === "not_member" ||
-                              (profileTestingEnabled &&
-                                c.memberState === "requested")
-                                ? "#A0622D"
-                                : "#6B7280",
+                              isStartingUser && c.memberState === 'not_member'
+                                ? homeCardMutedColor
+                                : c.memberState === 'not_member'
+                                  ? 'var(--theme-button-primary-text)'
+                                  : 'var(--brand-accent)',
                           }}
                         >
-                          {c.memberState === "requested"
-                            ? profileTestingEnabled
-                              ? t.home.undoRequest
-                              : t.home.requested
-                            : t.home.join}
+                          {isStartingUser && c.memberState === 'not_member'
+                            ? t.home.joinBlocked
+                            : c.memberState === 'requested'
+                              ? profileTestingEnabled
+                                ? t.home.undoRequest
+                                : t.home.requested
+                              : t.home.join}
                         </button>
                       </div>
                     )}
@@ -523,19 +573,16 @@ export const HomeScreen = ({
             </div>
           </div>
 
-          {/* Badges Card — Paper 4TH-0 */}
+          {/* Badges */}
           <div
-            className="flex flex-col gap-[16px]"
+            className="flex flex-col gap-3"
             style={{
-              borderRadius: 20,
-              padding: 24,
-              backgroundImage: "var(--theme-home-badge-gradient)",
-              boxShadow: "var(--theme-home-badge-shadow)",
+              ...compactBadgeCardStyle,
             }}
           >
             <h2
               className="qahal-display"
-              style={{ fontSize: 22, fontWeight: 700, color: "#F5F0E8" }}
+              style={{ fontSize: 20, fontWeight: 700, color: homeCardTextColor, lineHeight: 1.1 }}
             >
               {t.home.badgesTitle}
             </h2>
@@ -544,29 +591,39 @@ export const HomeScreen = ({
               return (
                 <div
                   key={badge.name}
-                  className="flex items-center gap-[12px]"
+                  className="flex items-center justify-between gap-3"
                   style={{
                     borderRadius: 14,
-                    padding: "12px 14px",
-                    background: "#F5F0E81F",
-                    border: "1px solid #F5F0E833",
+                    padding: '11px 14px',
+                    ...homeCardPanelStyle,
                   }}
                 >
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
                     <div
                       style={{
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#F5F0E8",
+                        color: homeCardTextColor,
                       }}
                     >
                       {badge.name}
-                      {earned ? ` · ${t.home.earnedSuffix}` : ""}
                     </div>
-                    <div style={{ fontSize: 12, color: "#F5F0E899" }}>
+                    <div style={{ fontSize: 11.5, color: homeCardMutedColor, marginTop: 2 }}>
                       {badge.desc}
                     </div>
                   </div>
+                  {earned && (
+                    <div
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px]"
+                      style={{
+                        background: 'rgba(125, 90, 242, 0.08)',
+                        color: 'var(--brand-accent)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      ✓
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -578,7 +635,9 @@ export const HomeScreen = ({
       <div
         className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[375px] -translate-x-1/2 flex-col items-center"
         style={{
-          backgroundImage: "var(--theme-nav-gradient)",
+          background: 'var(--theme-nav-bg)',
+          borderTop: '1px solid var(--theme-card-border)',
+          boxShadow: 'var(--theme-nav-shadow)',
           paddingBottom: 24,
           paddingTop: 20,
         }}
@@ -588,15 +647,15 @@ export const HomeScreen = ({
           <button
             type="button"
             className="flex w-[84px] flex-col items-center gap-[4px]"
-            onClick={() => onVariantChange("default")}
+            onClick={() => onVariantChange('default')}
           >
             <div
               className="flex items-center justify-center rounded-full"
               style={{
                 width: 48,
                 height: 48,
-                background: "var(--theme-accent)",
-                boxShadow: "#1E5C5A4D 0px 4px 12px",
+                background: 'var(--theme-accent)',
+                boxShadow: 'var(--theme-button-primary-shadow)',
               }}
             >
               <HomeIcon color="#F5F0E8" />
@@ -604,10 +663,10 @@ export const HomeScreen = ({
             <span
               style={{
                 fontSize: 11,
-                color: "var(--theme-accent)",
+                color: 'var(--theme-accent)',
                 minHeight: 16,
-                lineHeight: "16px",
-                visibility: "hidden",
+                lineHeight: '16px',
+                visibility: 'hidden',
               }}
             >
               {t.common.home}
@@ -625,9 +684,9 @@ export const HomeScreen = ({
             <span
               style={{
                 fontSize: 11,
-                color: "var(--theme-accent)",
+                color: 'var(--theme-accent)',
                 minHeight: 16,
-                lineHeight: "16px",
+                lineHeight: '16px',
               }}
             >
               {t.common.map}
@@ -645,9 +704,9 @@ export const HomeScreen = ({
             <span
               style={{
                 fontSize: 11,
-                color: "var(--theme-accent)",
+                color: 'var(--theme-accent)',
                 minHeight: 16,
-                lineHeight: "16px",
+                lineHeight: '16px',
               }}
             >
               {t.common.profile}
@@ -660,16 +719,13 @@ export const HomeScreen = ({
             width: 134,
             height: 5,
             borderRadius: 100,
-            background: "#1C2526",
+            background: 'var(--theme-text-primary)',
             opacity: 0.2,
           }}
         />
       </div>
 
-      <HomePopups
-        variant={variant}
-        onClose={() => onVariantChange("default")}
-      />
+      <HomePopups variant={variant} onClose={() => onVariantChange('default')} />
 
       <JoinRequestToast visible={showToast} />
     </section>
