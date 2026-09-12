@@ -38,7 +38,7 @@ const DEFAULT_ROLE_DISPLAY_NAMES = [
 const sanitizeProfileName = (name: string): string => {
   return name
     .replace(/\s+/g, ' ')
-    .replace(/[^a-zA-Z\s'\-.]/g, '')
+    .replace(/[^\p{L}\p{M}\s'\-.]/gu, '')
     .trim()
     .slice(0, 40);
 };
@@ -132,6 +132,8 @@ export const useAppFlow = () => {
   });
   const [communities, setCommunities] = useState<CommunityCard[]>([]);
   const [busy, setBusy] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
   const [localProfileRole, setLocalProfileRole] = useState<LocalProfileRole>('none');
   const [localProfileName, setLocalProfileName] = useState<string>(
     getLocalProfileRoleOption('none').defaultDisplayName,
@@ -232,6 +234,8 @@ export const useAppFlow = () => {
     let cancelled = false;
 
     const loadPersistedProfile = async () => {
+      setProfileLoading(true);
+      setProfileError(false);
       try {
         const response = await api.getUser(state.telegramId);
         if (cancelled) {
@@ -358,7 +362,9 @@ export const useAppFlow = () => {
           setManagedCommunity(null);
         }
       } catch {
-        // Keep UI operational when local worker is not running.
+        if (!cancelled) setProfileError(true);
+      } finally {
+        if (!cancelled) setProfileLoading(false);
       }
     };
 
@@ -616,21 +622,8 @@ export const useAppFlow = () => {
         if (typeof onboarding.user?.qahalName === 'string') {
           setPersistedQahalName(onboarding.user.qahalName);
         }
-        if (typeof finalCityLatitude === 'number' && typeof finalCityLongitude === 'number') {
-          const nearby = await api.getNearby(
-            finalCityLatitude,
-            finalCityLongitude,
-            state.telegramId,
-          );
-          setCommunities(nearby.communities);
-        } else {
-          setCommunities([]);
-        }
-      } catch {
-        if (shouldGrantEmunah) {
-          setPersistedBadges((prev) => mergeUniqueBadges(prev, [EMUNAH_BADGE_LABEL]));
-        }
-        setCommunities([]);
+      } catch (error) {
+        throw error;
       }
 
       setState((prev) => ({
@@ -643,7 +636,7 @@ export const useAppFlow = () => {
           cityLongitude: finalCityLongitude,
           languageCode: finalLanguageCode,
         },
-        screen: 'map',
+        screen: 'home',
         mapVariant: 'allowed',
       }));
 
@@ -744,7 +737,7 @@ export const useAppFlow = () => {
   };
 
   const goToMap = () => {
-    setState((prev) => ({ ...prev, screen: 'map' }));
+    setState((prev) => ({ ...prev, screen: 'home' }));
   };
 
   const goToProfile = () => {
@@ -752,6 +745,7 @@ export const useAppFlow = () => {
   };
 
   const goToManageQahal = () => {
+    setProfileRefreshKey((value) => value + 1);
     setState((prev) => ({ ...prev, screen: 'manage-qahal' }));
   };
 
@@ -780,6 +774,8 @@ export const useAppFlow = () => {
 
   return {
     runtimeTarget,
+    profileLoading,
+    profileError,
     profileTestingEnabled,
     state,
     busy,

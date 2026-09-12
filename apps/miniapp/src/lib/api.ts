@@ -1,4 +1,10 @@
 import type {
+  AccessStatus,
+  DiscoveryResponse,
+  DiscoveryPreferences,
+  CreateCommunity,
+} from '@qahal/shared';
+import type {
   CommunityManageResponse,
   CitySearchResponse,
   DemoScenarioApplyResponse,
@@ -55,6 +61,12 @@ const getJson = async <T>(path: string, signal?: AbortSignal): Promise<T> => {
     },
   });
   if (!response.ok) {
+    const failure = (await response
+      .clone()
+      .json()
+      .catch(() => ({}))) as { error?: string };
+    if (response.status === 401 || failure.error === 'admission_required')
+      window.dispatchEvent(new Event('qahal:access-check'));
     throw new Error(`GET ${path} failed with status ${response.status}`);
   }
 
@@ -72,6 +84,12 @@ const postJson = async <T>(path: string, payload: unknown): Promise<T> => {
   });
 
   if (!response.ok) {
+    const failure = (await response
+      .clone()
+      .json()
+      .catch(() => ({}))) as { error?: string };
+    if (response.status === 401 || failure.error === 'admission_required')
+      window.dispatchEvent(new Event('qahal:access-check'));
     throw new Error(`POST ${path} failed with status ${response.status}`);
   }
 
@@ -89,6 +107,12 @@ const putJson = async <T>(path: string, payload: unknown): Promise<T> => {
   });
 
   if (!response.ok) {
+    const failure = (await response
+      .clone()
+      .json()
+      .catch(() => ({}))) as { error?: string };
+    if (response.status === 401 || failure.error === 'admission_required')
+      window.dispatchEvent(new Event('qahal:access-check'));
     throw new Error(`PUT ${path} failed with status ${response.status}`);
   }
 
@@ -106,6 +130,12 @@ const patchJson = async <T>(path: string, payload: unknown): Promise<T> => {
   });
 
   if (!response.ok) {
+    const failure = (await response
+      .clone()
+      .json()
+      .catch(() => ({}))) as { error?: string };
+    if (response.status === 401 || failure.error === 'admission_required')
+      window.dispatchEvent(new Event('qahal:access-check'));
     throw new Error(`PATCH ${path} failed with status ${response.status}`);
   }
 
@@ -121,6 +151,12 @@ const deleteJson = async <T>(path: string): Promise<T> => {
   });
 
   if (!response.ok) {
+    const failure = (await response
+      .clone()
+      .json()
+      .catch(() => ({}))) as { error?: string };
+    if (response.status === 401 || failure.error === 'admission_required')
+      window.dispatchEvent(new Event('qahal:access-check'));
     throw new Error(`DELETE ${path} failed with status ${response.status}`);
   }
 
@@ -148,7 +184,8 @@ export interface UserApiProfile {
 export interface ManagedCommunity {
   communityId: number;
   communityName: string;
-  city: string;
+  city: string | null;
+  type: 'in_person' | 'online';
   canManage: boolean;
   canCreateQahal: boolean;
   meetingSlots: Array<{
@@ -168,11 +205,24 @@ export interface TelegramVerifiedUser {
   username?: string;
   firstName?: string;
   lastName?: string;
-  photoUrl?: string;
   languageCode?: string;
 }
 
 export const api = {
+  getMeeting: (id: number, telegramId: number) =>
+    getJson<{ ok: true; link: string | null }>(
+      `/communities/${id}/meeting?telegramId=${telegramId}`,
+    ),
+  setMeeting: (id: number, payload: { telegramId: number; link: string }) =>
+    putJson<{ ok: true }>(`/communities/${id}/meeting`, payload),
+  accessStatus: () => getJson<AccessStatus>('/access/status'),
+  redeemCode: (code: string) => postJson<{ ok: true; admitted: true }>('/access/redeem', { code }),
+  discovery: (params: URLSearchParams) => getJson<DiscoveryResponse>(`/discovery?${params}`),
+  getDiscoveryPreferences: () => getJson<DiscoveryPreferences>('/discovery/preferences'),
+  setDiscoveryPreferences: (payload: DiscoveryPreferences) =>
+    putJson<{ ok: true }>('/discovery/preferences', payload),
+  requestJoin: (id: number, telegramId: number) =>
+    postJson<{ ok: true }>(`/communities/${id}/join`, { telegramId }),
   verifyTelegramInitData: (initData: string) => {
     return postJson<{ ok: boolean; user: TelegramVerifiedUser | null }>('/auth/telegram/verify', {
       initData,
@@ -218,7 +268,14 @@ export const api = {
     if (typeof telegramId === 'number') {
       params.set('telegramId', String(telegramId));
     }
-    return getJson<NearbyResponse>(`/communities/nearby?${params.toString()}`);
+    return getJson<DiscoveryResponse>(`/discovery?${params.toString()}`).then((result) => ({
+      ok: true as const,
+      communities: result.communities.map((row) => ({
+        ...row,
+        city: row.city ?? '',
+        distanceKm: row.distanceKm ?? 0,
+      })),
+    }));
   },
 
   getCommunityPeople: (params: { city?: string; latitude?: number; longitude?: number }) => {
@@ -236,14 +293,7 @@ export const api = {
     );
   },
 
-  createCommunity: (payload: {
-    telegramId: number;
-    name: string;
-    city: string;
-    country: string;
-    latitude: number;
-    longitude: number;
-  }) => {
+  createCommunity: (payload: CreateCommunity) => {
     return postJson<{
       ok: boolean;
       community: {

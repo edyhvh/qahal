@@ -14,6 +14,8 @@
 - Only a successful empty Local search falls back to opted-in Emunah people within the radius. Discoverability defaults off. Exclude self; expose only display name, area and consented Telegram contact. Online results do not suppress fallback. Request errors are retry states.
 - Remove map flows and entity pictures from UI, API, storage and fixtures; retain the app Qof brandmark. Preserve join/manage authorization, themes, translations, accessibility and Telegram safe areas. Update DESIGN.md.
 
+Current working branch: `feat/new-redesign` (renamed at user request after the documentation commit).
+
 ## Implementation sequence
 
 1. Documentation-only first commit on `codex/redesign-plan`: this plan and the issue draft. Commit message: `docs: define gated-access and list-discovery redesign`. Leave `design/advance1-en.png` untouched. Check for a matching issue before publishing to `edyhvh/qahal`.

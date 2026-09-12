@@ -48,7 +48,7 @@ describe('telegram helpers', () => {
     };
 
     const unsubscribe = subscribeThemeChanged(callback);
-    window.Telegram.WebApp.colorScheme = 'dark';
+    window.Telegram!.WebApp!.colorScheme = 'dark';
     onThemeChanged?.();
     unsubscribe();
 

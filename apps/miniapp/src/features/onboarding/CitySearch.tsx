@@ -1,3 +1,4 @@
+import { requestTelegramLocation } from '../../lib/telegram';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import type { CitySuggestion } from '@qahal/shared';
@@ -61,82 +62,15 @@ export const CitySearch = ({ telegramId, initialValue = '', onCitySelected }: Ci
     };
   }, [debouncedQuery, userLocation]);
 
-  const requestLocationAccess = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      setLocationErrorMessage(t.citySearch.locationUnsupported);
-      setLocationState('error');
-      return;
-    }
-
-    if (!window.isSecureContext) {
-      setLocationErrorMessage(t.citySearch.locationHttpsRequired);
-      setLocationState('error');
-      return;
-    }
-
+  const requestLocationAccess = async () => {
     setLocationState('requesting');
-    setLocationErrorMessage(null);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setLocationState('granted');
-        setLocationErrorMessage(null);
-      },
-      (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
-          setLocationState('denied');
-          return;
-        }
-
-        setLocationErrorMessage(t.citySearch.locationFetchFailed);
-        setLocationState('denied');
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 300000,
-      },
-    );
-  }, [
-    t.citySearch.locationFetchFailed,
-    t.citySearch.locationHttpsRequired,
-    t.citySearch.locationUnsupported,
-  ]);
-
-  useEffect(() => {
-    if (!('geolocation' in navigator) || !('permissions' in navigator)) {
-      return;
+    try {
+      setUserLocation(await requestTelegramLocation());
+      setLocationState('granted');
+    } catch {
+      setLocationState('denied');
     }
-
-    let cancelled = false;
-
-    navigator.permissions
-      .query({ name: 'geolocation' })
-      .then((permissionStatus) => {
-        if (cancelled) {
-          return;
-        }
-
-        if (permissionStatus.state === 'granted') {
-          requestLocationAccess();
-          return;
-        }
-
-        if (permissionStatus.state === 'denied') {
-          setLocationState('denied');
-        }
-      })
-      .catch(() => {
-        // Ignore unsupported permission query behavior in WebViews.
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [requestLocationAccess]);
+  };
 
   const handleSelect = async (value: CitySuggestion | null) => {
     if (!value) {
@@ -167,6 +101,13 @@ export const CitySearch = ({ telegramId, initialValue = '', onCitySelected }: Ci
 
   return (
     <div className="w-full">
+      <button
+        type="button"
+        disabled={locationState === 'requesting'}
+        onClick={() => void requestLocationAccess()}
+      >
+        {t.common.searchCity} · GPS
+      </button>
       {locationState === 'granted' ? (
         <p className="mb-3 text-xs" style={{ color: 'var(--brand-success)' }}>
           {t.citySearch.locationGranted}

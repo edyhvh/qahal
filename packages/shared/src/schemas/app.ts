@@ -94,7 +94,8 @@ export const communityMemberSummarySchema = z.object({
 export const communityManagePayloadSchema = z.object({
   communityId: z.number().int().positive(),
   communityName: z.string().min(1),
-  city: z.string().min(1),
+  city: z.string().nullable(),
+  type: z.enum(['in_person', 'online']),
   canManage: z.boolean(),
   canCreateQahal: z.boolean(),
   meetingSlots: z.array(communityMeetingSlotSchema),
@@ -106,14 +107,28 @@ export const communityManageResponseSchema = z.object({
   community: communityManagePayloadSchema,
 });
 
-export const createCommunitySchema = z.object({
+const communityBase = {
   telegramId: z.number().int().positive(),
   name: z.string().trim().min(2).max(120),
-  city: z.string().trim().min(1).max(120),
-  country: z.string().trim().min(1).max(120),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-});
+};
+export const createCommunitySchema = z.discriminatedUnion('type', [
+  z.object({
+    ...communityBase,
+    type: z.literal('in_person'),
+    city: z.string().trim().min(1).max(120),
+    country: z.string().trim().min(1).max(120),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+  }),
+  z.object({
+    ...communityBase,
+    type: z.literal('online'),
+    city: z.string().optional(),
+    country: z.string().optional(),
+    latitude: z.undefined(),
+    longitude: z.undefined(),
+  }),
+]);
 
 export const renameCommunitySchema = z.object({
   telegramId: z.number().int().positive(),

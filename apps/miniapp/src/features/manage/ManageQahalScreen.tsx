@@ -1,3 +1,4 @@
+import { MeetingLink } from './MeetingLink';
 import { useEffect, useMemo, useState } from 'react';
 import type { ManagedCommunity } from '../../lib/api';
 import { api } from '../../lib/api';
@@ -411,6 +412,11 @@ export const ManageQahalScreen = ({
             {t.manageQahal.title}
           </h1>
         </header>
+        {hasAccess && currentCommunityId && (
+          <div className="px-6">
+            <MeetingLink communityId={currentCommunityId} telegramId={telegramId} editable />
+          </div>
+        )}
 
         <div className="flex flex-col gap-[12px] px-[24px]">
           <p style={{ fontSize: 13, color: 'var(--theme-text-secondary)' }}>
@@ -691,7 +697,7 @@ export const ManageQahalScreen = ({
           background: 'var(--theme-nav-bg)',
           borderTop: '1px solid var(--theme-card-border)',
           boxShadow: 'var(--theme-nav-shadow)',
-          paddingBottom: 24,
+          paddingBottom: 'calc(var(--safe-area-bottom) + 16px)',
           paddingTop: 20,
         }}
       >
@@ -713,25 +719,6 @@ export const ManageQahalScreen = ({
               }}
             >
               {t.common.home}
-            </span>
-          </button>
-          <button
-            type="button"
-            className="flex w-[84px] flex-col items-center gap-[4px]"
-            onClick={onGoMap}
-          >
-            <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-              <MapIcon color="var(--theme-accent)" />
-            </div>
-            <span
-              style={{
-                fontSize: 11,
-                color: 'var(--theme-accent)',
-                minHeight: 16,
-                lineHeight: '16px',
-              }}
-            >
-              {t.common.map}
             </span>
           </button>
 

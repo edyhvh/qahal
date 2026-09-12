@@ -1,3 +1,4 @@
+import { redesignCopy } from '../../app/i18n/redesign';
 import { useEffect, useRef, useState } from 'react';
 import { CitySearch } from './CitySearch';
 import { useI18n } from '../../app/i18n';
@@ -25,6 +26,7 @@ export const OnboardingDataScreen = ({
   onSubmit,
 }: OnboardingDataScreenProps) => {
   const { t } = useI18n();
+  const [saveError, setSaveError] = useState(false);
   const [firstName, setFirstName] = useState(initialFirstName);
   const [city, setCity] = useState(initialCity);
   const [cityCoordinates, setCityCoordinates] = useState<
@@ -92,6 +94,11 @@ export const OnboardingDataScreen = ({
       className="relative flex min-h-[100dvh] flex-col overflow-hidden"
       onPointerDownCapture={(event) => dismissNameKeyboard(event.target)}
     >
+      {saveError && (
+        <p className="relative z-20" role="alert">
+          {redesignCopy(initialLanguageCode).error}
+        </p>
+      )}
       {/* Solid warm background (pure, no radial overlays) */}
       <div
         className="absolute inset-0"
@@ -188,7 +195,13 @@ export const OnboardingDataScreen = ({
                 setIsNameInputFocused(false);
                 setStep('city');
               } else {
-                onSubmit(firstName.trim(), city.trim(), initialLanguageCode, cityCoordinates);
+                setSaveError(false);
+                void onSubmit(
+                  firstName.trim(),
+                  city.trim(),
+                  initialLanguageCode,
+                  cityCoordinates,
+                ).catch(() => setSaveError(true));
               }
             }}
             className="flex shrink-0 items-center justify-center disabled:opacity-40"

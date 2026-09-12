@@ -4,28 +4,28 @@
 
 :root {
   /* === New Brand Tokens (DESIGN.md) === */
-  --brand-purple: #7D5AF2;
-  --brand-navy: #09194D;
-  --brand-light: #EDF0F5;
-  --brand-accent: #5C4DD9;
-  --brand-text: #0F172A;
+  --brand-purple: #7d5af2;
+  --brand-navy: #09194d;
+  --brand-light: #edf0f5;
+  --brand-accent: #5c4dd9;
+  --brand-text: #0f172a;
   --brand-text-muted: #475569;
-  --brand-border: #CBD5E1;
+  --brand-border: #cbd5e1;
 
   /* Legacy Paper tokens (kept for gradual migration) */
-  --color-teal: #1E5C5A;
-  --color-gold: #C9A46F;
-  --color-dark: #1C2525;
-  --color-cream: #F5F0E8;
-  --color-parchment: #F5EDE4;
-  --color-warm-text: #E8DDD0;
-  --color-muted: #5A5A52;
-  --color-muted-light: #8A8A7E;
+  --color-teal: #1e5c5a;
+  --color-gold: #c9a46f;
+  --color-dark: #1c2525;
+  --color-cream: #f5f0e8;
+  --color-parchment: #f5ede4;
+  --color-warm-text: #e8ddd0;
+  --color-muted: #5a5a52;
+  --color-muted-light: #8a8a7e;
 
-  --font-display: "Playfair Display", serif;
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-hebrew: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-hebrew: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
@@ -90,7 +90,7 @@
   --theme-surface-warm-muted-text: var(--brand-accent);
 }
 
-:root[data-theme-mode="dark"] {
+:root[data-theme-mode='dark'] {
   --theme-bg-main: #26211d;
   /* Pure solid warm dark-gray background — no radial or decorative overlays (minimal direction) */
   --theme-bg-solid: var(--brand-bg-dark);
@@ -163,11 +163,84 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-:root[data-theme-mode="dark"] body {
+:root[data-theme-mode='dark'] body {
   background: var(--theme-bg-solid);
   color: var(--theme-text-primary);
 }
 
 .qahal-display {
   font-family: var(--font-display);
+}
+
+/* List discovery and admission share the existing light/dark surface tokens. */
+.redesign-screen {
+  min-height: 100dvh;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: calc(var(--safe-area-top, 0px) + 64px) 24px calc(var(--safe-area-bottom, 0px) + 110px);
+  background: var(--theme-bg-main);
+  color: var(--theme-text-primary);
+}
+.redesign-screen > * + *,
+.redesign-screen form > * + * {
+  margin-top: 16px;
+}
+.redesign-card {
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 18px;
+  border: 1px solid var(--theme-card-border);
+  background: var(--theme-card-bg);
+}
+.redesign-screen button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--theme-button-secondary-bg);
+  border: 1px solid var(--theme-button-secondary-border);
+  color: var(--theme-button-secondary-text);
+}
+.redesign-screen button[aria-selected='true'],
+.redesign-screen button[aria-current='page'],
+.redesign-screen form button {
+  background: var(--theme-button-primary-bg);
+  color: var(--theme-button-primary-text);
+}
+.redesign-screen button:disabled {
+  opacity: 0.55;
+}
+.redesign-screen input,
+.redesign-screen select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--theme-input-bg);
+  border: 1px solid var(--theme-input-border);
+  color: var(--theme-input-text);
+  border-radius: 12px;
+}
+.redesign-screen [role='tablist'] {
+  display: flex;
+  gap: 8px;
+}
+.redesign-screen [role='tab'] {
+  flex: 1;
+}
+.redesign-screen a {
+  color: var(--brand-accent);
+  text-decoration: underline;
+}
+.redesign-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-around;
+  width: min(100%, 420px);
+  padding: 12px 16px calc(var(--safe-area-bottom, 0px) + 16px);
+  background: var(--theme-nav-bg);
+  z-index: 40;
 }

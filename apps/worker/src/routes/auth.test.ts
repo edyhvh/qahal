@@ -1,3 +1,4 @@
+import type { ExecutionContext } from '@cloudflare/workers-types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import app from '../index';
 import type { Bindings } from '../types/env';
@@ -69,7 +70,6 @@ describe('authRoute', () => {
         username: 'miriam321',
         firstName: 'Miriam',
         lastName: undefined,
-        photoUrl: undefined,
         languageCode: 'en',
       },
     });

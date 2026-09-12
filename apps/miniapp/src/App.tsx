@@ -1,11 +1,19 @@
+import { lazy, Suspense } from 'react';
+import { redesignCopy } from './app/i18n/redesign';
 import { OnboardingCarouselScreen } from './features/onboarding/OnboardingCarouselScreen';
 import { OnboardingStateScreen } from './features/onboarding/OnboardingStateScreen';
 import { OnboardingQuestionsScreen } from './features/onboarding/OnboardingQuestionsScreen';
 import { OnboardingDataScreen } from './features/onboarding/OnboardingDataScreen';
-import { MapScreen } from './features/map/MapScreen';
-import { HomeScreen } from './features/home/HomeScreen';
-import { ManageQahalScreen } from './features/manage';
-import { ProfileScreen } from './features/profile/ProfileScreen';
+import { AccessGate } from './features/access/AccessGate';
+const HomeScreen = lazy(() =>
+  import('./features/home/HomeScreen').then((module) => ({ default: module.HomeScreen })),
+);
+const ManageQahalScreen = lazy(() =>
+  import('./features/manage').then((module) => ({ default: module.ManageQahalScreen })),
+);
+const ProfileScreen = lazy(() =>
+  import('./features/profile/ProfileScreen').then((module) => ({ default: module.ProfileScreen })),
+);
 import { useAppFlow } from './app/useAppFlow';
 import { resolvePaperScreenKey } from './app/paperMapping';
 import { I18nProvider } from './app/i18n';
@@ -16,9 +24,18 @@ interface AppProps {
   onThemeChange: (mode: ThemeMode) => void;
 }
 
-export default function App({ themeMode, onThemeChange }: AppProps) {
+export default function App(props: AppProps) {
+  return (
+    <AccessGate>
+      <AppContent {...props} />
+    </AccessGate>
+  );
+}
+function AppContent({ themeMode, onThemeChange }: AppProps) {
   const {
     runtimeTarget,
+    profileLoading,
+    profileError,
     profileTestingEnabled,
     state,
     busy,
@@ -125,119 +142,123 @@ export default function App({ themeMode, onThemeChange }: AppProps) {
           </div>
         ) : null}
 
-        {state.screen === 'onboarding-carousel' ? (
-          <OnboardingCarouselScreen onStart={startQuestions} />
-        ) : null}
-
-        {state.screen === 'onboarding-state' ? (
-          <OnboardingStateScreen
-            onSelect={(emunahState) => {
-              selectEmunahState(emunahState);
-            }}
-            onBack={goToCarousel}
-          />
-        ) : null}
-
-        {state.screen === 'onboarding-questions' ? (
-          <OnboardingQuestionsScreen
-            step={state.questionStep}
-            progressLabel={questionProgress}
-            selectedValue={state.answers.values[state.questionStep]}
-            onSelect={answerQuestion}
-            onNext={nextQuestion}
-            onBack={previousQuestion}
-            onExit={goToCarousel}
-            emunahState={state.answers.emunahState}
-          />
-        ) : null}
-
-        {state.screen === 'onboarding-data' ? (
-          <OnboardingDataScreen
-            telegramId={state.telegramId}
-            initialFirstName={state.answers.firstName}
-            initialCity={state.answers.city}
-            initialLanguageCode={state.answers.languageCode}
-            busy={busy}
-            onSubmit={async (firstName, city, languageCode, cityCoordinates) => {
-              setLanguageCode(languageCode);
-              updateProfile(firstName, city, languageCode, cityCoordinates);
-              await finishOnboarding({
-                firstName,
-                city,
-                languageCode,
-                cityCoordinates,
-              });
-            }}
-          />
-        ) : null}
-
-        {state.screen === 'map' ? (
-          <MapScreen
-            themeMode={themeMode}
-            variant={state.mapVariant}
-            communities={communities}
-            effectiveProfile={effectiveProfile}
-            onVariantChange={setMapVariant}
-            onGoHome={goToHome}
-            onGoProfile={goToProfile}
-            cityName={state.answers.city}
-            onCityChange={({ name, latitude, longitude }) => {
-              setMapCity(name, { latitude, longitude });
-            }}
-            initialCenter={
-              typeof state.answers.cityLatitude === 'number' &&
-              typeof state.answers.cityLongitude === 'number'
-                ? [state.answers.cityLatitude, state.answers.cityLongitude]
-                : undefined
+        {profileLoading ? (
+          <p className="redesign-screen" role="status">
+            {redesignCopy(state.answers.languageCode).loading}
+          </p>
+        ) : profileError ? (
+          <section className="redesign-screen" role="alert">
+            <p>{redesignCopy(state.answers.languageCode).error}</p>
+            <button onClick={refreshPersistedProfile}>
+              {redesignCopy(state.answers.languageCode).retry}
+            </button>
+          </section>
+        ) : (
+          <Suspense
+            fallback={
+              <p role="status" className="redesign-screen">
+                {redesignCopy(state.answers.languageCode).loading}
+              </p>
             }
-          />
-        ) : null}
+          >
+            {state.screen === 'onboarding-carousel' ? (
+              <OnboardingCarouselScreen onStart={startQuestions} />
+            ) : null}
 
-        {state.screen === 'home' ? (
-          <HomeScreen
-            variant={state.homeVariant}
-            communities={communities}
-            onVariantChange={setHomeVariant}
-            onGoMap={goToMap}
-            onGoProfile={goToProfile}
-            onGoManageQahal={goToManageQahal}
-            profileTestingEnabled={profileTestingEnabled}
-            effectiveProfile={effectiveProfile}
-          />
-        ) : null}
+            {state.screen === 'onboarding-state' ? (
+              <OnboardingStateScreen
+                onSelect={(emunahState) => {
+                  selectEmunahState(emunahState);
+                }}
+                onBack={goToCarousel}
+              />
+            ) : null}
 
-        {state.screen === 'manage-qahal' ? (
-          <ManageQahalScreen
-            telegramId={state.telegramId}
-            managedCommunity={managedCommunity}
-            managedCommunityId={effectiveProfile.managedCommunityId}
-            profileTestingEnabled={profileTestingEnabled}
-            canManageQahal={effectiveProfile.canManageQahal}
-            onGoHome={goToHome}
-            onGoMap={goToMap}
-            onGoProfile={goToProfile}
-          />
-        ) : null}
+            {state.screen === 'onboarding-questions' ? (
+              <OnboardingQuestionsScreen
+                step={state.questionStep}
+                progressLabel={questionProgress}
+                selectedValue={state.answers.values[state.questionStep]}
+                onSelect={answerQuestion}
+                onNext={nextQuestion}
+                onBack={previousQuestion}
+                onExit={goToCarousel}
+                emunahState={state.answers.emunahState}
+              />
+            ) : null}
 
-        {state.screen === 'profile' ? (
-          <ProfileScreen
-            telegramId={state.telegramId}
-            profileTestingEnabled={profileTestingEnabled}
-            localProfileRole={localProfileRole}
-            onRoleChange={setLocalProfileRole}
-            profileName={effectiveProfile.displayName}
-            profileQahalName={effectiveProfile.qahalName}
-            profileBadges={effectiveProfile.badges}
-            onProfileNameChange={setLocalProfileName}
-            confirmedBirthDate={confirmedBirthDate}
-            onConfirmBirthDate={setConfirmedBirthDate}
-            onDemoScenarioApplied={refreshPersistedProfile}
-            canResetLocalData={localDataResetEnabled}
-            onResetLocalData={resetLocalData}
-            onGoHome={goToHome}
-            onGoMap={goToMap}
-          />
-        ) : null}
+            {state.screen === 'onboarding-data' ? (
+              <OnboardingDataScreen
+                telegramId={state.telegramId}
+                initialFirstName={state.answers.firstName}
+                initialCity={state.answers.city}
+                initialLanguageCode={state.answers.languageCode}
+                busy={busy}
+                onSubmit={async (firstName, city, languageCode, cityCoordinates) => {
+                  setLanguageCode(languageCode);
+                  updateProfile(firstName, city, languageCode, cityCoordinates);
+                  await finishOnboarding({
+                    firstName,
+                    city,
+                    languageCode,
+                    cityCoordinates,
+                  });
+                }}
+              />
+            ) : null}
+
+            {state.screen === 'home' || state.screen === 'map' ? (
+              <HomeScreen
+                telegramId={state.telegramId}
+                city={state.answers.city}
+                latitude={state.answers.cityLatitude}
+                longitude={state.answers.cityLongitude}
+                onAreaChange={(city) => setMapCity(city.city, city)}
+                variant={state.homeVariant}
+                communities={communities}
+                onVariantChange={setHomeVariant}
+                onGoMap={goToMap}
+                onGoProfile={goToProfile}
+                onGoManageQahal={goToManageQahal}
+                profileTestingEnabled={profileTestingEnabled}
+                effectiveProfile={effectiveProfile}
+              />
+            ) : null}
+
+            {state.screen === 'manage-qahal' ? (
+              <ManageQahalScreen
+                telegramId={state.telegramId}
+                managedCommunity={managedCommunity}
+                managedCommunityId={effectiveProfile.managedCommunityId}
+                profileTestingEnabled={profileTestingEnabled}
+                canManageQahal={effectiveProfile.canManageQahal}
+                onGoHome={goToHome}
+                onGoMap={goToMap}
+                onGoProfile={goToProfile}
+              />
+            ) : null}
+
+            {state.screen === 'profile' ? (
+              <ProfileScreen
+                telegramId={state.telegramId}
+                profileTestingEnabled={profileTestingEnabled}
+                localProfileRole={localProfileRole}
+                onRoleChange={setLocalProfileRole}
+                profileName={effectiveProfile.displayName}
+                profileQahalName={effectiveProfile.qahalName}
+                profileBadges={effectiveProfile.badges}
+                onProfileNameChange={setLocalProfileName}
+                confirmedBirthDate={confirmedBirthDate}
+                onConfirmBirthDate={setConfirmedBirthDate}
+                onDemoScenarioApplied={refreshPersistedProfile}
+                canResetLocalData={localDataResetEnabled}
+                onResetLocalData={resetLocalData}
+                onGoHome={goToHome}
+                onGoMap={goToMap}
+              />
+            ) : null}
+          </Suspense>
+        )}
       </div>
     </I18nProvider>
   );

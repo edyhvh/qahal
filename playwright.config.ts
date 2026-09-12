@@ -16,7 +16,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'bun run dev',
+    command: 'bun run dev:miniapp',
+    env: { VITE_API_BASE_URL: '/api' },
     url: 'http://127.0.0.1:3006',
     reuseExistingServer: true,
     timeout: 120000,

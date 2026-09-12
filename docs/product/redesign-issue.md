@@ -39,7 +39,7 @@ Use the agreed defaults: operator-issued shared codes, 30-day expiry, 100 admiss
 
 ## Files / Locations Involved
 
-`packages/shared`, `apps/worker`, `apps/miniapp`, and product/design documentation. Implementation decisions and test plan: [redesign-plan.md](redesign-plan.md).
+`packages/shared`, `apps/worker`, `apps/miniapp`, and product/design documentation. Implementation decisions and test plan: `docs/product/redesign-plan.md`.
 
 ## Acceptance Criteria / How to know it's fixed
 
@@ -53,4 +53,4 @@ Use the agreed defaults: operator-issued shared codes, 30-day expiry, 100 admiss
 
 ## Related Issues / Context
 
-Based on the agreed redesign plan. Check for an existing matching GitHub issue before publishing; initial repository lookup was unavailable.
+Based on the agreed redesign plan. Tracking issue: https://github.com/jhonnyisaacc/qahal/issues/3 (the former repository URL redirects here).

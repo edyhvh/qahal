@@ -27,7 +27,6 @@ describe('verifyTelegramInitData', () => {
         first_name: 'Miriam',
         language_code: 'en',
         last_name: undefined,
-        photo_url: undefined,
         username: 'miriam321',
       },
     });

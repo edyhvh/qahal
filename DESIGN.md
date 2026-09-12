@@ -242,3 +242,11 @@ The visual theme itself is primarily driven by CSS variables and inline token-ba
 ---
 
 **This document is the single source of truth for current visual and interaction design decisions in the Qahal miniapp. If implementation and this file disagree, update this file immediately after resolving the code path.**
+
+## 9. Controlled-access and list discovery redesign
+
+Home uses Local and Online tabs, text-only congregation cards, approximate radius filtering, and paginated results. Local defaults to 25 km (10/25/50/100 km choices). A successful empty Local result shows opted-in Emunah people; loading and failure have separate states. Online Qahals have no distance or location requirement.
+
+Access begins with Telegram identity and, when enabled server-side, a leader-provided code before onboarding. Profile includes separate discoverability and Telegram-contact consent controls, both off by default. Personal avatars and congregation logo images are prohibited. The app Qof brandmark remains valid.
+
+Map navigation and map modules are retired from active user flows. Home and Profile form the primary navigation; management remains contextual. Shared `.redesign-screen`, `.redesign-card`, and `.redesign-nav` styles consume the existing light/dark CSS variables. Use text and concise metadata instead of image placeholders. Preserve Hebrew direction, accessible form labels, focus states, 44px controls, and Telegram device/content safe areas.

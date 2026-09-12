@@ -1,3 +1,4 @@
+import { DiscoveryPrivacy } from './DiscoveryPrivacy';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DemoScenarioDefinition, DemoScenarioId } from '@qahal/shared';
 import { LOCAL_PROFILE_ROLE_OPTIONS, getLocalProfileRoleOption } from '../../app/types';
@@ -282,6 +283,9 @@ export const ProfileScreen = ({
             {t.profile.title}
           </h1>
         </header>
+        <div className="px-6">
+          <DiscoveryPrivacy />
+        </div>
 
         <div className="flex flex-col gap-[12px] px-[24px]">
           <div className="flex items-center justify-between" style={compactCardStyle}>
@@ -679,7 +683,7 @@ export const ProfileScreen = ({
           background: 'var(--theme-nav-bg)',
           borderTop: '1px solid var(--theme-card-border)',
           boxShadow: 'var(--theme-nav-shadow)',
-          paddingBottom: 24,
+          paddingBottom: 'calc(var(--safe-area-bottom) + 16px)',
           paddingTop: 20,
         }}
       >
@@ -701,26 +705,6 @@ export const ProfileScreen = ({
               }}
             >
               {t.common.home}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="flex w-[84px] flex-col items-center gap-[4px]"
-            onClick={onGoMap}
-          >
-            <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full">
-              <MapIcon color="var(--theme-accent)" />
-            </div>
-            <span
-              style={{
-                fontSize: 11,
-                color: 'var(--theme-accent)',
-                minHeight: 16,
-                lineHeight: '16px',
-              }}
-            >
-              {t.common.map}
             </span>
           </button>
 
